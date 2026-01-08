@@ -1,0 +1,79 @@
+# Predefined constants reference
+
+Lx provides a set of predefined constants that expose information about the runtime environment, numeric limits of the current Lx binary and mathematical constants.
+
+The constants below are always available globally as part of the Lx core and cannot be modified.
+
+---
+
+## Version and Environment
+
+- **`LX_VERSION`** (`string`)  
+  The version string of the running Lx interpreter.  
+  Example: `"1.0"`
+
+- **`LX_EOL`** (`string`)  
+  The end-of-line sequence used by Lx.  
+  Currently defined as a newline character (`"\n"`).
+
+---
+
+## Integer Limits
+
+- **`LX_INT_MAX`** (`int`)  
+  The largest integer value supported by this Lx binary.
+
+- **`LX_INT_MIN`** (`int`)  
+  The smallest integer value supported by this version of Lx.
+
+- **`LX_INT_SIZE`** (`int`)  
+  The size of an integer, in bytes, in this version of Lx.
+
+These values reflect the integer representation used internally by the interpreter.
+
+---
+
+## Floating-Point Limits
+
+- **`LX_FLOAT_DIG`** (`int`)  
+  The number of decimal digits that can be rounded and returned for a floating-point number without loss of precision.
+
+- **`LX_FLOAT_EPSILON`** (`float`)  
+  The smallest positive floating-point value such that `1.0 + x != 1.0`.
+
+- **`LX_FLOAT_MIN`** (`float`)  
+  The smallest positive floating-point value supported.  
+  To obtain the smallest negative floating-point value, use `-LX_FLOAT_MAX`.
+
+- **`LX_FLOAT_MAX`** (`float`)  
+  The largest floating-point value supported.
+
+These constants describe the floating-point characteristics of the current Lx implementation.
+
+---
+
+## Mathematical constants
+
+- **`M_PI`** (`float`)  
+  Pi (3.141592653589793).
+
+- **`M_E`** (`float`)  
+  Euler's number (2.718281828459045).
+
+- **`M_LN2`** (`float`)  
+  Natural logarithm of 2.
+
+- **`M_LN10`** (`float`)  
+  Natural logarithm of 10.
+
+- **`M_LOG2E`** (`float`)  
+  Base-2 logarithm of e.
+
+- **`M_LOG10E`** (`float`)  
+  Base-10 logarithm of e.
+
+- **`M_SQRT2`** (`float`)  
+  Square root of 2.
+
+- **`M_SQRT1_2`** (`float`)  
+  Square root of 1/2.

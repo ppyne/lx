@@ -1,4 +1,4 @@
-# Adding Extensions to Lx
+# Adding extensions to Lx
 
 This document explains how to create and register a native C extension for Lx.
 
@@ -42,7 +42,7 @@ Notes:
 - `n_hello` is a native function with the signature `Value fn(Env*, int, Value*)`.
 - `lx_register_function` makes it available to Lx scripts.
 - Constants and variables are normal global bindings (Lx does not enforce immutability).
-- `lx_register_extension` registers the extension name for `lx_info()`.
+- `lx_register_extension` registers the extension name for `lxinfo()`.
 
 ## Wire the extension into the build
 

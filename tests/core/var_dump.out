@@ -1,0 +1,16 @@
+int(1)
+float(2.5)
+bool(true)
+string(2) "hi"
+NULL
+undefined
+array(4) {
+  [0]=>
+  int(1)
+  [1]=>
+  string(1) "a"
+  [2]=>
+  bool(false)
+  ["k"]=>
+  int(3)
+}

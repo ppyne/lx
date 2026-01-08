@@ -77,5 +77,86 @@ $a = 0;
 $a != 0 && print("never printed\n");
 $a == 0 || print("never printed\n");
 
-print(lx_info());
+print(lxinfo());
+
+
+
+var_dump(abs(-4.2));
+var_dump(abs(5));
+var_dump(abs(-5));
+
+var_dump(acos(.5));
+
+var_dump(asin(.5));
+
+print(asin(0) . "\n");
+print("---\n");
+print(1.0); print(LX_EOL);
+var_dump(1.0);
+print(0.0); print(LX_EOL);
+var_dump(0.0);
+print(-0.2); print(LX_EOL);
+var_dump(-.2);
+printf("%.2f\n", -.1);
+var_dump(float("3.14"));
+print(file_size("README.md") . "\n");
+var_dump(int("42"));
+/*for ($i = 0; $i < 100; $i++) {
+    print((rand(0, 10)) . "\n");
+}*/
+print((rand(0, 10)) . "\n");
+print("---\n");
+print(join(";", ";") . "\n");
+print("---\n");
+print(json_encode(["a" => 1, "b" => 2.1, "c" => "banana"]) . LX_EOL);
+$path = "./";
+$files = list_dir($path);
+foreach($files as $file) {
+    if (is_dir($path . $file)) print("directory: " . $file . LX_EOL);
+    else print("file: " . $file . LX_EOL);
+}
+print(lxinfo());
+print(key_exists("b", ["a" => 10, "b" => 20]) . "\n");
+
+$a = [1, 2, 3];
+var_dump(pop($a));
+var_dump($a);
+print("Hello", " ", "world", LX_EOL);
+
+$str = serialize([1, 2]);
+print($str . LX_EOL);
+$a = unserialize($str);
+var_dump($a);
+$s = sprintf("The result is: %.2f", 1.234);
+print($s . "\n");
+
+var_dump(str(123));
+
+var_dump(values(["a" => 10, "b" => 20]));
+$filename = "temp.txt";
+file_put_contents($filename, "Temporary data");
+if (file_exists($filename)) {
+    print("Removing existing temporary file.\n");
+    if (unlink($filename)) print ("File ", $filename, " removed succesfully.\n");
+    else print("An unexpected problem prevented the file ", $filename, " from being deleted.\n");
+}
+
+print(ucfirst("hello world!") . "\n");
+var_dump(unserialize("a:0:{}"));
+
+$b = 1;
+
+if ($b == 0) {
+    print("one\n");
+} else if ($b == 2) {
+    print("two\n");
+} else {
+    print("other\n");
+}
+
+function add(a, b) {
+    return $a + $b;
+}
+
+print(add(1, 100), LX_EOL);
 

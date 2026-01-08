@@ -574,6 +574,18 @@ static Value eval_unary(Operator op, AstNode *e, Env *env, int *ok_flag) {
             out = value_bool(!value_is_true(v));
             break;
         case OP_SUB: { /* unary minus reusing OP_SUB in some parsers; if you have OP_NEG, use that */
+            if (v.type == VAL_INT) {
+                out = value_int(-v.i);
+                break;
+            }
+            if (v.type == VAL_BOOL) {
+                out = value_int(-(v.b ? 1 : 0));
+                break;
+            }
+            if (v.type == VAL_FLOAT) {
+                out = value_float(-v.f);
+                break;
+            }
             Value f = value_to_float(v);
             out = value_float(-f.f);
             break;

@@ -1,0 +1,3 @@
+print(type(-5) . "\n");
+print(type(-5.0) . "\n");
+print(type(-true) . "\n");

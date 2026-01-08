@@ -1,0 +1,5 @@
+var_dump(1, 2.5, true, "hi", null);
+var_dump($z);
+$a = [1, "a", false];
+$a["k"] = 3;
+var_dump($a);

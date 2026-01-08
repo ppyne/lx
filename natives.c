@@ -31,6 +31,15 @@ static Value run_include(Env *env, const char *path);
 static int include_seen(const char *path);
 static void include_mark(const char *path);
 
+typedef struct {
+    Array **stack;
+    int count;
+    int cap;
+} DumpState;
+
+static void dump_indent(int level);
+static void dump_value(Value v, int indent, DumpState *st);
+
 static void ensure(int need){
     if (g_cap >= need) return;
     int cap = g_cap ? g_cap : 32;
@@ -67,6 +76,126 @@ static Value n_print(Env *env, int argc, Value *argv){
         fputs(s.s, stdout);
         value_free(s);
     }
+    return value_void();
+}
+
+static int dump_seen(DumpState *st, Array *a) {
+    for (int i = 0; i < st->count; i++) {
+        if (st->stack[i] == a) return 1;
+    }
+    return 0;
+}
+
+static void dump_push(DumpState *st, Array *a) {
+    if (st->cap <= st->count) {
+        int cap = st->cap ? st->cap * 2 : 8;
+        Array **ns = (Array **)realloc(st->stack, (size_t)cap * sizeof(Array *));
+        if (!ns) return;
+        st->stack = ns;
+        st->cap = cap;
+    }
+    st->stack[st->count++] = a;
+}
+
+static void dump_pop(DumpState *st) {
+    if (st->count > 0) st->count--;
+}
+
+static void dump_indent(int level) {
+    for (int i = 0; i < level; i++) {
+        fputs("  ", stdout);
+    }
+}
+
+static void dump_string(const char *s, size_t len) {
+    fputs("string(", stdout);
+    printf("%zu", len);
+    fputs(") \"", stdout);
+    if (len > 0) fwrite(s, 1, len, stdout);
+    fputs("\"", stdout);
+}
+
+static void dump_array(Value v, int indent, DumpState *st) {
+    Array *a = v.a;
+    if (!a) {
+        dump_indent(indent);
+        fputs("array(0) {}", stdout);
+        return;
+    }
+    if (dump_seen(st, a)) {
+        dump_indent(indent);
+        fputs("*RECURSION*", stdout);
+        return;
+    }
+    dump_push(st, a);
+    dump_indent(indent);
+    printf("array(%d) {\n", a->size);
+    for (int i = 0; i < a->size; i++) {
+        ArrayEntry *e = &a->entries[i];
+        dump_indent(indent + 1);
+        if (e->key.type == KEY_STRING) {
+            printf("[\"%s\"]=>\n", e->key.s ? e->key.s : "");
+        } else {
+            printf("[%d]=>\n", e->key.i);
+        }
+        dump_value(e->value, indent + 1, st);
+        fputc('\n', stdout);
+    }
+    dump_indent(indent);
+    fputs("}", stdout);
+    dump_pop(st);
+}
+
+static void dump_value(Value v, int indent, DumpState *st) {
+    switch (v.type) {
+        case VAL_UNDEFINED:
+            dump_indent(indent);
+            fputs("undefined", stdout);
+            break;
+        case VAL_VOID:
+            dump_indent(indent);
+            fputs("void", stdout);
+            break;
+        case VAL_NULL:
+            dump_indent(indent);
+            fputs("NULL", stdout);
+            break;
+        case VAL_BOOL:
+            dump_indent(indent);
+            printf("bool(%s)", v.b ? "true" : "false");
+            break;
+        case VAL_INT:
+            dump_indent(indent);
+            printf("int(%d)", v.i);
+            break;
+        case VAL_FLOAT:
+            dump_indent(indent);
+            printf("float(%g)", v.f);
+            break;
+        case VAL_STRING: {
+            const char *s = v.s ? v.s : "";
+            dump_indent(indent);
+            dump_string(s, strlen(s));
+            break;
+        }
+        case VAL_ARRAY:
+            dump_array(v, indent, st);
+            break;
+        default:
+            dump_indent(indent);
+            fputs("undefined", stdout);
+            break;
+    }
+}
+
+static Value n_var_dump(Env *env, int argc, Value *argv){
+    (void)env;
+    DumpState st = {0};
+    for (int i = 0; i < argc; i++) {
+        dump_value(argv[i], 0, &st);
+        fputc('\n', stdout);
+    }
+    free(st.stack);
     return value_void();
 }
 
@@ -951,7 +1080,7 @@ static Value n_ord(Env *env, int argc, Value *argv){
     return value_int((unsigned char)argv[0].s[0]);
 }
 
-static Value n_slip(Env *env, int argc, Value *argv){
+static Value n_split(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2) return value_array();
     if (argv[0].type != VAL_STRING || argv[1].type != VAL_STRING) return value_array();
@@ -1359,6 +1488,7 @@ static Value n_array_keys(Env *env, int argc, Value *argv){
 
 void install_stdlib(void){
     register_function("print",   n_print);
+    register_function("var_dump", n_var_dump);
     register_function("include", n_include);
     register_function("include_once", n_include_once);
     register_function("abs",     n_abs);
@@ -1383,7 +1513,7 @@ void install_stdlib(void){
     register_function("str_contains", n_str_contains);
     register_function("starts_with", n_starts_with);
     register_function("ends_with", n_ends_with);
-    register_function("lx_info", n_lx_info);
+    register_function("lxinfo", n_lx_info);
     register_function("type",n_get_type);
 
     register_function("is_null",   n_is_null);
@@ -1433,8 +1563,8 @@ void install_stdlib(void){
     register_function("int", n_int);
     register_function("float", n_float);
     register_function("str", n_str);
-    register_function("slip", n_slip);
+    register_function("split", n_split);
     register_function("join", n_join);
-    register_function("explode", n_slip);
+    register_function("explode", n_split);
     register_function("implode", n_join);
 }

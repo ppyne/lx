@@ -1,4 +1,4 @@
-# Lx Installation and Build
+# Lx Installation and building
 
 This document explains how to build, run, and test the Lx interpreter from source.
 

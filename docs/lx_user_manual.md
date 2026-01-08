@@ -29,6 +29,10 @@ The lynx was chosen for its symbolism: sharp vision, precision, and quiet attent
 
 The lynx also echoes the name **Lx** itself (derived from *Alex*, pronounced using the letters *L* and *X*), reinforcing a strong and simple identity. Its minimalist representation aligns with the language’s focus on frugality and readability, even at very small scales such as icons.
 
+**Installation and building**
+
+See [Lx Installation and building](lx_installation.md) for details.
+
 ---
 
 ## 2. Language Basics
@@ -432,13 +436,25 @@ print($a > 0 ? "yes" : "no");
 
 ```php
 if ($a == 1) {
-    print("one");
+    print("one\n");
 } else {
-    print("other");
+    print("other\n");
+}
+
+if ($b == 0) {
+    print("one\n");
+} else if ($b == 2) {
+    print("two\n");
+} else {
+    print("other\n");
 }
 ```
 
 Single-statement forms are allowed.
+
+```php
+if (x > 0) printf("x is positive\n");
+````
 
 ---
 
@@ -470,20 +486,16 @@ for ($i = 0; $i < 3; $i++) {
 }
 ```
 
-Restrictions:
-
-- The init and step expressions must be assignments to a variable or `++/--`.
-
 #### foreach
 
 Arrays:
 
 ```php
-foreach ($arr as $value) {
+foreach ([1, 2, 3] as $value) {
     print($value . LX_EOL);
 }
 
-foreach ($arr as $key => $value) {
+foreach (["a" => 1, "b" => 2, "c" => 3] as $key => $value) {
     print($key . ":" . $value . LX_EOL);
 }
 ```
@@ -527,7 +539,7 @@ Using `break` or `continue` outside loops raises a runtime error.
 
 ## 7. Arrays
 
-Arrays are associative containers with integer or string keys.
+Arrays are associative containers with integer indexes or string keys.
 
 ```php
 $a = [];
@@ -544,12 +556,12 @@ Nested assignment auto-creates intermediate arrays:
 ```php
 $a["nested"]["y"] = 30;
 
-print($a["nested"][keys($a["nested"])[0]] . "\n"); // 30
+print($a["nested"][keys($a["nested"])[0]] . "\n"); // 30 😄
 ```
 
 Rules:
 
-- Reading a missing key returns `undefined`.
+- Reading a missing key, or an out of range index, returns `undefined`.
 - Indexing a non-array (except string) returns `undefined`.
 - String indexing returns a one-character string or `undefined`.
 - Index assignment on a non-array raises a runtime error.
@@ -568,6 +580,12 @@ function add($a, $b) {
 ```
 
 Parameters may be written with or without `$`.
+
+```php
+function add(a, b) {
+    return $a + $b;
+}
+```
 
 ---
 
@@ -666,7 +684,23 @@ In this example:
 
 ---
 
-## 9. Memory management
+## 9. Built-in and extended functions
+
+Lx provides a set of built-in and extended functions.
+
+See [Lx Functions Reference](lx_functions_reference.md) for details.
+
+---
+
+## 10. Predefined constants
+
+Lx provides a set of predefined constants.
+
+See [Lx Predefined constants](lx_predefined_constants.md) for details.
+
+---
+
+## 11. Memory management
 
 Values are reference-counted. Arrays are additionally tracked by a periodic mark-and-sweep pass.
 
@@ -740,462 +774,7 @@ Only the specified element is removed; other elements remain unchanged.
 
 ---
 
-## 10. Built-in Functions
-
-Lx provides a small set of built-in functions for output, string manipulation, array inspection, and basic type handling.  
-All functions described below are globally available.
-
-### Available built-in functions
-
-Output and formatting:
-
-`print`, `printf`, `sprintf`, `lx_info`
-
-Includes:
-
-`include`, `include_once`
-
-Types and inspection:
-
-`type`, `is_null`, `is_bool`, `is_int`, `is_float`, `is_string`, `is_array`, `is_defined`, `is_undefined`, `is_void`
-
-Numeric and math:
-
-`abs`, `min`, `max`, `round`, `floor`, `ceil`, `sqrt`, `pow`, `exp`, `log`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `rand`, `srand`, `clamp`, `pi`, `sign`, `deg2rad`, `rad2deg`
-
-Strings:
-
-`strlen`, `substr`, `trim`, `ltrim`, `rtrim`, `ucfirst`, `strtolower`, `strtoupper`, `strpos`, `strrpos`, `strcmp`, `str_replace`, `str_contains`, `starts_with`, `ends_with`, `ord`, `chr`, `slip`/`explode`, `join`/`implode`
-
-Arrays:
-
-`keys`, `key_exists`, `values`, `in_array`, `push`, `pop`, `shift`, `unshift`, `merge`, `slice`, `splice`, `reverse`
-
-Casting helpers:
-
-`int`, `float`, `str`
-
----
-
-### include / include_once
-
-```php
-include("lib.lx");
-include_once("lib.lx");
-```
-
-`include` parses and executes another Lx file in the current environment.  
-`include_once` executes a file only on the first include attempt.  
-If the file cannot be read, a runtime error is raised.
-
----
-
-### print
-
-```php
-print(value);
-```
-
-Outputs the string representation of `value`.
-
-- Accepts any value.
-- Does not append a newline automatically.
-- Returns `void`.
-
-Example:
-
-```php
-print("Hello world\n");
-```
-
----
-
-### printf
-
-```php
-printf(format, ...args);
-```
-
-Outputs a formatted string using `printf`-style formatting.
-
-`printf` behaves like `print(sprintf(format, ...args))`.  
-For a detailed description of the formatting syntax and supported specifiers, see **`sprintf`**.
-
-Example:
-
-```php
-printf("Integer: %03d\n", -1);
-```
-
-Return value:
-
-- `void`
-
----
-
-### sprintf
-
-```php
-sprintf(format, ...args);
-```
-
-Builds and returns a formatted string using `printf`-style formatting.
-
-The format string controls how the given arguments are converted and inserted into the resulting string.
-
-Example:
-
-```php
-$s = sprintf("The result is: %.2f", 1.234);
-print($s . "\n");
-```
-
-Return value:
-
-- `string`
-
----
-
-#### Format specification syntax
-
-Each format specifier in `sprintf` and `printf` follows this general form:
-
-```
-%[flags][width][.precision]specifier
-```
-
-Not all components are required, and they may be combined depending on the specifier.
-
----
-
-#### Specifier components
-
-##### Flags
-
-Flags modify the formatting behavior:
-
-- `0`  
-  Pads the result with leading zeros instead of spaces.
-
-Example:
-
-```php
-sprintf("%05d", 42);   // "00042"
-```
-
----
-
-##### Width
-
-The width specifies the **minimum number of characters** to output.
-
-If the formatted value is shorter, it is padded (by default with spaces, or with zeros if the `0` flag is used).
-
-Example:
-
-```php
-sprintf("%5d", 42);   // "   42"
-sprintf("%05d", 42);  // "00042"
-```
-
----
-
-##### Precision
-
-Precision is introduced by a dot (`.`) and has different meanings depending on the specifier:
-
-- For floating-point numbers, it specifies the number of digits after the decimal point.
-- For integers, it specifies the minimum number of digits.
-- For strings, it specifies the maximum number of characters.
-
-Examples:
-
-```php
-sprintf("%.2f", 3.14159);  // "3.14"
-sprintf("%.3d", 7);        // "007"
-sprintf("%.4s", "abcdef"); // "abcd"
-```
-
----
-
-#### Supported format specifiers
-
-| Specifier | Description                                                                                                                            |
-| ---------:| -------------------------------------------------------------------------------------------------------------------------------------- |
-| `%s`      | String                                                                                                                                 |
-| `%c`      | Character. The argument may be the first character of a string or an integer interpreted as an ASCII code. An empty string is ignored. |
-| `%d`      | Signed decimal integer                                                                                                                 |
-| `%i`      | Signed integer                                                                                                                         |
-| `%u`      | Unsigned integer                                                                                                                       |
-| `%x`      | Unsigned hexadecimal integer (lowercase)                                                                                               |
-| `%X`      | Unsigned hexadecimal integer (uppercase)                                                                                               |
-| `%o`      | Unsigned octal integer                                                                                                                 |
-| `%f`      | Floating-point number                                                                                                                  |
-| `%F`      | Floating-point number                                                                                                                  |
-| `%e`      | Scientific notation (lowercase)                                                                                                        |
-| `%E`      | Scientific notation (uppercase)                                                                                                        |
-| `%g`      | Shortest representation (`%f` or `%e`)                                                                                                 |
-| `%G`      | Shortest representation (`%F` or `%E`)                                                                                                 |
-| `%%`      | Literal percent sign. No argument required.                                                                                            |
-
----
-
-#### Combined examples
-
-```php
-sprintf("%8.2f", 3.1);    // "    3.10"
-sprintf("%08.2f", 3.1);   // "00003.10"
-sprintf("%6s", "lx");     // "    lx"
-sprintf("%.3s", "lynx");  // "lyn"
-sprintf("%04x", 15);      // "000f"
-```
-
----
-
-#### Notes and limitations
-
-- Width and precision must be numeric literals.
-- Dynamic width or precision using `*` is not supported.
-- Unsupported or invalid format sequences are left unchanged in the output.
-
----
-
-### strlen
-
-```php
-strlen(string);
-```
-
-Returns the length of a string in characters.
-
-Example:
-
-```php
-print(strlen("abcd"));    // 4
-print(strlen([0, 1, 2])); // 0
-```
-
-Return value:
-
-- `int`
-
----
-
-### count
-
-```php
-count(array);
-```
-
-Returns the number of elements in an array.
-
-If `value` is not an array, `count` returns `0`.
-
-Example:
-
-```php
-print(count([1, 2, 3])); // 3
-print(count("abc"));     // 0
-```
-
-Return value:
-
-- `int`
-
----
-
-### substr
-
-```php
-substr(string, start [, length]);
-```
-
-Returns a portion of a string.
-
-- `start` specifies the starting index (0-based).
-- If `length` is provided, at most `length` characters are returned.
-
-Example:
-
-```php
-print(substr("abcd", 1, 2)); // "bc"
-```
-
-Return value:
-
-- `string`
-
----
-
-### type
-
-```php
-type(value);
-```
-
-Returns the runtime type of `value` as a string.
-
-Example:
-
-```php
-print(type([]));  // "array"
-print(type(123)); // "int"
-```
-
-Return value:
-
-- `string`
-
----
-
-### ord
-
-```php
-ord(string);
-```
-
-Returns the numeric code of the first character of `string`.
-
-Example:
-
-```php
-print(ord("A")); // 65
-```
-
-Return value:
-
-- `int`
-
----
-
-### chr
-
-```php
-chr(code);
-```
-
-Returns a one-character string corresponding to the given numeric code.
-
-Example:
-
-```php
-print(chr(0x41)); // "A"
-```
-
-Return value:
-
-- `string`
-
----
-
-### keys
-
-```php
-keys(array);
-```
-
-Returns an array containing all the keys of the given array.
-
-The returned array contains the keys in the order they appear in the array.
-
-Example:
-
-```php
-$a = ["x" => 10, "y" => 20, 3 => "z"];
-
-$k = keys($a);
-
-for ($i = 0; $i < count($k); $i++)
-    print($k[$i] . ": " . $a[$k[$i]] . "\n");
-
-/* Will print
-x: 10
-y: 20
-3: z
-*/
-```
-
-Return value:
-
-- `array`
-
-Notes:
-
-- If the argument is not an array, an empty array is returned.
-
-- Both integer and string keys are included.
-
----
-
-## 11. Predefined Constants
-
-Lx provides a set of predefined constants that expose information about the runtime environment and numeric limits of the current Lx binary.  
-These constants are available globally and cannot be modified.
-
----
-
-### Version and Environment
-
-- **`LX_VERSION`** (`string`)  
-  The version string of the running Lx interpreter.  
-  Example: `"1.0"`
-
-- **`LX_EOL`** (`string`)  
-  The end-of-line sequence used by Lx.  
-  Currently defined as a newline character (`"\n"`).
-
----
-
-### Integer Limits
-
-- **`LX_INT_MAX`** (`int`)  
-  The largest integer value supported by this Lx binary.
-
-- **`LX_INT_MIN`** (`int`)  
-  The smallest integer value supported by this version of Lx.
-
-- **`LX_INT_SIZE`** (`int`)  
-  The size of an integer, in bytes, in this version of Lx.
-
-These values reflect the integer representation used internally by the interpreter.
-
----
-
-### Floating-Point Limits
-
-- **`LX_FLOAT_DIG`** (`int`)  
-  The number of decimal digits that can be rounded and returned for a floating-point number without loss of precision.
-
-- **`LX_FLOAT_EPSILON`** (`float`)  
-  The smallest positive floating-point value such that `1.0 + x != 1.0`.
-
-- **`LX_FLOAT_MIN`** (`float`)  
-  The smallest positive floating-point value supported.  
-  To obtain the smallest negative floating-point value, use `-LX_FLOAT_MAX`.
-
-- **`LX_FLOAT_MAX`** (`float`)  
-  The largest floating-point value supported.
-
-These constants describe the floating-point characteristics of the current Lx implementation.
-
----
-
-### Math constants
-
-- **`M_PI`** (`float`)
-- **`M_E`** (`float`)
-- **`M_LN2`** (`float`)
-- **`M_LN10`** (`float`)
-- **`M_LOG2E`** (`float`)
-- **`M_LOG10E`** (`float`)
-- **`M_SQRT2`** (`float`)
-- **`M_SQRT1_2`** (`float`)
-
-These constants use standard double-precision values.
-
----
-
-## 13. Extensions
+## 12. Extensions
 
 Lx exposes a C extension API (see `lx_ext.h`) to register functions, constants, and variables.
 Extensions are initialized at startup and run in the global environment.
@@ -1222,6 +801,8 @@ void register_my_module(void) {
 }
 ```
 
+See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
+
 Built-in extensions:
 
 - **fs**: `file_get_contents`, `file_put_contents`, `file_exists`, `file_size`, `is_dir`, `is_file`, `mkdir`, `rmdir`, `unlink`, `pathinfo`, `list_dir`
@@ -1231,7 +812,7 @@ Built-in extensions:
 
 ---
 
-## 14. Errors and Limitations
+## 13. Errors and Limitations
 
 Errors stop execution immediately and are printed as a single line:
 
@@ -1257,7 +838,7 @@ Limitations:
 
 ---
 
-## 15. Undefined or Unclear Behavior
+## 14. Undefined or Unclear Behavior
 
 - Floating-point formatting depends on `%g`
 

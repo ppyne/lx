@@ -72,6 +72,37 @@ void value_free(Value v){
     }
 }
 
+static Value float_to_string(double f) {
+    char tmp[128];
+    if (isnan(f)) return value_string("nan");
+    if (isinf(f)) return value_string(signbit(f) ? "-inf" : "inf");
+    if (f == 0.0) return value_string(signbit(f) ? "-0.0" : "0.0");
+    double ipart = 0.0;
+    if (modf(f, &ipart) == 0.0) {
+        snprintf(tmp, sizeof(tmp), "%.0f", f);
+        size_t len = strlen(tmp);
+        if (len + 2 < sizeof(tmp)) {
+            tmp[len] = '.';
+            tmp[len + 1] = '0';
+            tmp[len + 2] = '\0';
+            return value_string(tmp);
+        }
+    }
+    snprintf(tmp, sizeof(tmp), "%.15g", f);
+    if (!strchr(tmp, 'e') && !strchr(tmp, 'E')) {
+        if (tmp[0] == '.' || tmp[0] == '-') {
+            if (tmp[0] == '.' ) {
+                memmove(tmp + 1, tmp, strlen(tmp) + 1);
+                tmp[0] = '0';
+            } else if (tmp[0] == '-' && tmp[1] == '.') {
+                memmove(tmp + 2, tmp + 1, strlen(tmp));
+                tmp[1] = '0';
+            }
+        }
+    }
+    return value_string(tmp);
+}
+
 Value value_to_string(Value v){
     char tmp[128];
     switch (v.type){
@@ -80,7 +111,7 @@ Value value_to_string(Value v){
         case VAL_NULL:      return value_string("null");
         case VAL_BOOL:      return value_string(v.b ? "true" : "false");
         case VAL_INT:       snprintf(tmp,sizeof(tmp),"%d",v.i); return value_string(tmp);
-        case VAL_FLOAT:     snprintf(tmp,sizeof(tmp),"%g",v.f); return value_string(tmp);
+        case VAL_FLOAT:     return float_to_string(v.f);
         case VAL_STRING:    return value_string(v.s);
         case VAL_ARRAY:     return value_string("array");
         default:            return value_string("null");
