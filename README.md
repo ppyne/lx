@@ -18,6 +18,7 @@ BSD 3-Clause License. See `LICENSE` for details.
 ## Quick Start
 
 ```sh
+cd lx
 make
 ./lx tests/core/variables.lx
 ```
