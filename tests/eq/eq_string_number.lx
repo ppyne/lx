@@ -1,0 +1,12 @@
+# non-strict equality: number <-> string coercion
+
+print(50 == "50");        print("\n");
+print(50 == "50.0");      print("\n");
+print(50 == "050");       print("\n");
+
+print(50 == "50abc");     print("\n");
+print(50 == "abc");       print("\n");
+
+print(50 != "50");        print("\n");
+print(50 != "50.0");      print("\n");
+print(50 != "abc");       print("\n");

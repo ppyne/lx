@@ -1,0 +1,28 @@
+unlink("tmp_dir/a.txt");
+unlink("tmp_dir/b.txt");
+rmdir("tmp_dir");
+unlink("tmp_file.txt");
+
+file_put_contents("tmp_file.txt", "abc");
+print(file_exists("tmp_file.txt") . "\n");
+print(file_size("tmp_file.txt") . "\n");
+print(file_get_contents("tmp_file.txt") . "\n");
+print(is_file("tmp_file.txt") . "\n");
+print(is_dir("tmp_file.txt") . "\n");
+
+mkdir("tmp_dir");
+file_put_contents("tmp_dir/a.txt", "A");
+file_put_contents("tmp_dir/b.txt", "B");
+print(is_dir("tmp_dir") . "\n");
+print(is_file("tmp_dir") . "\n");
+
+$p = pathinfo("tmp_dir/a.txt");
+print($p["dirname"] . "|" . $p["basename"] . "|" . $p["extension"] . "|" . $p["filename"] . "\n");
+
+$lst = list_dir("tmp_dir");
+print($lst[0] . "," . $lst[1] . "\n");
+
+unlink("tmp_dir/a.txt");
+unlink("tmp_dir/b.txt");
+rmdir("tmp_dir");
+unlink("tmp_file.txt");

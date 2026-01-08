@@ -1,0 +1,33 @@
+# switch with breaks
+$x = 1;
+switch ($x) {
+    case 1:
+        print("one\n");
+        break;
+    case 2:
+        print("two\n");
+        break;
+    default:
+        print("other\n");
+        break;
+}
+
+# fall-through
+$x = 2;
+switch ($x) {
+    case 1:
+        print("a\n");
+    case 2:
+        print("b\n");
+    default:
+        print("c\n");
+        break;
+}
+
+# default only
+$x = 9;
+switch ($x) {
+    default:
+        print("d\n");
+        break;
+}

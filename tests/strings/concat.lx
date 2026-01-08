@@ -1,0 +1,27 @@
+# concaténation simple
+
+print("a" . "b");           print("\n");
+print("ab" . "cd");         print("\n");
+
+# concaténation avec variables
+
+$a = "a";
+$b = "b";
+print($a . $b);             print("\n");
+
+# concaténation chaîne + nombre (coercition vers string)
+
+print("x" . 1);             print("\n");
+print(1 . "x");             print("\n");
+print("val=" . 50);         print("\n");
+
+# concaténation multiple et précédence
+
+print("a" . "b" . "c");     print("\n");
+print("a" . 1 . 2);         print("\n");
+
+# concaténation vs addition (priorité)
+# . est plus faible que +
+
+print("a" . (1 + 2));       print("\n");
+print("a" . 1 + 2);         print("\n");  # ("a" . 1) + 2 → selon spec: concat puis +

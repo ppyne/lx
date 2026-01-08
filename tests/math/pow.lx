@@ -1,0 +1,26 @@
+# puissance simple (int)
+
+print(2 ** 5);        print("\n");
+print(5 ** 2);        print("\n");
+print(10 ** 0);       print("\n");
+print(1 ** 100);      print("\n");
+
+# puissance avec float
+
+print(9 ** 0.5);      print("\n");
+print(16 ** 0.25);    print("\n");
+print(2 ** 0.0);      print("\n");
+
+# associativité droite (** est right-associative)
+# 2 ** (3 ** 2) = 2 ** 9 = 512
+
+print(2 ** 3 ** 2);   print("\n");
+
+# priorité sur * et +
+
+print(2 * 3 ** 2);    print("\n");   # 2 * (3 ** 2) = 18
+print(2 + 3 ** 2);    print("\n");   # 2 + (3 ** 2) = 11
+
+# parenthèses explicites
+
+print((2 ** 3) ** 2); print("\n");   # 8 ** 2 = 64

@@ -1,0 +1,18 @@
+hello world
+int=42
+int=-7
+uint=7
+hex=ff
+HEX=FF
+oct=12
+f=1.23
+e=1.250000e+01
+g=12.5
+pad=00007
+left=7    !
+100%
+char=A
+P:ok 3
+A
+A
+A

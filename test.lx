@@ -1,0 +1,81 @@
+function no_return() {
+    $n = 0;
+}
+
+$a = [[], "", .0, 0, false, null, no_return(), $z];
+
+for ($i = count($a) - 1; $i >= 0 ; $i--) {
+    print(type($a[$i]) . ": ");
+    if ($a[$i]) print("true" . LX_EOL);
+    else print("false" . LX_EOL);
+}
+
+$a = [.0, 1.5, -2., 1e3];
+
+for ($i = 0; $i < count($a); $i++)
+    print(type($a[$i]) . LX_EOL);
+
+print(ord(chr(-5)).LX_EOL);
+print(chr(65).LX_EOL);
+print(ord(chr(300)).LX_EOL);
+print("\x41\n");
+
+printf("Integer: %03d\n", -1);
+
+$a = "Hello";
+$b = "World";
+print($a . " " . $b . "\n"); // Prints Hello World
+
+printf("%s %s\n", $a, $b); // Prints Hello World
+
+print(type(LX_VERSION) . LX_EOL);
+print(LX_VERSION . LX_EOL);
+
+$a = ["x" => 10, "y" => 20, 3 => "z"];
+$k = keys($a);
+for ($i = 0; $i < count($k); $i++) print($k[$i] . ": " . $a[$k[$i]] . "\n");
+
+print(count("abc") . LX_EOL);
+print(strlen([0,1,2]) . LX_EOL);
+
+printf("%08d\n", 12);
+printf("%.2f\n", 3.14159);
+printf("%c\n", "A");
+printf("%c\n", "AB");
+printf("%c\n", "");
+printf("%c\n", 0);
+printf("%c\n", 65);
+
+
+function f() {
+    $v += 1;
+    print("v:" . $v . "\n");
+}
+
+f();
+print($v . "\n"); // undefined
+
+
+function caca() {}
+
+
+
+$a["nested"]["y"] = 30;
+
+print (((1 + 2) * 2) + $a["nested"]["y"] . "\n");
+
+$a = keys($a["nested"]);
+for ($i = 0; $i < count($a) ; $i++) print($a[$i] . "\n");
+
+print ("-------\n");
+
+$a["nested"]["y"] = 30;
+print ($a["nested"][keys($a["nested"])[0]] . "\n");
+
+
+$a = 0;
+$a != 0 && print("never printed\n");
+$a == 0 || print("never printed\n");
+
+print(lx_info());
+

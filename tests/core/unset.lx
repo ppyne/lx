@@ -1,0 +1,33 @@
+# unset variable simple
+
+$a = 10;
+print($a); print("\n");
+
+unset($a);
+print($a); print("\n");   # valeur neutre attendue
+
+# unset chaîne
+
+$b = "abc";
+print($b); print("\n");
+
+unset($b);
+print($b); print("\n");
+
+# unset tableau
+
+$c = [];
+$c[0] = 2;
+print(count($c)); print("\n");
+
+unset($c);
+print(count($c)); print("\n");
+
+# unset clé de tableau (si supporté)
+
+$d = [];
+$d["x"] = 42;
+print(count($d)); print("\n");
+
+unset($d["x"]);
+print(count($d)); print("\n");

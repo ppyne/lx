@@ -1,0 +1,46 @@
+# tableau vide
+
+$a = [];
+print(count($a)); print("\n");
+
+# clés int simples
+
+$a[0] = 10;
+$a[1] = 20;
+$a[2] = 30;
+print(count($a)); print("\n");
+
+# clés string
+
+$b = [];
+$b["x"] = 1;
+$b["y"] = 2;
+print(count($b)); print("\n");
+
+# mélange int / string (clés distinctes)
+
+$c = [];
+$c[0] = "zero";
+$c["1"] = "one";
+$c[1] = "ONE";
+print(count($c)); print("\n");
+
+# écrasement de valeur (ne change pas la taille)
+
+$c[1] = "uno";
+print(count($c)); print("\n");
+
+# tableau imbriqué : len du parent et du sous-tableau
+
+$d = [];
+$d["a"] = [];
+$d["a"][0] = 1;
+$d["a"][1] = 2;
+
+print(count($d));      print("\n");
+print(count($d["a"])); print("\n");
+
+# clé inexistante (valeur neutre → len = 0 attendu)
+
+$e = [];
+print(count($e["missing"])); print("\n");

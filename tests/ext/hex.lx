@@ -1,0 +1,4 @@
+print(bin2hex("Hi") . "\n");
+print(hex2bin("4869") . "\n");
+print(hex2bin("zz") . "\n");
+print(hex2bin("123") . "\n");

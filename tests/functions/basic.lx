@@ -1,0 +1,57 @@
+# fonction simple sans paramètre
+
+function hello() {
+    print("hello\n");
+}
+
+hello();
+
+# fonction avec paramètres
+
+function add($a, $b) {
+    return $a + $b;
+}
+
+print(add(2, 3)); print("\n");
+
+# appel imbriqué
+
+function mul($a, $b) {
+    return $a * $b;
+}
+
+print(mul(add(2, 3), 4)); print("\n");   # (2+3)*4 = 20
+
+# paramètres et types dynamiques
+
+function show($x) {
+    print($x);
+    print("\n");
+}
+
+show(10);
+show("abc");
+show(2.5);
+show(true);
+
+# fonction retournant null (pas de return explicite)
+
+function no_return() {
+    $x = 1;
+}
+
+print(no_return()); print("\n");
+
+# function qui accède à variable global
+
+$glob = 10;
+
+function set_global($n) {
+    $glob = $glob + $n;
+}
+
+set_global(5);
+
+print($glob); print("\n");
+
+

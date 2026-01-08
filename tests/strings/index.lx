@@ -1,0 +1,29 @@
+# indexation simple
+
+$str = "abcd";
+
+print($str[0]); print("\n");   # a
+print($str[1]); print("\n");   # b
+print($str[2]); print("\n");   # c
+print($str[3]); print("\n");   # d
+
+# index hors limites
+
+print($str[4]); print("\n");   # ""
+print($str[10]); print("\n");  # ""
+
+# indexation dans une expression
+
+print($str[0] . $str[3]); print("\n");   # ad
+
+# index dynamique
+
+for ($i = 0; $i < 4; $i = $i + 1) {
+    print($str[$i]);
+}
+print("\n");
+
+# chaîne vide
+
+$empty = "";
+print($empty[0]); print("\n");   # ""

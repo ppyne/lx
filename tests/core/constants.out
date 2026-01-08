@@ -1,0 +1,17 @@
+INT_MAX=2147483647
+INT_MIN=-2147483648
+INT_SIZE=4
+FLOAT_DIG=15
+FLOAT_EPSILON=2.220446e-16
+FLOAT_MIN=2.225074e-308
+FLOAT_MAX=1.797693e+308
+true=true
+false=false
+null=null
+undefined=undefined
+void=
+type_true=bool
+type_false=bool
+type_null=null
+type_undefined=undefined
+type_void=void

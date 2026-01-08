@@ -1,0 +1,12 @@
+# multiple init/step expressions
+for ($i = 0, $j = 10; $i < 3; $i++, $j -= 2) {
+    print($i . ":" . $j . "\n");
+}
+
+# mixed compound assignments
+for ($a = 1, $b = 2; $a < 4; $a += 1, $b *= 2) {
+    print($a . "," . $b . "\n");
+}
+
+# single-statement body
+for ($k = 0, $m = 3; $k < 2; $k++, $m--) print($k . "-" . $m . "\n");

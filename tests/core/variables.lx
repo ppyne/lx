@@ -1,0 +1,55 @@
+# déclaration implicite et lecture
+
+$a = 10;
+print($a); print("\n");
+
+# réaffectation (même type)
+
+$a = 20;
+print($a); print("\n");
+
+# réaffectation (changement de type)
+
+$a = "str";
+print($a); print("\n");
+
+$a = 2.5;
+print($a); print("\n");
+
+$a = true;
+print($a); print("\n");
+
+$a = null;
+print($a); print("\n");
+
+# variables multiples indépendantes
+
+$b = 1;
+$c = 2;
+print($b + $c); print("\n");
+
+# utilisation avant unset
+
+$d = "ok";
+print($d); print("\n");
+
+unset($d);
+print($d); print("\n");   # valeur neutre
+
+# réaffectation après unset
+
+$d = 42;
+print($d); print("\n");
+
+# écrasement sans unset
+
+$e = 1;
+$e = $e + 1;
+print($e); print("\n");
+
+# affectation via expression
+
+$f = 2 * 3 + 4;
+print($f); print("\n");
+
+

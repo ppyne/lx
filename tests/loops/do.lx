@@ -1,0 +1,20 @@
+# do-while with block
+$i = 0;
+do {
+    print($i . "\n");
+    $i = $i + 1;
+} while ($i < 3);
+
+# do-while with single statement
+$j = 0;
+do $j++; while ($j < 2);
+print($j . "\n");
+
+# do-while with break/continue
+$k = 0;
+do {
+    $k = $k + 1;
+    if ($k == 2) continue;
+    if ($k == 4) break;
+    print($k . "\n");
+} while (true);

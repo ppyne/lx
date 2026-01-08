@@ -1,0 +1,21 @@
+# strict equality: types must match
+
+print(50 === 50);       print("\n");
+print(50 === 50.0);     print("\n");
+print(50.0 === 50.0);   print("\n");
+
+print("50" === "50");   print("\n");
+print("50" === 50);     print("\n");
+
+print(true === true);   print("\n");
+print(true === false);  print("\n");
+
+print(null === null);   print("\n");
+print(null === false);  print("\n");
+
+# strict inequality
+
+print(50 !== 50);       print("\n");
+print(50 !== 50.0);     print("\n");
+print("50" !== 50);     print("\n");
+print(true !== false);  print("\n");

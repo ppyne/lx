@@ -1,0 +1,16 @@
+print(serialize(null) . "\n");
+print(serialize(true) . "\n");
+print(serialize(42) . "\n");
+print(serialize(1.5) . "\n");
+print(serialize("hi") . "\n");
+
+$a = ["a" => 1, 2, "b" => "x"];
+print(serialize($a) . "\n");
+
+$u = unserialize("a:2:{i:0;s:1:\"a\";i:1;s:1:\"b\";}");
+print($u[0] . "," . $u[1] . "\n");
+
+$v = unserialize(serialize($a));
+print($v["a"] . "," . $v[0] . "," . $v["b"] . "\n");
+
+print(unserialize("bad") . "\n");

@@ -1,0 +1,43 @@
+# break dans for
+
+for ($i = 0; $i < 10; $i = $i + 1) {
+    if ($i == 3) {
+        break;
+    }
+    print($i);
+}
+print("\n");
+
+# continue dans for
+
+for ($j = 0; $j < 5; $j = $j + 1) {
+    if ($j == 2) {
+        continue;
+    }
+    print($j);
+}
+print("\n");
+
+# break dans while
+
+$k = 0;
+while (true) {
+    if ($k == 2) {
+        break;
+    }
+    print($k);
+    $k = $k + 1;
+}
+print("\n");
+
+# continue dans while
+
+$m = 0;
+while ($m < 5) {
+    $m = $m + 1;
+    if ($m == 3) {
+        continue;
+    }
+    print($m);
+}
+print("\n");

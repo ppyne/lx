@@ -1,0 +1,15 @@
+$a = ["a" => 1, "b" => "x", 2 => true, 3 => null];
+print(json_encode($a) . "\n");
+
+$b = json_decode("[1,2,3]");
+print($b[0] . "," . $b[1] . "," . $b[2] . "\n");
+
+$c = json_decode("{\"x\":1,\"y\":\"z\"}");
+print($c["x"] . "," . $c["y"] . "\n");
+
+$d = [1, "a", false];
+print(json_encode($d) . "\n");
+
+print(json_decode("\"a\\nb\"") . "\n");
+print(json_decode("1.5") . "\n");
+print(json_decode("bad") . "\n");

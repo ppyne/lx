@@ -1,0 +1,30 @@
+# sprintf basic types
+print(sprintf("hello %s", "world")); print("\n");
+print(sprintf("int=%d", 42)); print("\n");
+print(sprintf("int=%i", -7)); print("\n");
+print(sprintf("uint=%u", 7)); print("\n");
+print(sprintf("hex=%x", 255)); print("\n");
+print(sprintf("HEX=%X", 255)); print("\n");
+print(sprintf("oct=%o", 10)); print("\n");
+
+# floats
+print(sprintf("f=%.2f", 1.234)); print("\n");
+print(sprintf("e=%e", 12.5)); print("\n");
+print(sprintf("g=%g", 12.5)); print("\n");
+
+# width and padding
+print(sprintf("pad=%05d", 7)); print("\n");
+print(sprintf("left=%-5d!", 7)); print("\n");
+
+# percent literal
+print(sprintf("100%%")); print("\n");
+
+# char
+print(sprintf("char=%c", 65)); print("\n");
+
+# printf uses sprinf and prints directly
+printf("P:%s %d\n", "ok", 3);
+
+printf("%c\n", "A");
+printf("%c\n", "AB");
+printf("%c\n", 65);

@@ -1,0 +1,5 @@
+$s = "A\nB";
+print(strlen($s)); print("\n");
+print(ord($s[0])); print("\n");
+print(ord($s[1])); print("\n");
+print(ord($s[2])); print("\n");

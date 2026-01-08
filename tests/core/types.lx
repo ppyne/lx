@@ -1,0 +1,74 @@
+
+# null
+
+$a = null;
+print(type($a)); print("\n");
+print(is_null($a));  print("\n");
+
+# bool
+
+$b = true;
+print(type($b)); print("\n");
+print(is_bool($b));  print("\n");
+
+# int
+
+$c = 42;
+print(type($c)); print("\n");
+print(is_int($c));   print("\n");
+
+# float
+
+$d = 2.5;
+print(type($d)); print("\n");
+print(is_float($d)); print("\n");
+
+# string
+
+$e = "abc";
+print(type($e));    print("\n");
+print(is_string($e));   print("\n");
+
+# array
+
+$f = [];
+print(type($f));    print("\n");
+print(is_array($f));    print("\n");
+
+# undefined (after unset)
+
+$g = 1;
+unset($g);
+print(type($g)); print("\n");
+
+print(is_defined($g) . LX_EOL);
+
+print(is_undefined($g) . LX_EOL);
+
+function no_return() {
+    $a = 0;
+}
+
+print(type(no_return()) . LX_EOL);
+
+print(is_void(no_return()) . LX_EOL);
+
+print(is_defined(LX_EOL) . LX_EOL);
+
+function no_return() {
+    $n = 0;
+}
+
+$a = [[], "", .0, 0, false, null, no_return(), $z];
+
+for ($i = count($a) - 1; $i >= 0 ; $i--) {
+    print(type($a[$i]) . ": ");
+    if ($a[$i]) print("true" . LX_EOL);
+    else print("false" . LX_EOL);
+}
+
+$a = [.0, 1.5, -2., 1e3];
+
+for ($i = 0; $i < count($a); $i++)
+    print(type($a[$i]) . LX_EOL);
+

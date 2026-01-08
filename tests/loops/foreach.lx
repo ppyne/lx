@@ -1,0 +1,21 @@
+# foreach over array values
+$arr = [1, 2, 3];
+foreach ($arr as $v) {
+    print($v . "\n");
+}
+
+# foreach with keys
+$arr = ["a" => 10, 2 => "x"];
+foreach ($arr as $k => $v) {
+    print($k . ":" . $v . "\n");
+}
+
+# foreach over string
+foreach ("ab" as $i => $ch) {
+    print($i . ":" . $ch . "\n");
+}
+
+# foreach over string values only
+foreach ("cd" as $ch) {
+    print($ch . "\n");
+}

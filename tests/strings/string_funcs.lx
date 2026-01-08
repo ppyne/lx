@@ -1,0 +1,17 @@
+print("[" . trim(" \tHi \n") . "]\n");
+print("[" . ltrim(" \tHi ") . "_]\n");
+print("[" . rtrim(" Hi \t") . "_]\n");
+print(ucfirst("hello") . "\n");
+print(strtolower("HeLLo") . "\n");
+print(strtoupper("HeLLo") . "\n");
+print(strpos("banana", "na") . "\n");
+print(strrpos("banana", "na") . "\n");
+print(strpos("banana", "zz") . "\n");
+print(strcmp("abc", "abc") . "\n");
+print(str_replace("na", "NA", "banana") . "\n");
+print(str_contains("banana", "na") . "\n");
+print(str_contains("banana", "zz") . "\n");
+print(starts_with("banana", "ba") . "\n");
+print(starts_with("banana", "na") . "\n");
+print(ends_with("banana", "na") . "\n");
+print(ends_with("banana", "ba") . "\n");

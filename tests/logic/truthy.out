@@ -1,0 +1,22 @@
+true
+false
+false
+false
+false
+true
+true
+false
+true
+false
+true
+true
+false
+true
+undefined: false
+void: false
+null: false
+bool: false
+int: false
+float: false
+string: false
+array: false

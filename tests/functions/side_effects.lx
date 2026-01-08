@@ -1,0 +1,61 @@
+# modification d'une variable globale depuis une fonction
+
+$g = 1;
+
+function inc_global() {
+    $g = $g + 1;
+}
+
+inc_global();
+print($g); print("\n");   # 2
+
+# paramètre scalaire (pas d'effet de bord)
+
+function inc_local($x) {
+    $x = $x + 1;
+    print($x); print("\n");
+}
+
+$a = 5;
+inc_local($a);            # imprime 6
+print($a); print("\n");   # doit rester 5
+
+# tableau passé en paramètre (effet de bord attendu)
+
+function set_first($arr) {
+    $arr[0] = 99;
+}
+
+$b = [];
+$b[0] = 1;
+set_first($b);
+
+print($b[0]); print("\n");   # 99
+
+# remplacement du paramètre tableau (ne remplace pas l'original)
+
+function reset_array($arr) {
+    $arr = [];
+    $arr[0] = 7;
+}
+
+$c = [];
+$c[0] = 3;
+reset_array($c);
+
+print($c[0]); print("\n");   # 3 (inchangé)
+
+# effet de bord combiné : lecture globale + écriture tableau
+
+$sum = 0;
+
+function add_to_sum($arr) {
+    $sum = $sum + count($arr);
+}
+
+$d = [];
+$d[0] = 1;
+$d[1] = 2;
+add_to_sum($d);
+
+print($sum); print("\n");   # 2

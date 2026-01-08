@@ -1,0 +1,63 @@
+# return simple
+
+function one() {
+    return 1;
+}
+
+print(one()); print("\n");
+
+# return conditionnel
+
+function abs($x) {
+    if ($x < 0) {
+        return -$x;
+    }
+    return $x;
+}
+
+print(abs(-5)); print("\n");
+print(abs(3));  print("\n");
+
+# return précoce dans un bloc
+
+function early($x) {
+    if ($x == 0) {
+        return "zero";
+    }
+    return "non-zero";
+}
+
+print(early(0)); print("\n");
+print(early(1)); print("\n");
+
+# return dans une boucle (while)
+
+function find_first_even($n) {
+    $i = 0;
+    while ($i <= $n) {
+        if ($i % 2 == 0 && $i > 0) {
+            return $i;
+        }
+        $i = $i + 1;
+    }
+    return null;
+}
+
+print(find_first_even(1)); print("\n");   # null
+print(find_first_even(5)); print("\n");   # 2
+
+# return dans une boucle (for)
+
+function sum_until($n) {
+    $sum = 0;
+    for ($i = 1; $i <= $n; $i = $i + 1) {
+        if ($i > 3) {
+            return $sum;
+        }
+        $sum = $sum + $i;
+    }
+    return $sum;
+}
+
+print(sum_until(2)); print("\n");   # 1+2 = 3
+print(sum_until(10)); print("\n");  # 1+2+3 = 6

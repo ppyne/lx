@@ -1,0 +1,57 @@
+# affectation avec expressions arithmétiques
+
+$a = [];
+$a[0] = 1 + 2;
+$a[1] = 2 * 3;
+$a[2] = 2 ** 3;
+
+print($a[0]); print("\n");   # 3
+print($a[1]); print("\n");   # 6
+print($a[2]); print("\n");   # 8
+
+# affectation avec concaténation
+
+$b = [];
+$b["x"] = "a" . "b";
+$b["y"] = "val=" . 10;
+
+print($b["x"]); print("\n");   # ab
+print($b["y"]); print("\n");   # val=10
+
+# affectation via appel de fonction native
+
+$c = [];
+$c[0] = count($a);
+$c[1] = substr("abcd", 1, 2);
+
+print($c[0]); print("\n");     # 3
+print($c[1]); print("\n");     # bc
+
+# écrasement par expression
+
+$a[1] = $a[0] + $a[2];
+print($a[1]); print("\n");     # 11
+
+# affectation imbriquée avec expression
+
+$d = [];
+$d["lvl1"] = [];
+$d["lvl1"]["sum"] = $a[0] + $a[1] + $a[2];
+
+print($d["lvl1"]["sum"]); print("\n");   # 22
+
+
+$ar = [1, 2, 3, 4];
+for($i = 0; $i < count($ar); $i++) print($ar[$i] . "\n");
+
+$ar = ["a", "b", "c", "d"];
+for($i = 0; $i < count($ar); $i++) print($ar[$i] . "\n");
+
+$arr = ["key" => "value", 2 => "x"];
+for($i = 0; $i < count($arr); $i++) print($arr[$i] . "\n");
+
+$keys = keys($arr);
+
+for ($i = 0; $i < count($keys); $i++) print($keys[$i] . "\n");
+
+for ($i = 0; $i < count($keys); $i++) print($keys[$i] . ": " . $arr[$keys[$i]] . "\n");

@@ -1,0 +1,18 @@
+# int() from string literals
+print(int("0xFF") . LX_EOL);
+print(int("0b10011") . LX_EOL);
+print(int("0644") . LX_EOL);
+print(int("123") . LX_EOL);
+print(int("12.7") . LX_EOL);
+
+# float() from string literals
+printf("%.1f\n", float("1.5"));
+printf("%.0f\n", float("1e3"));
+printf("%.0f\n", float("0x10"));
+printf("%.0f\n", float("0644"));
+
+# str() conversions
+print(str(123) . LX_EOL);
+print(str(1.5) . LX_EOL);
+print(str(true) . LX_EOL);
+print(str(null) . LX_EOL);

@@ -1,0 +1,56 @@
+# tableaux imbriqués simples
+
+$a = [];
+$a["x"] = [];
+$a["x"]["y"] = 10;
+
+print($a["x"]["y"]); print("\n");
+
+# imbriqué avec int keys
+
+$b = [];
+$b[0] = [];
+$b[0][1] = 42;
+
+print($b[0][1]); print("\n");
+
+# mélange string / int à plusieurs niveaux
+
+$c = [];
+$c["lvl1"] = [];
+$c["lvl1"][0] = [];
+$c["lvl1"][0]["end"] = "ok";
+
+print($c["lvl1"][0]["end"]); print("\n");
+
+# écrasement d’un sous-tableau
+
+$d = [];
+$d["a"] = [];
+$d["a"]["b"] = 1;
+$d["a"] = "reset";
+
+print($d["a"]); print("\n");
+
+# accès profond sur clé inexistante (valeur neutre)
+
+$e = [];
+$e["a"] = [];
+print($e["a"]["missing"]); print("\n");
+
+print("---\n");
+
+$arr = ["key" => "value", 2 => "x"];
+$e = ["a", "test" => "my test", $arr];
+
+$keys = keys($e);
+
+for($i = 0; $i < count($keys); $i++) print($keys[$i] . "\n");
+
+print("---\n");
+
+for($i = 0; $i < count($keys); $i++) print($e[$keys[$i]] . "\n");
+
+$a["nested"]["y"] = 30;
+print ($a["nested"][keys($a["nested"])[0]] . "\n");
+

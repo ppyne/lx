@@ -1,0 +1,38 @@
+# commentaire seul
+// autre commentaire seul
+/* commentaire bloc seul */
+
+$a = 10;   # commentaire fin de ligne
+print($a); print("\n");
+
+// commentaire avant instruction
+$a = $a + 1;
+print($a); print("\n");
+
+/*
+   commentaire bloc
+   multi-ligne
+   avec du faux code :
+   $a = 999;
+*/
+print($a); print("\n");
+
+$b = 5 /* commentaire inline */ + 2;
+print($b); print("\n");
+
+/* commentaire */ $c = 3;
+print($c); print("\n");
+
+$d = 1;
+// commentaire
+// commentaire
+$d = $d + 1;
+print($d); print("\n");
+
+/*
+   commentaire avec opérateurs
+   += -= *= /= .= ++ --
+*/
+$e = 4;
+$e += 2;  # doit fonctionner
+print($e); print("\n");

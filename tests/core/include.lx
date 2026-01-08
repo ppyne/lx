@@ -1,0 +1,7 @@
+$g = 0;
+$r = include("core/include_file.inc");
+print($r . "\n");
+print($g . "\n");
+$r2 = include_once("core/include_file.inc");
+print($r2 . "\n");
+print($g . "\n");

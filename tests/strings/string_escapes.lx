@@ -1,0 +1,12 @@
+print("A\nB"); print("\n");
+print("A\r\nB"); print("\n");
+print("A\tB"); print("\n");
+
+print("\"quoted\""); print("\n");
+print("\\"); print("\n");
+
+print(ord(chr(-5)).LX_EOL);
+print(chr(65).LX_EOL);
+print(ord(chr(300)).LX_EOL);
+print("\x41\n");
+print("\x-1\n");

@@ -1,0 +1,10 @@
+print(0);        print("\n");
+print(123);      print("\n");
+
+print(0xABCD01); print("\n");
+print(0Xabcd01); print("\n");
+
+print(0644);     print("\n");
+
+print(0b10011);  print("\n");
+print(0B10011);  print("\n");

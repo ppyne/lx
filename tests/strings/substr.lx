@@ -1,0 +1,28 @@
+# cas simples
+
+print(substr("abcd", 0, 2));   print("\n");  # "ab"
+print(substr("abcd", 1, 2));   print("\n");  # "bc"
+print(substr("abcd", 2, 2));   print("\n");  # "cd"
+
+# longueur dépassant la fin
+
+print(substr("abcd", 2, 10));  print("\n");  # "cd"
+
+# longueur zéro
+
+print(substr("abcd", 1, 0));   print("\n");  # ""
+
+# index au début et à la fin
+
+print(substr("abcd", 0, 4));   print("\n");  # "abcd"
+print(substr("abcd", 3, 1));   print("\n");  # "d"
+
+# index hors limites (défini comme chaîne vide)
+
+print(substr("abcd", 4, 1));   print("\n");  # ""
+print(substr("abcd", 10, 2));  print("\n");  # ""
+
+# chaînes courtes / vides
+
+print(substr("", 0, 1));       print("\n");  # ""
+print(substr("a", 0, 1));      print("\n");  # "a"

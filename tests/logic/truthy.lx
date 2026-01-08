@@ -1,0 +1,46 @@
+# bool explicite
+
+print(!!true);   print("\n");
+print(!!false);  print("\n");
+
+# null et undefined
+
+$a = null;
+print(!!$a); print("\n");
+
+unset($b);
+print(!!$b); print("\n");
+
+# nombres
+
+print(!!0);     print("\n");
+print(!!1);     print("\n");
+print(!!-1);    print("\n");
+print(!!0.0);   print("\n");
+print(!!0.5);   print("\n");
+
+# chaînes
+
+print(!!"");        print("\n");
+print(!!"0");       print("\n");
+print(!!"false");   print("\n");
+
+# tableaux
+
+print(!![]);        print("\n");
+
+$a = [];
+$a[0] = 1;
+print(!!$a);        print("\n");
+
+function no_return() {
+    $n = 0;
+}
+
+$a = [[], "", .0, 0, false, null, no_return(), $z];
+
+for ($i = count($a) - 1; $i >= 0 ; $i--) {
+    print(type($a[$i]) . ": ");
+    if ($a[$i]) print("true" . LX_EOL);
+    else print("false" . LX_EOL);
+}

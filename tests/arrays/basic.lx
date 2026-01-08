@@ -1,0 +1,44 @@
+# création et affectation
+
+$a = [];
+$a[0] = 10;
+$a[1] = 20;
+$a[2] = 30;
+
+print($a[0]); print("\n");
+print($a[1]); print("\n");
+print($a[2]); print("\n");
+
+# clés string
+
+$b = [];
+$b["x"] = 1;
+$b["y"] = 2;
+
+print($b["x"]); print("\n");
+print($b["y"]); print("\n");
+
+# mélange int / string
+
+$c = [];
+$c[0] = "zero";
+$c["1"] = "one";
+$c[1] = "ONE";
+
+print($c[0]);   print("\n");
+print($c["1"]); print("\n");
+print($c[1]);   print("\n");
+
+# écrasement de clé
+
+$a[1] = 99;
+print($a[1]); print("\n");
+
+# clé inexistante (valeur neutre attendue)
+
+print($a[10]); print("\n");
+
+# array vide
+
+$d = [];
+print($d[0]); print("\n");

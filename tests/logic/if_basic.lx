@@ -1,0 +1,41 @@
+# if simple true
+if (true) {
+    print("A\n");
+}
+
+# if simple false
+if (false) {
+    print("B\n");
+}
+
+# if / else
+if (false) {
+    print("C\n");
+} else {
+    print("D\n");
+}
+
+# condition avec égalité non stricte
+$a = 50;
+if ($a == "50") {
+    print("E\n");
+}
+
+# condition avec égalité stricte
+if ($a === 50) {
+    print("F\n");
+} else {
+    print("G\n");
+}
+
+if (true) print("true\n");
+else print("not true\n");
+
+$a = 3;
+if ($a == 2) {
+    print("ici\n");
+} else if ($a == 3) {
+    print("la\n");
+} else {
+    print("sinon\n");
+}

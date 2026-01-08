@@ -1,0 +1,30 @@
+null
+true
+bool
+true
+int
+true
+float
+true
+string
+true
+array
+true
+undefined
+false
+true
+void
+true
+true
+undefined: false
+void: false
+null: false
+bool: false
+int: false
+float: false
+string: false
+array: false
+float
+float
+float
+float

@@ -1,0 +1,24 @@
+# integer constants
+print("INT_MAX=" . LX_INT_MAX); print(LX_EOL);
+print("INT_MIN=" . LX_INT_MIN); print(LX_EOL);
+print("INT_SIZE=" . LX_INT_SIZE); print(LX_EOL);
+
+# float constants
+print("FLOAT_DIG=" . LX_FLOAT_DIG); print(LX_EOL);
+print("FLOAT_EPSILON=" . sprintf("%.6e", LX_FLOAT_EPSILON)); print(LX_EOL);
+print("FLOAT_MIN=" . sprintf("%.6e", LX_FLOAT_MIN)); print(LX_EOL);
+print("FLOAT_MAX=" . sprintf("%.6e", LX_FLOAT_MAX)); print(LX_EOL);
+
+# literals
+print("true=" . true); print(LX_EOL);
+print("false=" . false); print(LX_EOL);
+print("null=" . null); print(LX_EOL);
+print("undefined=" . undefined); print(LX_EOL);
+print("void=" . void); print(LX_EOL);
+
+# literal types
+print("type_true=" . type(true)); print(LX_EOL);
+print("type_false=" . type(false)); print(LX_EOL);
+print("type_null=" . type(null)); print(LX_EOL);
+print("type_undefined=" . type(undefined)); print(LX_EOL);
+print("type_void=" . type(void)); print(LX_EOL);

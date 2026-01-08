@@ -1,0 +1,28 @@
+# AND basique
+print(true && true);   print("\n");
+print(true && false);  print("\n");
+print(false && true);  print("\n");
+print(false && false); print("\n");
+
+# OR basique
+print(true || true);   print("\n");
+print(true || false);  print("\n");
+print(false || true);  print("\n");
+print(false || false); print("\n");
+
+# précédence AND > OR
+print(true || false && false); print("\n");   # true || (false && false)
+print(false || true && true);  print("\n");   # false || (true && true)
+
+# parenthèses
+print((true || false) && false); print("\n");
+print((false || true) && true);  print("\n");
+
+# logique avec expressions
+$a = 50;
+print($a == "50" && $a === 50.0); print("\n");
+print($a == "50" && $a === 50);   print("\n");
+
+$a = 0;
+$a != 0 && print("never printed\n");
+$a == 0 || print("never printed\n");

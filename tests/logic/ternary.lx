@@ -1,0 +1,17 @@
+# ternary basic
+$a = 1;
+print($a == 1 ? "yes" : "no"); print("\n");
+
+$a = 2;
+print($a == 1 ? "yes" : "no"); print("\n");
+
+# ternary with expressions
+print((1 + 2) == 3 ? "ok" : "bad"); print("\n");
+print(0 ? "t" : "f"); print("\n");
+
+# nesting
+print(1 ? (0 ? "x" : "y") : "z"); print("\n");
+
+# precedence with && and ||
+print(false || true ? "A" : "B"); print("\n");
+print(true && false ? "A" : "B"); print("\n");

@@ -1,0 +1,48 @@
+# while simple (0..4)
+
+$i = 0;
+while ($i < 5) {
+    print($i);
+    $i = $i + 1;
+}
+print("\n");
+
+# while avec calcul
+
+$j = 1;
+while ($j <= 8) {
+    print($j);
+    $j = $j * 2;
+}
+print("\n");
+
+# while avec tableau
+
+$a = [];
+$k = 0;
+while ($k < 3) {
+    $a[$k] = $k * 10;
+    $k = $k + 1;
+}
+
+print($a[0]); print("\n");
+print($a[1]); print("\n");
+print($a[2]); print("\n");
+
+# while condition fausse au départ
+
+$m = 0;
+while ($m < 0) {
+    print("X");
+}
+print("OK\n");
+
+# variable modifiée après la boucle
+
+print($i); print("\n");
+print($j); print("\n");
+
+$i = 0;
+while ($i < 3) $i++;
+
+print($i . "\n");

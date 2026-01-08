@@ -1,0 +1,32 @@
+# tableau avec types mixtes
+
+$a = [];
+$a[0] = 10;          # int
+$a[1] = 2.5;         # float
+$a[2] = "str";       # string
+$a[3] = true;        # bool
+$a[4] = null;        # null
+
+print($a[0]); print("\n");
+print($a[1]); print("\n");
+print($a[2]); print("\n");
+print($a[3]); print("\n");
+print($a[4]); print("\n");
+
+# utilisation dans des expressions
+
+print($a[0] + 5);        print("\n");   # 15
+print($a[1] * 2);        print("\n");   # 5
+print($a[2] . "!");      print("\n");   # str!
+print($a[3] && false);   print("\n");   # false
+
+# comparaison non stricte
+
+print($a[0] == "10");    print("\n");   # true
+print($a[1] == "2.5");   print("\n");   # true
+
+# comparaison stricte
+
+print($a[0] === 10);     print("\n");   # true
+print($a[1] === 2.5);    print("\n");   # true
+print($a[1] === "2.5");  print("\n");   # false
