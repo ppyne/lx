@@ -1,6 +1,6 @@
 # Lx Language — User Manual
 
-![](lx_mascot.svg)
+<p align="center"><img src="docs/lx_mascot.svg" width="128" alt="Lx mascot"></p>
 
 ---
 
