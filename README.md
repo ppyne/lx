@@ -7,7 +7,7 @@ It is designed for embedded use cases and a minimal, predictable runtime.
 
 ## License
 
-BSD 3-Clause License. See `LICENSE` for details.
+BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
 
 ## Documentation
 
