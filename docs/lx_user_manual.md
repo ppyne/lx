@@ -29,7 +29,7 @@ It deliberately aligns with the early PHP philosophy promoted by Rasmus Lerdorf,
 The Lx language mascot is a **lynx**.  
 The lynx was chosen for its symbolism: sharp vision, precision, and quiet attentiveness. These traits reflect Lx’s design goals—clarity, explicit behavior, and the absence of hidden mechanisms.
 
-The lynx also echoes the name **Lx** itself (derived from *Alex*, pronounced using the letters *L* and *X*), reinforcing a strong and simple identity. Its minimalist representation aligns with the language’s focus on frugality and readability, even at very small scales such as icons.
+The lynx also echoes the name **Lx** itself, reinforcing a strong and simple identity. Its minimalist representation aligns with the language’s focus on frugality and readability, even at very small scales such as icons.
 
 **Installation and building**
 
