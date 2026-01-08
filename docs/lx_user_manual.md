@@ -22,6 +22,8 @@ The name **Lx** originates from the author’s name, **Alex**, pronounced using 
 
 It reflects a deliberate simplification: a short, minimal name aligned with the language’s emphasis on clarity, explicitness, and reduced complexity.
 
+It deliberately aligns with the early PHP philosophy promoted by Rasmus Lerdorf, where simplicity, directness, and practical usefulness took precedence over formal or abstract language design.
+
 **Mascot choice**
 
 The Lx language mascot is a **lynx**.  
