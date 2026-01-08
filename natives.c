@@ -67,7 +67,7 @@ static Value n_print(Env *env, int argc, Value *argv){
         fputs(s.s, stdout);
         value_free(s);
     }
-    return value_null();
+    return value_void();
 }
 
 static Value n_strlen(Env *env, int argc, Value *argv){
@@ -405,7 +405,7 @@ static Value n_srand(Env *env, int argc, Value *argv){
     } else {
         srand((unsigned int)value_to_int(argv[0]).i);
     }
-    return value_null();
+    return value_void();
 }
 
 static Value n_clamp(Env *env, int argc, Value *argv){
