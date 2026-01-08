@@ -1,6 +1,6 @@
 # Lx Language — User Manual
 
-<p align="center"><img src="docs/lx_mascot.svg" width="128" alt="Lx mascot"></p>
+<p align="center"><img src="lx_mascot.svg" width="128" alt="Lx mascot"></p>
 
 ---
 
