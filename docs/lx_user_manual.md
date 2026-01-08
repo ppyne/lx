@@ -16,7 +16,7 @@ Lx scripts are composed of statements terminated by semicolons. Blocks are delim
 
 This manual describes **only the behavior currently implemented**.
 
-**Name origin**
+**Name origin and philosophy**
 
 The name **Lx** originates from the author’s name, **Alex**, pronounced using only the letters **L** and **X**. 
 
