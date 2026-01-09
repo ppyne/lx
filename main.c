@@ -12,6 +12,7 @@
 #include "eval.h"
 #include "env.h"
 #include "natives.h"
+#include "array.h"
 #include "lx_ext.h"
 #include "lx_error.h"
 
@@ -47,6 +48,14 @@ static char *read_stream(FILE *f) {
     return buf;
 }
 
+static void install_argv(Env *global, int argc, char **argv) {
+    Value arr = value_array();
+    for (int i = 1; i < argc; i++) {
+        array_set(arr.a, key_int(i - 1), value_string(argv[i]));
+    }
+    env_set(global, "argc", value_int(argc > 0 ? argc - 1 : 0));
+    env_set(global, "argv", arr);
+}
 
 int main(int argc, char **argv) {
 
@@ -61,8 +70,8 @@ int main(int argc, char **argv) {
         }
     } else {
         /* Read the script from a file. */
-        if (argc != 2) {
-            fprintf(stderr, "usage: %s script.lx\n", argv[0]);
+        if (argc < 2) {
+            fprintf(stderr, "usage: %s script.lx [args]\n", argv[0]);
             return 1;
         }
 
@@ -103,6 +112,7 @@ int main(int argc, char **argv) {
 
     /* Create the global environment. */
     Env *global = env_new(NULL);
+    install_argv(global, argc, argv);
 
     /* Install the standard library. */
     install_stdlib();

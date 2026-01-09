@@ -1,0 +1,3 @@
+print($argc . "\n");
+print(count($argv) . "\n");
+print($argv[0] . "\n");

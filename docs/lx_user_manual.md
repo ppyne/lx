@@ -711,7 +711,23 @@ See [Lx Predefined constants](lx_predefined_constants.md) for details.
 
 ---
 
-## 11. Memory management
+## 11. Predefined variables
+
+Lx provides two predefined variables when running a script:
+
+- **`$argc`**: Number of arguments passed to the script. When running a file, it includes the script path.
+- **`$argv`**: Array of arguments passed to the script. When running a file, the script path is at index 0.
+
+Example:
+
+```php
+print($argc . "\n");
+print($argv[0] . "\n");
+```
+
+---
+
+## 12. Memory management
 
 Values are reference-counted. Arrays are additionally tracked by a periodic mark-and-sweep pass.
 
@@ -785,7 +801,7 @@ Only the specified element is removed; other elements remain unchanged.
 
 ---
 
-## 12. Extensions
+## 13. Extensions
 
 Lx exposes a C extension API (see `lx_ext.h`) to register functions, constants, and variables.
 Extensions are initialized at startup and run in the global environment.
@@ -823,9 +839,11 @@ Built-in extensions:
 - **blake2b**: `blake2b`
 - **time**: `time`, `date`, `gmdate`, `mktime`, `sleep`, `usleep`
 
+See [Lx Functions Reference](lx_functions_reference.md) for details about the functions.
+
 ---
 
-## 13. Errors and Limitations
+## 14. Errors and Limitations
 
 Errors stop execution immediately and are printed as a single line:
 
@@ -851,7 +869,7 @@ Limitations:
 
 ---
 
-## 14. Undefined or Unclear Behavior
+## 15. Undefined or Unclear Behavior
 
 - Floating-point formatting depends on `%g`
 
