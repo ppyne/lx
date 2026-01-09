@@ -17,6 +17,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 typedef struct {
     char *name;
@@ -38,8 +39,17 @@ typedef struct {
     int cap;
 } DumpState;
 
-static void dump_indent(int level);
-static void dump_value(Value v, int indent, DumpState *st);
+typedef struct {
+    int to_string;
+    FILE *f;
+    char *buf;
+    size_t len;
+    size_t cap;
+} DumpWriter;
+
+static void dump_indent(DumpWriter *w, int level);
+static void dump_value(Value v, int indent, DumpState *st, DumpWriter *w);
+static void print_r_value(Value v, int indent, DumpState *st, DumpWriter *w);
 
 static void ensure(int need){
     if (g_cap >= need) return;
@@ -102,101 +112,267 @@ static void dump_pop(DumpState *st) {
     if (st->count > 0) st->count--;
 }
 
-static void dump_indent(int level) {
+static void writer_write(DumpWriter *w, const char *s, size_t n) {
+    if (!w) return;
+    if (!w->to_string) {
+        if (n > 0) fwrite(s, 1, n, w->f ? w->f : stdout);
+        return;
+    }
+    if (w->len + n + 1 > w->cap) {
+        size_t ncap = w->cap ? w->cap * 2 : 128;
+        while (ncap < w->len + n + 1) ncap *= 2;
+        char *nb = (char *)realloc(w->buf, ncap);
+        if (!nb) return;
+        w->buf = nb;
+        w->cap = ncap;
+    }
+    memcpy(w->buf + w->len, s, n);
+    w->len += n;
+    w->buf[w->len] = '\0';
+}
+
+static void writer_puts(DumpWriter *w, const char *s) {
+    writer_write(w, s, strlen(s));
+}
+
+static void writer_putc(DumpWriter *w, char c) {
+    if (!w->to_string) {
+        fputc(c, w->f ? w->f : stdout);
+        return;
+    }
+    if (w->len + 2 > w->cap) {
+        size_t ncap = w->cap ? w->cap * 2 : 128;
+        char *nb = (char *)realloc(w->buf, ncap);
+        if (!nb) return;
+        w->buf = nb;
+        w->cap = ncap;
+    }
+    w->buf[w->len++] = c;
+    w->buf[w->len] = '\0';
+}
+
+static void writer_printf(DumpWriter *w, const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    char tmp[128];
+    int n = vsnprintf(tmp, sizeof(tmp), fmt, ap);
+    va_end(ap);
+    if (n < 0) return;
+    if ((size_t)n < sizeof(tmp)) {
+        writer_write(w, tmp, (size_t)n);
+        return;
+    }
+    char *buf = (char *)malloc((size_t)n + 1);
+    if (!buf) return;
+    va_start(ap, fmt);
+    vsnprintf(buf, (size_t)n + 1, fmt, ap);
+    va_end(ap);
+    writer_write(w, buf, (size_t)n);
+    free(buf);
+}
+
+static void dump_indent(DumpWriter *w, int level) {
     for (int i = 0; i < level; i++) {
-        fputs("  ", stdout);
+        writer_puts(w, "  ");
     }
 }
 
-static void dump_string(const char *s, size_t len) {
-    fputs("string(", stdout);
-    printf("%zu", len);
-    fputs(") \"", stdout);
-    if (len > 0) fwrite(s, 1, len, stdout);
-    fputs("\"", stdout);
+static void dump_string(const char *s, size_t len, DumpWriter *w) {
+    writer_puts(w, "string(");
+    writer_printf(w, "%zu", len);
+    writer_puts(w, ") \"");
+    if (len > 0) writer_write(w, s, len);
+    writer_puts(w, "\"");
 }
 
-static void dump_array(Value v, int indent, DumpState *st) {
+static void dump_array(Value v, int indent, DumpState *st, DumpWriter *w) {
     Array *a = v.a;
     if (!a) {
-        dump_indent(indent);
-        fputs("array(0) {}", stdout);
+        dump_indent(w, indent);
+        writer_puts(w, "array(0) {}");
         return;
     }
     if (dump_seen(st, a)) {
-        dump_indent(indent);
-        fputs("*RECURSION*", stdout);
+        dump_indent(w, indent);
+        writer_puts(w, "*RECURSION*");
         return;
     }
     dump_push(st, a);
-    dump_indent(indent);
-    printf("array(%d) {\n", a->size);
+    dump_indent(w, indent);
+    writer_printf(w, "array(%d) {\n", a->size);
     for (int i = 0; i < a->size; i++) {
         ArrayEntry *e = &a->entries[i];
-        dump_indent(indent + 1);
+        dump_indent(w, indent + 1);
         if (e->key.type == KEY_STRING) {
-            printf("[\"%s\"]=>\n", e->key.s ? e->key.s : "");
+            writer_printf(w, "[\"%s\"]=>\n", e->key.s ? e->key.s : "");
         } else {
-            printf("[%d]=>\n", e->key.i);
+            writer_printf(w, "[%d]=>\n", e->key.i);
         }
-        dump_value(e->value, indent + 1, st);
-        fputc('\n', stdout);
+        dump_value(e->value, indent + 1, st, w);
+        writer_putc(w, '\n');
     }
-    dump_indent(indent);
-    fputs("}", stdout);
+    dump_indent(w, indent);
+    writer_puts(w, "}");
     dump_pop(st);
 }
 
-static void dump_value(Value v, int indent, DumpState *st) {
+static void dump_value(Value v, int indent, DumpState *st, DumpWriter *w) {
     switch (v.type) {
         case VAL_UNDEFINED:
-            dump_indent(indent);
-            fputs("undefined", stdout);
+            dump_indent(w, indent);
+            writer_puts(w, "undefined");
             break;
         case VAL_VOID:
-            dump_indent(indent);
-            fputs("void", stdout);
+            dump_indent(w, indent);
+            writer_puts(w, "void");
             break;
         case VAL_NULL:
-            dump_indent(indent);
-            fputs("NULL", stdout);
+            dump_indent(w, indent);
+            writer_puts(w, "NULL");
             break;
         case VAL_BOOL:
-            dump_indent(indent);
-            printf("bool(%s)", v.b ? "true" : "false");
+            dump_indent(w, indent);
+            writer_printf(w, "bool(%s)", v.b ? "true" : "false");
             break;
         case VAL_INT:
-            dump_indent(indent);
-            printf("int(%d)", v.i);
+            dump_indent(w, indent);
+            writer_printf(w, "int(%d)", v.i);
             break;
         case VAL_FLOAT:
-            dump_indent(indent);
-            printf("float(%g)", v.f);
+            dump_indent(w, indent);
+            writer_printf(w, "float(%g)", v.f);
             break;
         case VAL_STRING: {
             const char *s = v.s ? v.s : "";
-            dump_indent(indent);
-            dump_string(s, strlen(s));
+            dump_indent(w, indent);
+            dump_string(s, strlen(s), w);
             break;
         }
         case VAL_ARRAY:
-            dump_array(v, indent, st);
+            dump_array(v, indent, st, w);
             break;
         default:
-            dump_indent(indent);
-            fputs("undefined", stdout);
+            dump_indent(w, indent);
+            writer_puts(w, "undefined");
+            break;
+    }
+}
+
+static void print_r_indent(DumpWriter *w, int level) {
+    for (int i = 0; i < level; i++) {
+        writer_puts(w, "    ");
+    }
+}
+
+static void print_r_array(Value v, int indent, DumpState *st, DumpWriter *w) {
+    Array *a = v.a;
+    if (!a) {
+        writer_puts(w, "Array\n");
+        print_r_indent(w, indent);
+        writer_puts(w, "(\n");
+        print_r_indent(w, indent);
+        writer_puts(w, ")\n");
+        return;
+    }
+    if (dump_seen(st, a)) {
+        writer_puts(w, "*RECURSION*\n");
+        return;
+    }
+    dump_push(st, a);
+    writer_puts(w, "Array\n");
+    print_r_indent(w, indent);
+    writer_puts(w, "(\n");
+    for (int i = 0; i < a->size; i++) {
+        ArrayEntry *e = &a->entries[i];
+        print_r_indent(w, indent + 1);
+        if (e->key.type == KEY_STRING) {
+            writer_printf(w, "[%s] => ", e->key.s ? e->key.s : "");
+        } else {
+            writer_printf(w, "[%d] => ", e->key.i);
+        }
+        if (e->value.type == VAL_ARRAY) {
+            print_r_array(e->value, indent + 1, st, w);
+        } else {
+            print_r_value(e->value, indent + 1, st, w);
+            writer_putc(w, '\n');
+        }
+    }
+    print_r_indent(w, indent);
+    writer_puts(w, ")\n");
+    dump_pop(st);
+}
+
+static void print_r_value(Value v, int indent, DumpState *st, DumpWriter *w) {
+    (void)indent;
+    switch (v.type) {
+        case VAL_UNDEFINED:
+            writer_puts(w, "undefined");
+            break;
+        case VAL_VOID:
+        case VAL_NULL:
+            break;
+        case VAL_BOOL:
+            if (v.b) writer_puts(w, "1");
+            break;
+        case VAL_INT:
+        case VAL_FLOAT:
+        case VAL_STRING: {
+            Value s = value_to_string(v);
+            writer_puts(w, s.s ? s.s : "");
+            value_free(s);
+            break;
+        }
+        case VAL_ARRAY:
+            print_r_array(v, indent, st, w);
+            break;
+        default:
+            writer_puts(w, "undefined");
             break;
     }
 }
 
 static Value n_var_dump(Env *env, int argc, Value *argv){
     (void)env;
+    int return_string = 0;
+    if (argc >= 2 && argv[argc - 1].type == VAL_BOOL) {
+        return_string = argv[argc - 1].b;
+        argc--;
+    }
     DumpState st = {0};
+    DumpWriter w = {0};
+    if (!return_string) w.f = stdout;
     for (int i = 0; i < argc; i++) {
-        dump_value(argv[i], 0, &st);
-        fputc('\n', stdout);
+        dump_value(argv[i], 0, &st, &w);
+        writer_putc(&w, '\n');
     }
     free(st.stack);
+    if (return_string) {
+        Value out = value_string(w.buf ? w.buf : "");
+        free(w.buf);
+        return out;
+    }
+    free(w.buf);
+    return value_void();
+}
+
+static Value n_print_r(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc < 1) return value_void();
+    int return_string = 0;
+    if (argc >= 2 && argv[1].type == VAL_BOOL) {
+        return_string = argv[1].b;
+    }
+    DumpState st = {0};
+    DumpWriter w = {0};
+    if (!return_string) w.f = stdout;
+    print_r_value(argv[0], 0, &st, &w);
+    free(st.stack);
+    if (return_string) {
+        Value out = value_string(w.buf ? w.buf : "");
+        free(w.buf);
+        return out;
+    }
+    free(w.buf);
     return value_void();
 }
 
@@ -1770,6 +1946,7 @@ static Value n_array_keys(Env *env, int argc, Value *argv){
 
 void install_stdlib(void){
     register_function("print",   n_print);
+    register_function("print_r", n_print_r);
     register_function("var_dump", n_var_dump);
     register_function("include", n_include);
     register_function("include_once", n_include_once);

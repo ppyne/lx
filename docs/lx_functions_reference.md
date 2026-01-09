@@ -74,6 +74,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [pop](functions/pop.md)(array) : mixed|undefined <span style="color:#888">[Arrays]</span>
 - [pow](functions/pow.md)(base, exp) : float <span style="color:#888">[Numeric and math]</span>
 - [print](functions/print.md)(...values) <span style="color:#888">[Output and formatting]</span>
+- [print_r](functions/print_r.md)(value[, return]) : string <span style="color:#888">[Output and formatting]</span>
 - [printf](functions/printf.md)(format, ...args) <span style="color:#888">[Output and formatting]</span>
 - [push](functions/push.md)(array, value) : int <span style="color:#888">[Arrays]</span>
 - [pwd](functions/pwd.md)() : string <span style="color:#888">[Extensions: fs]</span>
@@ -119,4 +120,4 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [unshift](functions/unshift.md)(array, value) : int <span style="color:#888">[Arrays]</span>
 - [usleep](functions/usleep.md)(microseconds) <span style="color:#888">[Extensions: time]</span>
 - [values](functions/values.md)(array) : array <span style="color:#888">[Arrays]</span>
-- [var_dump](functions/var_dump.md)(...values) <span style="color:#888">[Output and formatting]</span>
+- [var_dump](functions/var_dump.md)(...values[, return]) : string <span style="color:#888">[Output and formatting]</span>

@@ -198,3 +198,6 @@ foreach ($fruits as $key => $val) {
 print(pwd() . "\n");
 
 print(date("l jS \of F Y h:i:s A", 0), LX_EOL);
+
+print($argc . "\n");
+print(count($argv) . "\n");
