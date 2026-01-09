@@ -35,6 +35,15 @@ The lynx also echoes the name **Lx** itself, reinforcing a strong and simple ide
 
 See [Lx Installation and building](lx_installation.md) for details.
 
+**Running**
+
+```sh
+./lx test.lx
+cat test.lx | ./lx
+echo "print(lxinfo());" | ./lx
+./lx < test.lx
+```
+
 ---
 
 ## 2. Language Basics
