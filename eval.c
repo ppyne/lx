@@ -26,6 +26,30 @@ typedef struct FunctionDef {
 } FunctionDef;
 
 static FunctionDef *g_user_fns = NULL;
+typedef struct FnFrame {
+    const char *name;
+    struct FnFrame *prev;
+} FnFrame;
+static FnFrame *g_fn_stack = NULL;
+
+static void push_fn(const char *name) {
+    FnFrame *f = (FnFrame *)calloc(1, sizeof(FnFrame));
+    if (!f) return;
+    f->name = name ? name : "";
+    f->prev = g_fn_stack;
+    g_fn_stack = f;
+}
+
+static void pop_fn(void) {
+    if (!g_fn_stack) return;
+    FnFrame *f = g_fn_stack;
+    g_fn_stack = f->prev;
+    free(f);
+}
+
+static const char *current_fn_name(void) {
+    return g_fn_stack ? g_fn_stack->name : "";
+}
 
 static int array_contains_inner(Array *hay, Array *needle, Array ***visited, int *count, int *cap) {
     if (!hay || !needle) return 0;
@@ -680,6 +704,7 @@ static Value eval_call(AstNode *n, Env *env, int *ok_flag) {
     }
 
     Env *local = env_new(env); /* lexical chain: local -> caller */
+    push_fn(uf->name);
     for (int i=0;i<uf->param_count;i++) {
         Value v;
         if (i < argc) {
@@ -687,6 +712,7 @@ static Value eval_call(AstNode *n, Env *env, int *ok_flag) {
         } else if (uf->param_defaults && uf->param_defaults[i]) {
             Value dv = eval_expr(uf->param_defaults[i], local, ok_flag);
             if (!*ok_flag) {
+                pop_fn();
                 env_free(local);
                 for (int j=0;j<argc;j++) value_free(argv[j]);
                 free(argv);
@@ -704,6 +730,7 @@ static Value eval_call(AstNode *n, Env *env, int *ok_flag) {
     free(argv);
 
     EvalResult rr = eval_node(uf->body, local);
+    pop_fn();
     env_free(local);
 
     if (rr.flow == FLOW_RETURN) return rr.value;
@@ -763,6 +790,8 @@ static Value eval_expr(AstNode *n, Env *env, int *ok_flag) {
             free(name);
             return v;
         }
+        case AST_MAGIC_FUNCTION:
+            return value_string(current_fn_name());
 
         case AST_ASSIGN: {
             Value rhs = eval_expr(n->assign.value, env, ok_flag);

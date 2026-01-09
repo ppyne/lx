@@ -213,3 +213,8 @@ $a = 'b';
 $b = 'c';
 $c = $$a;
 print("$c\n");
+
+print(__LINE__ . "\n");
+print("${__FILE__}\n");
+print(__DIR__ . "\n");
+print(__FUNCTION__ . "\n");

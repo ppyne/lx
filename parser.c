@@ -317,6 +317,23 @@ static AstNode *make_string_literal(Parser *p, const char *s, size_t n) {
     return nnode;
 }
 
+static const char *current_filename(Parser *p) {
+    return p->lexer.filename ? p->lexer.filename : "";
+}
+
+static char *dirname_copy(const char *path) {
+    if (!path || !*path) return strdup(".");
+    const char *last = strrchr(path, '/');
+    if (!last) return strdup(".");
+    if (last == path) return strdup("/");
+    size_t len = (size_t)(last - path);
+    char *out = (char *)malloc(len + 1);
+    if (!out) return strdup(".");
+    memcpy(out, path, len);
+    out[len] = '\0';
+    return out;
+}
+
 static AstNode *concat_nodes(Parser *p, AstNode *left, AstNode *right) {
     if (!left) return right;
     if (!right) return left;
@@ -337,7 +354,7 @@ static int is_ident_char(char c) {
 
 static char *normalize_interp_expr(const char *s, size_t n) {
     Lexer lx;
-    lexer_init(&lx, s);
+    lexer_init(&lx, s, NULL);
     Token t1 = lexer_next(&lx);
     if (t1.type != TOK_IDENT) return dup_range(s, n);
     Token t2 = lexer_next(&lx);
@@ -367,9 +384,9 @@ static char *unescape_interp_expr(const char *s, size_t n, size_t *out_len) {
     return out;
 }
 
-static AstNode *parse_interp_with(const char *expr_src) {
+static AstNode *parse_interp_with(const char *expr_src, const char *filename) {
     Parser sub;
-    lexer_init(&sub.lexer, expr_src);
+    lexer_init(&sub.lexer, expr_src, filename);
     sub.current.type = TOK_ERROR;
     sub.previous.type = TOK_ERROR;
     advance(&sub);
@@ -385,7 +402,7 @@ static AstNode *parse_interp_expression(Parser *p, const char *s, size_t n) {
     if (!unesc) return NULL;
 
     lx_error_clear();
-    AstNode *expr = parse_interp_with(unesc);
+    AstNode *expr = parse_interp_with(unesc, p->lexer.filename);
     if (expr) {
         free(unesc);
         return expr;
@@ -395,7 +412,7 @@ static AstNode *parse_interp_expression(Parser *p, const char *s, size_t n) {
     char *expr_src = normalize_interp_expr(unesc, ulen);
     free(unesc);
     if (!expr_src) return NULL;
-    expr = parse_interp_with(expr_src);
+    expr = parse_interp_with(expr_src, p->lexer.filename);
     free(expr_src);
     if (!expr) {
         parse_error(p, "invalid interpolation expression");
@@ -609,6 +626,36 @@ static AstNode *parse_primary(Parser *p) {
         AstNode *n = node(p, AST_VAR);
         n->var.name = strdup(p->previous.string_val);
         return n;
+    }
+
+    /* magic constants */
+    if (check(p, TOK_IDENT)) {
+        const char *name = p->current.string_val;
+        if (name && strcmp(name, "__LINE__") == 0) {
+            advance(p);
+            AstNode *n = node(p, AST_LITERAL);
+            n->literal.token.type = TOK_INT;
+            n->literal.token.line = p->previous.line;
+            n->literal.token.col = p->previous.col;
+            n->literal.token.int_val = p->previous.line;
+            return n;
+        }
+        if (name && strcmp(name, "__FILE__") == 0) {
+            advance(p);
+            const char *fname = current_filename(p);
+            return make_string_literal(p, fname, strlen(fname));
+        }
+        if (name && strcmp(name, "__DIR__") == 0) {
+            advance(p);
+            char *dir = dirname_copy(current_filename(p));
+            AstNode *n = make_string_literal(p, dir, strlen(dir));
+            free(dir);
+            return n;
+        }
+        if (name && strcmp(name, "__FUNCTION__") == 0) {
+            advance(p);
+            return node(p, AST_MAGIC_FUNCTION);
+        }
     }
 
     /* identifier → call */

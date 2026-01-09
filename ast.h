@@ -47,6 +47,8 @@ typedef enum {
 
     AST_TERNARY,
 
+    AST_MAGIC_FUNCTION,
+
     AST_LITERAL
 } AstType;
 

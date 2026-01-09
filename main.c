@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "lexer.h"
@@ -58,9 +59,17 @@ static void install_argv(Env *global, int argc, char **argv) {
     env_set(global, "argv", arr);
 }
 
+static char *resolve_path(const char *path) {
+    if (!path || !*path) return strdup("");
+    char *real = realpath(path, NULL);
+    if (real) return real;
+    return strdup(path);
+}
+
 int main(int argc, char **argv) {
 
     char *source = NULL;
+    char *filename = NULL;
 
     if (!isatty(STDIN_FILENO)) {
         /* Read the script from stdin. */
@@ -69,6 +78,7 @@ int main(int argc, char **argv) {
             fprintf(stderr, "error: cannot read stdin\n");
             return 1;
         }
+        filename = strdup("<stdin>");
     } else {
         /* Read the script from a file. */
         if (argc < 2) {
@@ -89,11 +99,12 @@ int main(int argc, char **argv) {
             fprintf(stderr, "error: cannot read file '%s'\n", argv[1]);
             return 1;
         }
+        filename = resolve_path(argv[1]);
     }
 
     /* Initialize lexer and parser. */
     Parser parser;
-    lexer_init(&parser.lexer, source);
+    lexer_init(&parser.lexer, source, filename);
     parser.current.type = TOK_ERROR; /* force first advance */
     parser.previous.type = TOK_ERROR;
     lx_error_clear();
@@ -103,11 +114,13 @@ int main(int argc, char **argv) {
     if (lx_has_error()) {
         lx_print_error(stderr);
         free(source);
+        free(filename);
         return 1;
     }
     if (!program) {
         lx_print_error(stderr);
         free(source);
+        free(filename);
         return 1;
     }
 
@@ -134,6 +147,7 @@ int main(int argc, char **argv) {
         value_free(r.value);
         env_free(global);
         free(source);
+        free(filename);
         return 1;
     }
 
@@ -143,5 +157,6 @@ int main(int argc, char **argv) {
     /* Free the AST if you add an ast_free() helper. */
 
     free(source);
+    free(filename);
     return 0;
 }

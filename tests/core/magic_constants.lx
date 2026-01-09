@@ -1,0 +1,8 @@
+print(__LINE__ . "\n");
+function demo($x) {
+    print(__FUNCTION__ . ":" . __LINE__ . ":" . $x . "\n");
+}
+demo(7);
+print((__FUNCTION__ == "") . "\n");
+print(ends_with(__FILE__, "tests/core/magic_constants.lx") . "\n");
+print(ends_with(__DIR__, "tests/core") . "\n");

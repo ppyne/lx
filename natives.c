@@ -620,6 +620,13 @@ static char *read_file_all(const char *path) {
     return buf;
 }
 
+static char *resolve_path(const char *path) {
+    if (!path || !*path) return strdup("");
+    char *real = realpath(path, NULL);
+    if (real) return real;
+    return strdup(path);
+}
+
 static char **g_includes = NULL;
 static int g_include_count = 0;
 static int g_include_cap = 0;
@@ -656,20 +663,23 @@ static Value run_include(Env *env, const char *path) {
         return value_bool(0);
     }
 
+    char *resolved = resolve_path(path);
     Parser parser;
-    lexer_init(&parser.lexer, source);
+    lexer_init(&parser.lexer, source, resolved);
     parser.current.type = TOK_ERROR;
     parser.previous.type = TOK_ERROR;
 
     AstNode *program = parse_program(&parser);
     if (lx_has_error() || !program) {
         free(source);
+        free(resolved);
         return value_bool(0);
     }
 
     EvalResult r = eval_program(program, env);
     value_free(r.value);
     free(source);
+    free(resolved);
     if (lx_has_error()) return value_bool(0);
     return value_bool(1);
 }

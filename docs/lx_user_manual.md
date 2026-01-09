@@ -764,7 +764,27 @@ See [Lx Predefined constants](lx_predefined_constants.md) for details.
 
 ---
 
-## 11. Predefined variables
+## 11. Magic constants
+
+Lx supports a small set of PHP-like magic constants:
+
+- **`__LINE__`**: Current line number in the source file.
+- **`__FILE__`**: Full path to the current file, with symlinks resolved.
+- **`__DIR__`**: Directory of the current file (no trailing slash unless root).
+- **`__FUNCTION__`**: Current function name, or an empty string outside a function.
+
+Example:
+
+```php
+print(__LINE__ . "\n");
+print(__FILE__ . "\n");
+print(__DIR__ . "\n");
+print(__FUNCTION__ . "\n");
+```
+
+---
+
+## 12. Predefined variables
 
 Lx provides two predefined variables when running a script:
 
@@ -780,7 +800,7 @@ print($argv[0] . "\n");
 
 ---
 
-## 12. Memory management
+## 13. Memory management
 
 Values are reference-counted. Arrays are additionally tracked by a periodic mark-and-sweep pass.
 
@@ -854,7 +874,7 @@ Only the specified element is removed; other elements remain unchanged.
 
 ---
 
-## 13. Extensions
+## 14. Extensions
 
 Lx exposes a C extension API (see `lx_ext.h`) to register functions, constants, and variables.
 Extensions are initialized at startup and run in the global environment.
@@ -897,7 +917,7 @@ See [Lx Functions Reference](lx_functions_reference.md) for details about the fu
 
 ---
 
-## 14. Errors and Limitations
+## 15. Errors and Limitations
 
 Errors stop execution immediately and are printed as a single line:
 
@@ -922,7 +942,7 @@ Limitations:
 
 ---
 
-## 15. Undefined or Unclear Behavior
+## 16. Undefined or Unclear Behavior
 
 - Floating-point formatting depends on `%g`
 

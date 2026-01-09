@@ -114,6 +114,7 @@ typedef struct {
 typedef struct {
     const char *src;
     const char *cur;
+    const char *filename;
     int line;
     int col;
     int start_line;
@@ -121,7 +122,7 @@ typedef struct {
 } Lexer;
 
 /** Initialize a lexer over @p source. */
-void  lexer_init(Lexer *lx, const char *source);
+void  lexer_init(Lexer *lx, const char *source, const char *filename);
 /** Return the next token from @p lx. */
 Token lexer_next(Lexer *lx);
 

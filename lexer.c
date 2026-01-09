@@ -367,9 +367,10 @@ static Token identifier(Lexer *l, int is_var) {
     return tok;
 }
 
-void lexer_init(Lexer *lx, const char *source) {
+void lexer_init(Lexer *lx, const char *source, const char *filename) {
     lx->src  = source;
     lx->cur  = source;
+    lx->filename = filename;
     lx->line = 1;
     lx->col  = 1;
     lx->start_line = 1;
