@@ -95,12 +95,12 @@ If no binding exists, a new variable is created in the current scope.
 Lx also supports **variable variables** using `$$`, like PHP.
 
 ```php
-$a = "b";
-$b = "c";
+$a = 'b';
+$b = 'c';
 $c = $$a;
 print($c . "\n"); // c
 
-$$a = "d";
+$$a = 'd';
 print($b . "\n"); // d
 ```
 
@@ -134,7 +134,7 @@ Type inspection is available via `type()` and `is_*()` functions.
 $i = 42;
 print(type($i) . "\n"); // Prints int
 
-$str = "Hello world";
+$str = 'Hello world';
 print(type($str) . LX_EOL); // Prints string
 
 print(is_array([1, 2, 3]) . LX_EOL); // Prints true
