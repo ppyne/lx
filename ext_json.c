@@ -308,9 +308,22 @@ static Value n_json_decode(Env *env, int argc, Value *argv){
     return out;
 }
 
+static Value n_is_json(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_STRING) return value_bool(0);
+    JsonParser p = { argv[0].s ? argv[0].s : "" };
+    int ok = 1;
+    Value out = json_parse_value(&p, &ok);
+    value_free(out);
+    json_skip_ws(&p);
+    if (!ok || *p.cur != '\0') return value_bool(0);
+    return value_bool(1);
+}
+
 static void json_module_init(Env *global){
     lx_register_function("json_encode", n_json_encode);
     lx_register_function("json_decode", n_json_decode);
+    lx_register_function("is_json", n_is_json);
     (void)global;
 }
 

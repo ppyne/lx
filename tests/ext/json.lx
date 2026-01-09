@@ -13,3 +13,7 @@ print(json_encode($d) . "\n");
 print(json_decode("\"a\\nb\"") . "\n");
 print(json_decode("1.5") . "\n");
 print(json_decode("bad") . "\n");
+
+print(is_json("{\"a\":1}") . "\n");
+print(is_json("bad") . "\n");
+print(is_json("  [1, 2] ") . "\n");

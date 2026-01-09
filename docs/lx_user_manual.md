@@ -934,13 +934,13 @@ See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
 
 Built-in extensions:
 
-- **fs**: `file_get_contents`, `file_put_contents`, `file_exists`, `file_size`, `is_dir`, `is_file`, `mkdir`, `rmdir`, `unlink`, `copy`, `cp`, `rename`, `mv`, `chmod`, `pwd`, `pathinfo`, `list_dir`
-- **env**: `env_get`, `env_set`, `env_unset`, `env_list`
-- **json**: `json_encode`, `json_decode`
-- **serializer**: `serialize`, `unserialize`
-- **hex**: `bin2hex`, `hex2bin`
-- **blake2b**: `blake2b`
-- **time**: `time`, `date`, `gmdate`, `mktime`, `sleep`, `usleep`
+- **fs**: [`file_get_contents`](functions/file_get_contents.md), [`file_put_contents`](functions/file_put_contents.md), [`file_exists`](functions/file_exists.md), [`file_size`](functions/file_size.md), [`is_dir`](functions/is_dir.md), [`is_file`](functions/is_file.md), [`mkdir`](functions/mkdir.md), [`rmdir`](functions/rmdir.md), [`unlink`](functions/unlink.md), [`copy`](functions/copy.md), [`cp`](functions/cp.md), [`rename`](functions/rename.md), [`mv`](functions/mv.md), [`chmod`](functions/chmod.md), [`pwd`](functions/pwd.md), [`pathinfo`](functions/pathinfo.md), [`list_dir`](functions/list_dir.md)
+- **env**: [`env_get`](functions/env_get.md), [`env_set`](functions/env_set.md), [`env_unset`](functions/env_unset.md), [`env_list`](functions/env_list.md)
+- **json**: [`json_encode`](functions/json_encode.md), [`is_json`](functions/is_json.md), [`json_decode`](functions/json_decode.md)
+- **serializer**: [`serialize`](functions/serialize.md), [`unserialize`](functions/unserialize.md)
+- **hex**: [`bin2hex`](functions/bin2hex.md), [`hex2bin`](functions/hex2bin.md)
+- **blake2b**: [`blake2b`](functions/blake2b.md)
+- **time**: [`time`](functions/time.md), [`date`](functions/date.md), [`gmdate`](functions/gmdate.md), [`mktime`](functions/mktime.md), [`sleep`](functions/sleep.md), [`usleep`](functions/usleep.md)
 
 See [Lx Functions Reference](lx_functions_reference.md) for details about the functions.
 

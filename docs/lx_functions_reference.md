@@ -61,6 +61,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [join](functions/join.md)(sep, array) : string <span style="color:#888">[Strings]</span>
 - [json_decode](functions/json_decode.md)(string) : mixed|undefined <span style="color:#888">[Extensions: json]</span>
 - [json_encode](functions/json_encode.md)(value) : string <span style="color:#888">[Extensions: json]</span>
+- [is_json](functions/is_json.md)(string) : bool <span style="color:#888">[Extensions: json]</span>
 - [key_exists](functions/key_exists.md)(key, array) : bool <span style="color:#888">[Arrays]</span>
 - [keys](functions/keys.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [krsort](functions/krsort.md)(array) : bool <span style="color:#888">[Arrays]</span>
