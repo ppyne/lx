@@ -111,32 +111,50 @@ static void skip_spaces(Lexer *l) {
     }
 }
 
-static Token string(Lexer *l) {
+static Token dstring(Lexer *l) {
     char *buf = NULL;
     size_t len = 0;
     size_t cap = 0;
 
     while (peek(l) && peek(l) != '"') {
         char c = advance(l);
+        if (c == '\\' && peek(l)) {
+            char n = advance(l);
+            if (!append_char(&buf, &cap, &len, '\\')) return error_token(l);
+            if (!append_char(&buf, &cap, &len, n)) return error_token(l);
+        } else {
+            if (!append_char(&buf, &cap, &len, c)) return error_token(l);
+        }
+    }
+
+    if (!match(l, '"')) {
+        free(buf);
+        return error_token(l);
+    }
+
+    if (!append_char(&buf, &cap, &len, '\0')) {
+        free(buf);
+        return error_token(l);
+    }
+
+    Token tok = make_token(l, TOK_DSTRING);
+    tok.string_val = buf;
+    return tok;
+}
+
+static Token sstring(Lexer *l) {
+    char *buf = NULL;
+    size_t len = 0;
+    size_t cap = 0;
+
+    while (peek(l) && peek(l) != '\'') {
+        char c = advance(l);
         if (c == '\\') {
-            c = advance(l);
-            if (c == 'n') { if (!append_char(&buf, &cap, &len, '\n')) return error_token(l); }
-            else if (c == 't') { if (!append_char(&buf, &cap, &len, '\t')) return error_token(l); }
-            else if (c == 'r') { if (!append_char(&buf, &cap, &len, '\r')) return error_token(l); }
-            else if (c == 'x') {
-                char h1 = peek(l);
-                char h2 = peek_next(l);
-                int v1 = isxdigit((unsigned char)h1) ? (isdigit((unsigned char)h1) ? h1 - '0' : (tolower((unsigned char)h1) - 'a' + 10)) : -1;
-                int v2 = isxdigit((unsigned char)h2) ? (isdigit((unsigned char)h2) ? h2 - '0' : (tolower((unsigned char)h2) - 'a' + 10)) : -1;
-                if (v1 >= 0 && v2 >= 0) {
-                    advance(l);
-                    advance(l);
-                    if (!append_char(&buf, &cap, &len, (char)((v1 << 4) | v2))) return error_token(l);
-                } else {
-                    if (!append_char(&buf, &cap, &len, 'x')) return error_token(l);
-                }
-            }
-            else {
+            char n = peek(l);
+            if (n == '\\' || n == '\'') {
+                advance(l);
+                if (!append_char(&buf, &cap, &len, n)) return error_token(l);
+            } else {
                 if (!append_char(&buf, &cap, &len, c)) return error_token(l);
             }
         } else {
@@ -144,7 +162,7 @@ static Token string(Lexer *l) {
         }
     }
 
-    if (!match(l, '"')) {
+    if (!match(l, '\'')) {
         free(buf);
         return error_token(l);
     }
@@ -366,7 +384,8 @@ Token lexer_next(Lexer *l) {
     char c = advance(l);
     if (!c) return make_token(l, TOK_EOF);
 
-    if (c == '"') return string(l);
+    if (c == '"') return dstring(l);
+    if (c == '\'') return sstring(l);
 
     if (isdigit(c) || (c == '.' && isdigit(peek(l)))) {
         l->cur--;

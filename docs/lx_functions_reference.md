@@ -67,6 +67,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [ksort](functions/ksort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [list_dir](functions/list_dir.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
 - [log](functions/log.md)(value) : float <span style="color:#888">[Numeric and math]</span>
+- [lower](functions/lower.md)(string) : string <span style="color:#888">[Strings]</span>
 - [ltrim](functions/ltrim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [lxinfo](functions/lxinfo.md)() <span style="color:#888">[Output and formatting]</span>
 - [max](functions/max.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
@@ -127,5 +128,6 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [unserialize](functions/unserialize.md)(string) : mixed|undefined <span style="color:#888">[Extensions: serializer]</span>
 - [unshift](functions/unshift.md)(array, value) : int <span style="color:#888">[Arrays]</span>
 - [usleep](functions/usleep.md)(microseconds) <span style="color:#888">[Extensions: time]</span>
+- [upper](functions/upper.md)(string) : string <span style="color:#888">[Strings]</span>
 - [values](functions/values.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [var_dump](functions/var_dump.md)(...values[, return]) : string <span style="color:#888">[Output and formatting]</span>

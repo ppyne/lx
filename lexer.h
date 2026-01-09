@@ -14,6 +14,7 @@ typedef enum {
     TOK_INT,
     TOK_FLOAT,
     TOK_STRING,
+    TOK_DSTRING,
     TOK_ARRAY,
 
     // identifiers

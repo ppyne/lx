@@ -201,3 +201,8 @@ print(date("l jS \of F Y h:i:s A", 0), LX_EOL);
 
 print($argc . "\n");
 print(count($argv) . "\n");
+
+$fruits = ["d" => "lemon", "a" => "orange", "b" => "banana", "c" => "apple"];
+$str = "fruit: ${fruits[\"d\"]}\n";
+print($str);
+

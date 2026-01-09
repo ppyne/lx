@@ -1968,7 +1968,9 @@ void install_stdlib(void){
     register_function("rtrim",   n_rtrim);
     register_function("ucfirst", n_ucfirst);
     register_function("strtolower", n_strtolower);
+    register_function("lower", n_strtolower);
     register_function("strtoupper", n_strtoupper);
+    register_function("upper", n_strtoupper);
     register_function("strpos",  n_strpos);
     register_function("strrpos", n_strrpos);
     register_function("strcmp",  n_strcmp);

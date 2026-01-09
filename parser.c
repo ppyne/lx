@@ -20,6 +20,7 @@ static const char *token_name(TokenType t) {
         case TOK_INT: return "int";
         case TOK_FLOAT: return "float";
         case TOK_STRING: return "string";
+        case TOK_DSTRING: return "string";
         case TOK_IDENT: return "identifier";
         case TOK_VAR: return "variable";
         case TOK_IF: return "if";
@@ -98,7 +99,8 @@ static void token_desc(Token tok, char *buf, size_t n) {
         case TOK_FLOAT:
             snprintf(buf, n, "float %g", tok.float_val);
             break;
-        case TOK_STRING: {
+        case TOK_STRING:
+        case TOK_DSTRING: {
             const char *s = tok.string_val ? tok.string_val : "";
             char tmp[32];
             size_t j = 0;
@@ -278,6 +280,214 @@ static AstNode *make_int_literal(Parser *p, int v) {
 static AstNode *parse_expression(Parser *p, Precedence prec);
 static AstNode *parse_expression_with_left(Parser *p, AstNode *left, Precedence prec);
 
+static int append_char(char **buf, size_t *cap, size_t *len, char c) {
+    if (*cap <= *len) {
+        size_t next = (*cap == 0) ? 64 : (*cap * 2);
+        char *nb = (char *)realloc(*buf, next);
+        if (!nb) return 0;
+        *buf = nb;
+        *cap = next;
+    }
+    (*buf)[(*len)++] = c;
+    return 1;
+}
+
+static char *dup_range(const char *s, size_t n) {
+    char *out = (char *)malloc(n + 1);
+    if (!out) return NULL;
+    memcpy(out, s, n);
+    out[n] = '\0';
+    return out;
+}
+
+static AstNode *make_string_literal(Parser *p, const char *s, size_t n) {
+    AstNode *nnode = node(p, AST_LITERAL);
+    Token tok;
+    tok.type = TOK_STRING;
+    tok.line = p->previous.line;
+    tok.col = p->previous.col;
+    tok.string_val = (char *)malloc(n + 1);
+    if (!tok.string_val) tok.string_val = strdup("");
+    if (tok.string_val) {
+        memcpy(tok.string_val, s, n);
+        tok.string_val[n] = '\0';
+    }
+    nnode->literal.token = tok;
+    return nnode;
+}
+
+static AstNode *concat_nodes(Parser *p, AstNode *left, AstNode *right) {
+    if (!left) return right;
+    if (!right) return left;
+    AstNode *b = node(p, AST_BINARY);
+    b->binary.op = OP_CONCAT;
+    b->binary.left = left;
+    b->binary.right = right;
+    return b;
+}
+
+static int is_ident_start(char c) {
+    return isalpha((unsigned char)c) || c == '_';
+}
+
+static int is_ident_char(char c) {
+    return isalnum((unsigned char)c) || c == '_';
+}
+
+static char *normalize_interp_expr(const char *s, size_t n) {
+    Lexer lx;
+    lexer_init(&lx, s);
+    Token t1 = lexer_next(&lx);
+    if (t1.type != TOK_IDENT) return dup_range(s, n);
+    Token t2 = lexer_next(&lx);
+    if (t2.type == TOK_LPAREN) return dup_range(s, n);
+    char *out = (char *)malloc(n + 2);
+    if (!out) return NULL;
+    out[0] = '$';
+    memcpy(out + 1, s, n);
+    out[n + 1] = '\0';
+    return out;
+}
+
+static char *unescape_interp_expr(const char *s, size_t n, size_t *out_len) {
+    char *out = (char *)malloc(n + 1);
+    if (!out) return NULL;
+    size_t j = 0;
+    for (size_t i = 0; i < n; i++) {
+        if (s[i] == '\\' && i + 1 < n) {
+            out[j++] = s[i + 1];
+            i++;
+        } else {
+            out[j++] = s[i];
+        }
+    }
+    out[j] = '\0';
+    if (out_len) *out_len = j;
+    return out;
+}
+
+static AstNode *parse_interp_with(const char *expr_src) {
+    Parser sub;
+    lexer_init(&sub.lexer, expr_src);
+    sub.current.type = TOK_ERROR;
+    sub.previous.type = TOK_ERROR;
+    advance(&sub);
+    AstNode *expr = parse_expression(&sub, PREC_ASSIGN);
+    if (lx_has_error()) return NULL;
+    if (sub.current.type != TOK_EOF) return NULL;
+    return expr;
+}
+
+static AstNode *parse_interp_expression(Parser *p, const char *s, size_t n) {
+    size_t ulen = 0;
+    char *unesc = unescape_interp_expr(s, n, &ulen);
+    if (!unesc) return NULL;
+
+    lx_error_clear();
+    AstNode *expr = parse_interp_with(unesc);
+    if (expr) {
+        free(unesc);
+        return expr;
+    }
+
+    lx_error_clear();
+    char *expr_src = normalize_interp_expr(unesc, ulen);
+    free(unesc);
+    if (!expr_src) return NULL;
+    expr = parse_interp_with(expr_src);
+    free(expr_src);
+    if (!expr) {
+        parse_error(p, "invalid interpolation expression");
+        return NULL;
+    }
+    return expr;
+}
+
+static AstNode *parse_dstring(Parser *p, const char *raw) {
+    AstNode *expr = NULL;
+    char *buf = NULL;
+    size_t len = 0;
+    size_t cap = 0;
+
+    for (size_t i = 0; raw[i]; i++) {
+        char c = raw[i];
+        if (c == '\\') {
+            char n = raw[i + 1];
+            if (!n) {
+                if (!append_char(&buf, &cap, &len, '\\')) return NULL;
+                break;
+            }
+            i++;
+            if (n == 'n') { if (!append_char(&buf, &cap, &len, '\n')) return NULL; }
+            else if (n == 't') { if (!append_char(&buf, &cap, &len, '\t')) return NULL; }
+            else if (n == 'r') { if (!append_char(&buf, &cap, &len, '\r')) return NULL; }
+            else if (n == '"' || n == '\\' || n == '$') {
+                if (!append_char(&buf, &cap, &len, n)) return NULL;
+            } else if (n == 'x') {
+                char h1 = raw[i + 1];
+                char h2 = raw[i + 2];
+                int v1 = isxdigit((unsigned char)h1) ? (isdigit((unsigned char)h1) ? h1 - '0' : (tolower((unsigned char)h1) - 'a' + 10)) : -1;
+                int v2 = isxdigit((unsigned char)h2) ? (isdigit((unsigned char)h2) ? h2 - '0' : (tolower((unsigned char)h2) - 'a' + 10)) : -1;
+                if (v1 >= 0 && v2 >= 0) {
+                    i += 2;
+                    if (!append_char(&buf, &cap, &len, (char)((v1 << 4) | v2))) return NULL;
+                } else {
+                    if (!append_char(&buf, &cap, &len, 'x')) return NULL;
+                }
+            } else {
+                if (!append_char(&buf, &cap, &len, n)) return NULL;
+            }
+            continue;
+        }
+        if (c == '$') {
+            char n = raw[i + 1];
+            if (n == '{') {
+                size_t start = i + 2;
+                size_t end = start;
+                while (raw[end] && raw[end] != '}') end++;
+                if (!raw[end]) {
+                    if (!append_char(&buf, &cap, &len, '$')) return NULL;
+                    continue;
+                }
+                if (len > 0) {
+                    AstNode *lit = make_string_literal(p, buf, len);
+                    expr = concat_nodes(p, expr, lit);
+                    len = 0;
+                }
+                AstNode *iexpr = parse_interp_expression(p, raw + start, end - start);
+                if (!iexpr) { free(buf); return NULL; }
+                expr = concat_nodes(p, expr, iexpr);
+                i = end;
+                continue;
+            }
+            if (is_ident_start(n)) {
+                size_t start = i + 1;
+                size_t end = start + 1;
+                while (raw[end] && is_ident_char(raw[end])) end++;
+                if (len > 0) {
+                    AstNode *lit = make_string_literal(p, buf, len);
+                    expr = concat_nodes(p, expr, lit);
+                    len = 0;
+                }
+                char *name = dup_range(raw + start, end - start);
+                AstNode *var = node(p, AST_VAR);
+                var->var.name = name;
+                expr = concat_nodes(p, expr, var);
+                i = end - 1;
+                continue;
+            }
+        }
+        if (!append_char(&buf, &cap, &len, c)) return NULL;
+    }
+
+    if (len > 0 || !expr) {
+        AstNode *lit = make_string_literal(p, buf ? buf : "", len);
+        expr = concat_nodes(p, expr, lit);
+    }
+    free(buf);
+    return expr;
+}
+
 static AstNode *parse_for_assign(Parser *p, char *name) {
     RETURN_IF_ERROR(p);
     Operator op = OP_ASSIGN;
@@ -345,6 +555,9 @@ static AstNode *parse_for_clause(Parser *p) {
 
 static AstNode *parse_primary(Parser *p) {
     RETURN_IF_ERROR(p);
+    if (match(p, TOK_DSTRING)) {
+        return parse_dstring(p, p->previous.string_val ? p->previous.string_val : "");
+    }
     /* literals */
     if (match(p, TOK_INT) || match(p, TOK_FLOAT) ||
         match(p, TOK_STRING) || match(p, TOK_TRUE) ||

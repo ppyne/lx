@@ -216,22 +216,37 @@ float
 
 ### 4.3 String literals
 
-Only double-quoted strings are supported.
+Single-quoted and double-quoted strings are supported.
 
 ```
 "text\n"
+'text'
 ```
 
-Supported escape sequences:  
-`\n`, `\t`, `\r`, `\"`, `\\` and `\xnn` (where `nn` is a 1 octet hexadecimal code between 00 and FF).
+Double-quoted strings support escape sequences:  
+`\n`, `\t`, `\r`, `\"`, `\\`, `\$` and `\xnn` (where `nn` is a 1 octet hexadecimal code between 00 and FF).
 
-Single-quoted strings are not supported.
+Single-quoted strings only interpret `\\` and `\'`.
 
-**String literals are not interpolated.**
+**Double-quoted strings support interpolation.**
 
-Except for supported escape sequences, the content of a string literal is treated as plain text.  Variables and expressions are **not** evaluated inside strings.
+- `$name` interpolates a variable.
+- `${expr}` interpolates a full expression. If the expression starts with an identifier, the leading `$` is implied.
 
-To combine strings with variable values or expressions, explicit string concatenation using the `.` operator must be used, or functions like `sprintf()` or `printf()`.
+```php
+$a = "Hello";
+$b = [10, 20];
+$fruits = ["a" => "lemon", "b" => "banana"];
+print("$a world\n");                 // Prints Hello world
+print("b=${b[1]}\n");                // Prints b=20
+print("a=${upper($a)}\n");           // Prints HELLO
+print("a fruit=${fruits['a']}\n");   // Prints a fruit=lemon
+print("b fruit=${fruits[\"b\"]}\n"); // Prints b fruit=banana
+print("cost=\$5\n");                 // Prints cost=$5
+print('it\'s ok' . "\n");            // Prints it's ok
+```
+
+To combine strings with variable values or expressions, explicit string concatenation using the `.` operator can also be used, or functions like `sprintf()` or `printf()`.
 
 ```php
 $a = "Hello";
@@ -864,7 +879,6 @@ Common errors include:
 
 Limitations:
 
-- No single-quoted strings
 - No trailing commas in array literals
 - Array to string conversion yields `"array"`
 

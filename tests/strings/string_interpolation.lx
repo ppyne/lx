@@ -1,0 +1,11 @@
+$a = "world";
+$b = [10, 20];
+$c = ["k" => 5];
+$fruits = ["d" => "lemon", "a" => "orange", "b" => "banana", "c" => "apple"];
+print("Hello $a\n");
+print("b=${b[1]}\n");
+print("k=${c['k']}\n");
+print("d=${fruits[\"d\"]}\n");
+print("cost=\$5\n");
+print('it\'s ok' . "\n");
+print('back\\\\slash' . "\n");
