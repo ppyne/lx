@@ -821,6 +821,7 @@ Built-in extensions:
 - **serializer**: `serialize`, `unserialize`
 - **hex**: `bin2hex`, `hex2bin`
 - **blake2b**: `blake2b`
+- **time**: `time`, `date`, `gmdate`, `mktime`, `sleep`, `usleep`
 
 ---
 

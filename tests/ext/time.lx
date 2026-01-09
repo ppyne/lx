@@ -1,0 +1,13 @@
+print(is_int(time()) . "\n");
+print(date("U", 123) . "\n");
+print(gmdate("Y-m-d H:i:s", 0) . "\n");
+print(gmdate("jS", 0) . "\n");
+print(gmdate("h", 0) . "\n");
+print(gmdate("z", 0) . "\n");
+print(gmdate("W", 0) . "\n");
+print(gmdate("L", 0) . "\n");
+print(gmdate("c", 0) . "\n");
+print(gmdate("r", 0) . "\n");
+print(is_int(mktime(0, 0, 0, 1, 1, 1970)) . "\n");
+print(sleep(0) . "\n");
+print(is_void(usleep(0)) . "\n");

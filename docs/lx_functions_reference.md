@@ -21,6 +21,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [crc32](functions/crc32.md)(string) : int <span style="color:#888">[Strings]</span>
 - [crc32u](functions/crc32u.md)(string) : string <span style="color:#888">[Strings]</span>
 - [chmod](functions/chmod.md)(path, mode) : bool <span style="color:#888">[Extensions: fs]</span>
+- [date](functions/date.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
 - [exp](functions/exp.md)(value) : float <span style="color:#888">[Numeric and math]</span>
@@ -31,6 +32,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [file_size](functions/file_size.md)(path) : int|undefined <span style="color:#888">[Extensions: fs]</span>
 - [float](functions/float.md)(value) : float <span style="color:#888">[Casting helpers]</span>
 - [floor](functions/floor.md)(value) : float <span style="color:#888">[Numeric and math]</span>
+- [gmdate](functions/gmdate.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
 - [hex2bin](functions/hex2bin.md)(string) : string|undefined <span style="color:#888">[Extensions: hex]</span>
 - [implode](functions/implode.md)(array, sep) : string <span style="color:#888">[Strings]</span>
 - [implode](functions/implode.md)(sep, array) : string <span style="color:#888">[Strings]</span>
@@ -64,6 +66,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [max](functions/max.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
 - [merge](functions/merge.md)(array, array) : array <span style="color:#888">[Arrays]</span>
 - [min](functions/min.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
+- [mktime](functions/mktime.md)(hour, min, sec, month, day, year) : int <span style="color:#888">[Extensions: time]</span>
 - [mkdir](functions/mkdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [ord](functions/ord.md)(string) : int <span style="color:#888">[Strings]</span>
 - [pathinfo](functions/pathinfo.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
@@ -88,6 +91,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [sign](functions/sign.md)(value) : int <span style="color:#888">[Numeric and math]</span>
 - [sin](functions/sin.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [slice](functions/slice.md)(array, start[, length]) : array <span style="color:#888">[Arrays]</span>
+- [sleep](functions/sleep.md)(seconds) : int <span style="color:#888">[Extensions: time]</span>
 - [sort](functions/sort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [split](functions/split.md)(delim, string) : array <span style="color:#888">[Strings]</span>
 - [splice](functions/splice.md)(array, start[, length[, replacement]]) : array <span style="color:#888">[Arrays]</span>
@@ -106,11 +110,13 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [strtoupper](functions/strtoupper.md)(string) : string <span style="color:#888">[Strings]</span>
 - [substr](functions/substr.md)(string, start[, length]) : string <span style="color:#888">[Strings]</span>
 - [tan](functions/tan.md)(value) : float <span style="color:#888">[Numeric and math]</span>
+- [time](functions/time.md)() : int <span style="color:#888">[Extensions: time]</span>
 - [trim](functions/trim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [type](functions/type.md)(value) : string <span style="color:#888">[Types and inspection]</span>
 - [ucfirst](functions/ucfirst.md)(string) : string <span style="color:#888">[Strings]</span>
 - [unlink](functions/unlink.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [unserialize](functions/unserialize.md)(string) : mixed|undefined <span style="color:#888">[Extensions: serializer]</span>
 - [unshift](functions/unshift.md)(array, value) : int <span style="color:#888">[Arrays]</span>
+- [usleep](functions/usleep.md)(microseconds) <span style="color:#888">[Extensions: time]</span>
 - [values](functions/values.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [var_dump](functions/var_dump.md)(...values) <span style="color:#888">[Output and formatting]</span>

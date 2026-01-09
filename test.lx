@@ -196,3 +196,5 @@ foreach ($fruits as $key => $val) {
     print($key, " = ", $val, "\n");
 }
 print(pwd() . "\n");
+
+print(date("l jS \of F Y h:i:s A", 0), LX_EOL);
