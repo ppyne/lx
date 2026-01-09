@@ -280,6 +280,7 @@ static AstNode *make_int_literal(Parser *p, int v) {
 /* ---------- forward ---------- */
 static AstNode *parse_expression(Parser *p, Precedence prec);
 static AstNode *parse_expression_with_left(Parser *p, AstNode *left, Precedence prec);
+static AstNode *parse_unary(Parser *p);
 
 static int append_char(char **buf, size_t *cap, size_t *len, char c) {
     if (*cap <= *len) {
@@ -342,6 +343,24 @@ static AstNode *concat_nodes(Parser *p, AstNode *left, AstNode *right) {
     b->binary.left = left;
     b->binary.right = right;
     return b;
+}
+
+static AstNode *parse_destruct_target(Parser *p) {
+    AstNode *t = parse_unary(p);
+    RETURN_IF_ERROR(p);
+
+    if (t->type == AST_VAR || t->type == AST_VAR_DYNAMIC) return t;
+    if (t->type == AST_INDEX) {
+        AstNode *cur = t;
+        while (cur && cur->type == AST_INDEX) cur = cur->index.target;
+        if (cur && (cur->type == AST_VAR || cur->type == AST_VAR_DYNAMIC)) {
+            return t;
+        }
+    }
+
+    parse_error(p, "destructuring target must be variable or indexed element");
+    RETURN_IF_ERROR(p);
+    return NULL;
 }
 
 static int is_ident_start(char c) {
@@ -1202,6 +1221,35 @@ static AstNode *parse_statement(Parser *p) {
 
         AstNode *n = node(p, AST_UNSET);
         n->unset.target = target;
+        return n;
+    }
+
+    /* destructuring assignment: [$a, $b] = expr; */
+    if (match(p, TOK_LBRACKET)) {
+        AstNode **targets = NULL;
+        int target_count = 0;
+        if (!check(p, TOK_RBRACKET)) {
+            do {
+                AstNode *t = parse_destruct_target(p);
+                RETURN_IF_ERROR(p);
+                targets = realloc(targets, sizeof(AstNode *) * (target_count + 1));
+                targets[target_count++] = t;
+            } while (match(p, TOK_COMMA));
+        }
+        expect(p, TOK_RBRACKET, "]");
+        RETURN_IF_ERROR(p);
+        expect(p, TOK_ASSIGN, "=");
+        RETURN_IF_ERROR(p);
+
+        AstNode *v = parse_expression(p, PREC_ASSIGN);
+        RETURN_IF_ERROR(p);
+        expect(p, TOK_SEMI, ";");
+        RETURN_IF_ERROR(p);
+
+        AstNode *n = node(p, AST_DESTRUCT_ASSIGN);
+        n->destruct_assign.targets = targets;
+        n->destruct_assign.target_count = target_count;
+        n->destruct_assign.value = v;
         return n;
     }
 

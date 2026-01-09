@@ -1068,6 +1068,39 @@ EvalResult eval_node(AstNode *n, Env *env) {
             return ok(value_null());
         }
 
+        case AST_DESTRUCT_ASSIGN: {
+            int ok2 = 1;
+            Value src = eval_expr(n->destruct_assign.value, env, &ok2);
+            if (!ok2) { value_free(src); return ok(value_null()); }
+
+            for (int i = 0; i < n->destruct_assign.target_count; i++) {
+                Value v;
+                if (src.type == VAL_ARRAY && src.a) {
+                    v = array_get(src.a, key_int(i));
+                } else {
+                    v = value_undefined();
+                }
+
+                Value base = value_null();
+                Value *slot = get_lvalue_ref(n->destruct_assign.targets[i], env, &ok2, &base);
+                if (!ok2 || !slot) {
+                    value_free(v);
+                    value_free(base);
+                    value_free(src);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "destructuring target is not assignable");
+                    return ok(value_null());
+                }
+
+                value_free(*slot);
+                *slot = value_copy(v);
+                value_free(v);
+                value_free(base);
+            }
+
+            value_free(src);
+            return ok(value_null());
+        }
+
         case AST_BREAK:
             return brk();
 

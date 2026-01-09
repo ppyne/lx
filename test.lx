@@ -218,3 +218,12 @@ print(__LINE__ . "\n");
 print("${__FILE__}\n");
 print(__DIR__ . "\n");
 print(__FUNCTION__ . "\n");
+
+function f() {
+    return ['a', 'b', 3];
+}
+
+[$a, $b, $c] = f();
+print("$a\n");
+print("$b\n");
+print("$c\n");

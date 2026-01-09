@@ -477,6 +477,35 @@ print($a > 0 ? "yes" : "no");
 
 ---
 
+### 5.7 Destructuring assignment
+
+You can assign multiple variables from an array value using bracket syntax:
+
+```php
+function f() {
+    return [10, 20, 30];
+}
+
+[$a, $b, $c] = f();
+print($a . "," . $b . "," . $c . "\n"); // 10,20,30
+```
+
+Missing values become `undefined`, and only numeric indexes are read (0, 1, 2...).
+
+```php
+[$x, $y] = [1];
+print($x . "," . $y . "\n"); // 1,undefined
+```
+
+Targets may also be array elements:
+
+```php
+$arr = ["a" => 1, "b" => 2];
+[$arr["a"], $arr["b"]] = [10, 20];
+```
+
+---
+
 ## 6. Control Structures
 
 ### 6.1 Conditional execution

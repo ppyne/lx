@@ -29,6 +29,7 @@ typedef enum {
     AST_INDEX_ASSIGN,
     AST_ASSIGN,
     AST_ASSIGN_DYNAMIC,
+    AST_DESTRUCT_ASSIGN,
     AST_VAR,
     AST_VAR_DYNAMIC,
 
@@ -180,6 +181,13 @@ struct AstNode {
             int is_compound;
             Operator op;
         } assign_dynamic;
+
+        /* destructuring assignment */
+        struct {
+            AstNode **targets;
+            int target_count;
+            AstNode *value;
+        } destruct_assign;
 
         /* variable */
         struct {
