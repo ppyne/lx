@@ -9,12 +9,17 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [atan2](functions/atan2.md)(y, x) : float <span style="color:#888">[Numeric and math]</span>
 - [arsort](functions/arsort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [asort](functions/asort.md)(array) : bool <span style="color:#888">[Arrays]</span>
+- [base64_decode](functions/base64_decode.md)(string) : string|undefined <span style="color:#888">[Strings]</span>
+- [base64_encode](functions/base64_encode.md)(string) : string <span style="color:#888">[Strings]</span>
+- [blake2b](functions/blake2b.md)(string[, out_len[, base64]]) : string|undefined <span style="color:#888">[Extensions: blake2b]</span>
 - [bin2hex](functions/bin2hex.md)(string) : string <span style="color:#888">[Extensions: hex]</span>
 - [ceil](functions/ceil.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [chr](functions/chr.md)(code) : string <span style="color:#888">[Strings]</span>
 - [clamp](functions/clamp.md)(value, min, max) : int|float <span style="color:#888">[Numeric and math]</span>
 - [cos](functions/cos.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [count](functions/count.md)(array) : int <span style="color:#888">[Arrays]</span>
+- [crc32](functions/crc32.md)(string) : int <span style="color:#888">[Strings]</span>
+- [crc32u](functions/crc32u.md)(string) : string <span style="color:#888">[Strings]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
 - [exp](functions/exp.md)(value) : float <span style="color:#888">[Numeric and math]</span>

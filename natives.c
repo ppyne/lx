@@ -16,6 +16,7 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
+#include <stdint.h>
 
 typedef struct {
     char *name;
@@ -204,6 +205,146 @@ static Value n_strlen(Env *env, int argc, Value *argv){
     if (argc != 1) return value_int(0);
     if (argv[0].type != VAL_STRING) return value_int(0);
     return value_int(argv[0].s ? (int)strlen(argv[0].s) : 0);
+}
+
+static uint32_t crc32_table[256];
+static int crc32_ready = 0;
+
+static void crc32_init(void) {
+    if (crc32_ready) return;
+    for (uint32_t i = 0; i < 256; i++) {
+        uint32_t c = i;
+        for (int j = 0; j < 8; j++) {
+            if (c & 1) c = 0xEDB88320u ^ (c >> 1);
+            else c >>= 1;
+        }
+        crc32_table[i] = c;
+    }
+    crc32_ready = 1;
+}
+
+static uint32_t crc32_compute(const unsigned char *buf, size_t len) {
+    crc32_init();
+    uint32_t crc = 0xFFFFFFFFu;
+    for (size_t i = 0; i < len; i++) {
+        crc = crc32_table[(crc ^ buf[i]) & 0xFFu] ^ (crc >> 8);
+    }
+    return crc ^ 0xFFFFFFFFu;
+}
+
+static Value n_crc32(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_STRING) return value_int(0);
+    const unsigned char *s = (const unsigned char *)(argv[0].s ? argv[0].s : "");
+    uint32_t crc = crc32_compute(s, strlen((const char *)s));
+    return value_int((int32_t)crc);
+}
+
+static Value n_crc32u(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_STRING) return value_string("0");
+    const unsigned char *s = (const unsigned char *)(argv[0].s ? argv[0].s : "");
+    uint32_t crc = crc32_compute(s, strlen((const char *)s));
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u", (unsigned)crc);
+    return value_string(buf);
+}
+
+static const char base64_table[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static int base64_rev[256];
+static int base64_ready = 0;
+
+static void base64_init(void) {
+    if (base64_ready) return;
+    for (int i = 0; i < 256; i++) base64_rev[i] = -1;
+    for (int i = 0; i < 64; i++) {
+        base64_rev[(unsigned char)base64_table[i]] = i;
+    }
+    base64_ready = 1;
+}
+
+static Value n_base64_encode(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_STRING) return value_string("");
+    const unsigned char *in = (const unsigned char *)(argv[0].s ? argv[0].s : "");
+    size_t len = strlen((const char *)in);
+    size_t out_len = ((len + 2) / 3) * 4;
+    char *out = (char *)malloc(out_len + 1);
+    if (!out) return value_string("");
+
+    size_t i = 0;
+    size_t j = 0;
+    while (i < len) {
+        size_t rem = len - i;
+        uint32_t a = in[i++];
+        uint32_t b = (rem > 1) ? in[i++] : 0;
+        uint32_t c = (rem > 2) ? in[i++] : 0;
+
+        out[j++] = base64_table[(a >> 2) & 0x3F];
+        out[j++] = base64_table[((a & 0x03) << 4) | ((b >> 4) & 0x0F)];
+        out[j++] = (rem > 1) ? base64_table[((b & 0x0F) << 2) | ((c >> 6) & 0x03)] : '=';
+        out[j++] = (rem > 2) ? base64_table[c & 0x3F] : '=';
+    }
+    out[out_len] = '\0';
+    Value v = value_string(out);
+    free(out);
+    return v;
+}
+
+static Value n_base64_decode(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_STRING) return value_undefined();
+    const unsigned char *in = (const unsigned char *)(argv[0].s ? argv[0].s : "");
+    size_t len = strlen((const char *)in);
+    if (len == 0) return value_string("");
+    if (len % 4 != 0) return value_undefined();
+
+    base64_init();
+
+    size_t pad = 0;
+    if (len >= 1 && in[len - 1] == '=') pad++;
+    if (len >= 2 && in[len - 2] == '=') pad++;
+    size_t out_len = (len / 4) * 3 - pad;
+    unsigned char *out = (unsigned char *)malloc(out_len + 1);
+    if (!out) return value_undefined();
+
+    size_t i = 0;
+    size_t j = 0;
+    while (i < len) {
+        int c0 = in[i++];
+        int c1 = in[i++];
+        int c2 = in[i++];
+        int c3 = in[i++];
+
+        int v0 = base64_rev[c0];
+        int v1 = base64_rev[c1];
+        int v2 = (c2 == '=') ? -2 : base64_rev[c2];
+        int v3 = (c3 == '=') ? -2 : base64_rev[c3];
+
+        if (v0 < 0 || v1 < 0 || v2 == -1 || v3 == -1) {
+            free(out);
+            return value_undefined();
+        }
+
+        if (v2 == -2 && v3 != -2) {
+            free(out);
+            return value_undefined();
+        }
+
+        uint32_t triple = ((uint32_t)v0 << 18) | ((uint32_t)v1 << 12);
+        if (v2 >= 0) triple |= (uint32_t)v2 << 6;
+        if (v3 >= 0) triple |= (uint32_t)v3;
+
+        if (j < out_len) out[j++] = (triple >> 16) & 0xFF;
+        if (v2 >= 0 && j < out_len) out[j++] = (triple >> 8) & 0xFF;
+        if (v3 >= 0 && j < out_len) out[j++] = triple & 0xFF;
+    }
+
+    out[out_len] = '\0';
+    Value v = value_string_n((const char *)out, out_len);
+    free(out);
+    return v;
 }
 
 static Value n_include(Env *env, int argc, Value *argv){
@@ -1639,6 +1780,10 @@ void install_stdlib(void){
     register_function("floor",   n_floor);
     register_function("ceil",    n_ceil);
     register_function("strlen",  n_strlen);
+    register_function("base64_encode", n_base64_encode);
+    register_function("base64_decode", n_base64_decode);
+    register_function("crc32",   n_crc32);
+    register_function("crc32u",  n_crc32u);
     register_function("count",   n_count);
     register_function("substr",  n_substr);
     register_function("trim",    n_trim);

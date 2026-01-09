@@ -1,0 +1,4 @@
+print(crc32("") . "\n");
+print(crc32("123456789") . "\n");
+print(crc32u("") . "\n");
+print(crc32u("123456789") . "\n");

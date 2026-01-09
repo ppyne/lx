@@ -820,6 +820,7 @@ Built-in extensions:
 - **json**: `json_encode`, `json_decode`
 - **serializer**: `serialize`, `unserialize`
 - **hex**: `bin2hex`, `hex2bin`
+- **blake2b**: `blake2b`
 
 ---
 

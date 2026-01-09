@@ -1,0 +1,6 @@
+print(blake2b("", 4) . "\n");
+print(blake2b("", 8) . "\n");
+print(blake2b("hello", 4) . "\n");
+print(blake2b("hello", 8) . "\n");
+print(blake2b("abc", 4, true) . "\n");
+print(blake2b("abc", 8, true) . "\n");
