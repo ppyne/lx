@@ -720,6 +720,20 @@ static int weak_equal_native(Value a, Value b) {
     return 0;
 }
 
+static int strict_equal_native(Value a, Value b) {
+    if (a.type != b.type) return 0;
+    switch (a.type) {
+        case VAL_UNDEFINED: return 1;
+        case VAL_NULL: return 1;
+        case VAL_BOOL: return a.b == b.b;
+        case VAL_INT: return a.i == b.i;
+        case VAL_FLOAT: return a.f == b.f;
+        case VAL_STRING: return strcmp(a.s ? a.s : "", b.s ? b.s : "") == 0;
+        case VAL_ARRAY: return a.a == b.a;
+        default: return 0;
+    }
+}
+
 static Value n_abs(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_int(0);
@@ -960,10 +974,18 @@ static Value n_values(Env *env, int argc, Value *argv){
 
 static Value n_in_array(Env *env, int argc, Value *argv){
     (void)env;
-    if (argc != 2 || argv[1].type != VAL_ARRAY || !argv[1].a) return value_bool(0);
+    int strict = 1;
+    if (argc == 3) {
+        if (argv[2].type != VAL_BOOL) return value_bool(0);
+        strict = argv[2].b;
+    }
+    if (argc != 2 && argc != 3) return value_bool(0);
+    if (argv[1].type != VAL_ARRAY || !argv[1].a) return value_bool(0);
     Array *a = argv[1].a;
     for (int i = 0; i < a->size; i++) {
-        if (weak_equal_native(argv[0], a->entries[i].value)) {
+        int eq = strict ? strict_equal_native(argv[0], a->entries[i].value)
+                        : weak_equal_native(argv[0], a->entries[i].value);
+        if (eq) {
             return value_bool(1);
         }
     }

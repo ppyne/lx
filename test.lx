@@ -232,3 +232,7 @@ $json = "{\"a\":1}";
 if (is_json($json)) {
     print_r(json_decode($json));
 }
+
+$a = 1;
+$b = 2;
+print( $a + $b . "px\n" );

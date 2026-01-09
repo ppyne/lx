@@ -3,6 +3,7 @@ print(key_exists(1, $a) . "\n");
 print(key_exists("x", $a) . "\n");
 print(in_array(2, $a) . "\n");
 print(in_array("2", $a) . "\n");
+print(in_array("2", $a, false) . "\n");
 print(in_array("x", $a) . "\n");
 
 $vals = values(["a" => 1, "b" => 2, 5 => 3]);

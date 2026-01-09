@@ -42,7 +42,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [hex2bin](functions/hex2bin.md)(string) : string|undefined <span style="color:#888">[Extensions: hex]</span>
 - [implode](functions/implode.md)(array, sep) : string <span style="color:#888">[Strings]</span>
 - [implode](functions/implode.md)(sep, array) : string <span style="color:#888">[Strings]</span>
-- [in_array](functions/in_array.md)(value, array) : bool <span style="color:#888">[Arrays]</span>
+- [in_array](functions/in_array.md)(value, array[, strict]) : bool <span style="color:#888">[Arrays]</span>
 - [include](functions/include.md)(path) : bool <span style="color:#888">[Includes]</span>
 - [include_once](functions/include_once.md)(path) : bool <span style="color:#888">[Includes]</span>
 - [int](functions/int.md)(value) : int <span style="color:#888">[Casting helpers]</span>

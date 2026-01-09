@@ -192,6 +192,17 @@ array: false
 */
 ```
 
+Lx compared to PHP
+
+| expr             | Lx    | PHP 7.4 | PHP 8.2 |
+|------------------|-------|---------|---------|
+| "0" == false     | true  | true    | true    |
+| "" == false      | true  | true    | true    |
+| "abc" == 0       | false | true    | false   |
+| "10abc" == 10    | false | true    | false   |
+| null == 0        | false | true    | true    |
+| "0e12345" == "0" | false | true    | true    |
+
 ---
 
 ## 4. Literals
@@ -326,13 +337,13 @@ Expressions yield values and may appear in assignments, conditions, or as standa
 ### 5.1 Arithmetic and concatenation
 
 ```
-$a + $b
-$a - $b
-$a * $b
-$a / $b
-$a % $b
-$a ** $b
-$a . $b
+$a + $b  // Addition
+$a - $b  // Subtraction
+$a * $b  // Multiplication
+$a / $b  // Division
+$a % $b  // Modulo
+$a ** $b // Exponentiation
+$a . $b  // Concatenation
 ```
 
 Division or modulo by zero raises a runtime error.
