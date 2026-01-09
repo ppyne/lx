@@ -1,10 +1,11 @@
 /**
- * @file main_runner.c
+ * @file main.c
  * @brief Command-line entry point for running scripts.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -19,40 +20,63 @@ void register_json_module(void);
 void register_serializer_module(void);
 void register_hex_module(void);
 
-/* File reading utility. */
-static char *read_file(const char *path)
-{
-    FILE *f = fopen(path, "rb");
-    if (!f) return NULL;
+/* Stream reading utility. */
+static char *read_stream(FILE *f) {
+    size_t cap = 4096;
+    size_t len = 0;
+    char *buf = malloc(cap);
+    if (!buf) return NULL;
 
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    rewind(f);
-
-    char *buf = (char *)malloc(size + 1);
-    if (!buf) {
-        fclose(f);
-        return NULL;
+    size_t n;
+    while ((n = fread(buf + len, 1, cap - len, f)) > 0) {
+        len += n;
+        if (len == cap) {
+            cap *= 2;
+            char *tmp = realloc(buf, cap);
+            if (!tmp) {
+                free(buf);
+                return NULL;
+            }
+            buf = tmp;
+        }
     }
 
-    fread(buf, 1, size, f);
-    buf[size] = 0;
-    fclose(f);
+    buf[len] = '\0';
     return buf;
 }
 
-int main(int argc, char **argv)
-{
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s script.lx\n", argv[0]);
-        return 1;
-    }
 
-    /* Read the script. */
-    char *source = read_file(argv[1]);
-    if (!source) {
-        fprintf(stderr, "error: cannot read file '%s'\n", argv[1]);
-        return 1;
+int main(int argc, char **argv) {
+
+    char *source = NULL;
+
+    if (!isatty(STDIN_FILENO)) {
+        /* Read the script from stdin. */
+        source = read_stream(stdin);
+        if (!source) {
+            fprintf(stderr, "error: cannot read stdin\n");
+            return 1;
+        }
+    } else {
+        /* Read the script from a file. */
+        if (argc != 2) {
+            fprintf(stderr, "usage: %s script.lx\n", argv[0]);
+            return 1;
+        }
+
+        FILE *f = fopen(argv[1], "rb");
+        if (!f) {
+            fprintf(stderr, "error: cannot read file '%s'\n", argv[1]);
+            return 1;
+        }
+
+        source = read_stream(f);
+        fclose(f);
+
+        if (!source) {
+            fprintf(stderr, "error: cannot read file '%s'\n", argv[1]);
+            return 1;
+        }
     }
 
     /* Initialize lexer and parser. */
