@@ -26,6 +26,10 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [date](functions/date.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
+- [env_get](functions/env_get.md)(name[, default]) : string|undefined <span style="color:#888">[Extensions: env]</span>
+- [env_list](functions/env_list.md)() : array <span style="color:#888">[Extensions: env]</span>
+- [env_set](functions/env_set.md)(name, value) : bool <span style="color:#888">[Extensions: env]</span>
+- [env_unset](functions/env_unset.md)(name) : bool <span style="color:#888">[Extensions: env]</span>
 - [exp](functions/exp.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [explode](functions/explode.md)(delim, string) : array <span style="color:#888">[Strings]</span>
 - [file_exists](functions/file_exists.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>

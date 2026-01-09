@@ -833,6 +833,7 @@ See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
 Built-in extensions:
 
 - **fs**: `file_get_contents`, `file_put_contents`, `file_exists`, `file_size`, `is_dir`, `is_file`, `mkdir`, `rmdir`, `unlink`, `copy`, `cp`, `rename`, `mv`, `chmod`, `pwd`, `pathinfo`, `list_dir`
+- **env**: `env_get`, `env_set`, `env_unset`, `env_list`
 - **json**: `json_encode`, `json_decode`
 - **serializer**: `serialize`, `unserialize`
 - **hex**: `bin2hex`, `hex2bin`
