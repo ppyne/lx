@@ -1,0 +1,20 @@
+$a = [3, 1, 2];
+rsort($a);
+print(join($a, ",") . "\n");
+
+$b = ["b" => 2, "a" => 1, "c" => 3];
+asort($b);
+print(join(keys($b), ",") . "\n");
+print(join(values($b), ",") . "\n");
+
+arsort($b);
+print(join(keys($b), ",") . "\n");
+print(join(values($b), ",") . "\n");
+
+ksort($b);
+print(join(keys($b), ",") . "\n");
+print(join(values($b), ",") . "\n");
+
+krsort($b);
+print(join(keys($b), ",") . "\n");
+print(join(values($b), ",") . "\n");

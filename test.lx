@@ -159,4 +159,39 @@ function add(a, b) {
 }
 
 print(add(1, 100), LX_EOL);
-
+print("---\n");
+$fruits = ["lemon", "orange", "banana", "apple"];
+sort($fruits);
+foreach ($fruits as $key => $val) {
+    print("fruits[" . $key . "] = " . $val . "\n");
+}
+print("---\n");
+$fruits = ["lemon", "orange", "banana", "apple"];
+rsort($fruits);
+foreach ($fruits as $key => $val) {
+    print($key, " = ", $val, "\n");
+}
+print("---\n");
+$fruits = ["d"=>"lemon", "a"=>"orange", "b"=>"banana", "c"=>"apple"];
+ksort($fruits);
+foreach ($fruits as $key => $val) {
+    print($key, " = ", $val, "\n");
+}
+print("---\n");
+$fruits = ["d"=>"lemon", "a"=>"orange", "b"=>"banana", "c"=>"apple"];
+krsort($fruits);
+foreach ($fruits as $key => $val) {
+    print($key, " = ", $val, "\n");
+}
+print("---\n");
+$fruits = ["d" => "lemon", "a" => "orange", "b" => "banana", "c" => "apple"];
+asort($fruits);
+foreach ($fruits as $key => $val) {
+    print($key, " = ", $val, "\n");
+}
+print("---\n");
+$fruits = ["d" => "lemon", "a" => "orange", "b" => "banana", "c" => "apple"];
+arsort($fruits);
+foreach ($fruits as $key => $val) {
+    print($key, " = ", $val, "\n");
+}

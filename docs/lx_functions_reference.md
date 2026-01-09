@@ -7,6 +7,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [asin](functions/asin.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [atan](functions/atan.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [atan2](functions/atan2.md)(y, x) : float <span style="color:#888">[Numeric and math]</span>
+- [arsort](functions/arsort.md)(array) : bool <span style="color:#888">[Arrays]</span>
+- [asort](functions/asort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [bin2hex](functions/bin2hex.md)(string) : string <span style="color:#888">[Extensions: hex]</span>
 - [ceil](functions/ceil.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [chr](functions/chr.md)(code) : string <span style="color:#888">[Strings]</span>
@@ -47,6 +49,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [json_encode](functions/json_encode.md)(value) : string <span style="color:#888">[Extensions: json]</span>
 - [key_exists](functions/key_exists.md)(key, array) : bool <span style="color:#888">[Arrays]</span>
 - [keys](functions/keys.md)(array) : array <span style="color:#888">[Arrays]</span>
+- [krsort](functions/krsort.md)(array) : bool <span style="color:#888">[Arrays]</span>
+- [ksort](functions/ksort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [list_dir](functions/list_dir.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
 - [log](functions/log.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ltrim](functions/ltrim.md)(string) : string <span style="color:#888">[Strings]</span>
@@ -70,12 +74,14 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [reverse](functions/reverse.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [rmdir](functions/rmdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [round](functions/round.md)(value) : float <span style="color:#888">[Numeric and math]</span>
+- [rsort](functions/rsort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [rtrim](functions/rtrim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [serialize](functions/serialize.md)(value) : string <span style="color:#888">[Extensions: serializer]</span>
 - [shift](functions/shift.md)(array) : mixed|undefined <span style="color:#888">[Arrays]</span>
 - [sign](functions/sign.md)(value) : int <span style="color:#888">[Numeric and math]</span>
 - [sin](functions/sin.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [slice](functions/slice.md)(array, start[, length]) : array <span style="color:#888">[Arrays]</span>
+- [sort](functions/sort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [split](functions/split.md)(delim, string) : array <span style="color:#888">[Strings]</span>
 - [splice](functions/splice.md)(array, start[, length[, replacement]]) : array <span style="color:#888">[Arrays]</span>
 - [sqrt](functions/sqrt.md)(value) : float <span style="color:#888">[Numeric and math]</span>

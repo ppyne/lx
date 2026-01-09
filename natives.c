@@ -256,6 +256,17 @@ static void key_free_local(Key k) {
     if (k.type == KEY_STRING) free(k.s);
 }
 
+static Key key_copy_local(Key k) {
+    Key out;
+    out.type = k.type;
+    if (k.type == KEY_STRING) {
+        out.s = strdup(k.s ? k.s : "");
+    } else {
+        out.i = k.i;
+    }
+    return out;
+}
+
 static int array_next_index(Array *a) {
     int next = 0;
     if (!a) return 0;
@@ -811,6 +822,136 @@ static Value n_reverse(Env *env, int argc, Value *argv){
         }
     }
     return out;
+}
+
+static int value_compare_native(Value a, Value b) {
+    if (value_is_number(a) && value_is_number(b)) {
+        double da = value_as_double(a);
+        double db = value_as_double(b);
+        if (da < db) return -1;
+        if (da > db) return 1;
+        return 0;
+    }
+    Value sa = value_to_string(a);
+    Value sb = value_to_string(b);
+    int cmp = strcmp(sa.s ? sa.s : "", sb.s ? sb.s : "");
+    value_free(sa);
+    value_free(sb);
+    if (cmp < 0) return -1;
+    if (cmp > 0) return 1;
+    return 0;
+}
+
+typedef struct {
+    Key key;
+    Value value;
+} SortEntry;
+
+static int g_sort_desc = 0;
+static int g_sort_by_key = 0;
+
+static int key_compare_native(Key a, Key b) {
+    if (a.type == KEY_INT && b.type == KEY_INT) {
+        if (a.i < b.i) return -1;
+        if (a.i > b.i) return 1;
+        return 0;
+    }
+    const char *sa = NULL;
+    const char *sb = NULL;
+    char bufa[32];
+    char bufb[32];
+    if (a.type == KEY_STRING) {
+        sa = a.s ? a.s : "";
+    } else {
+        snprintf(bufa, sizeof(bufa), "%d", a.i);
+        sa = bufa;
+    }
+    if (b.type == KEY_STRING) {
+        sb = b.s ? b.s : "";
+    } else {
+        snprintf(bufb, sizeof(bufb), "%d", b.i);
+        sb = bufb;
+    }
+    int cmp = strcmp(sa, sb);
+    if (cmp < 0) return -1;
+    if (cmp > 0) return 1;
+    return 0;
+}
+
+static int qsort_entry_cmp(const void *pa, const void *pb) {
+    const SortEntry *a = (const SortEntry *)pa;
+    const SortEntry *b = (const SortEntry *)pb;
+    int cmp = g_sort_by_key
+        ? key_compare_native(a->key, b->key)
+        : value_compare_native(a->value, b->value);
+    return g_sort_desc ? -cmp : cmp;
+}
+
+static Value n_sort_common(Env *env, int argc, Value *argv, int by_key, int desc, int preserve_keys){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_ARRAY || !argv[0].a) return value_bool(0);
+    Array *a = argv[0].a;
+    int count = a->size;
+    if (count <= 1) return value_bool(1);
+
+    SortEntry *entries = (SortEntry *)calloc((size_t)count, sizeof(SortEntry));
+    if (!entries) return value_bool(0);
+    for (int i = 0; i < count; i++) {
+        entries[i].key = key_copy_local(a->entries[i].key);
+        entries[i].value = value_copy(a->entries[i].value);
+    }
+
+    g_sort_by_key = by_key;
+    g_sort_desc = desc;
+    qsort(entries, (size_t)count, sizeof(SortEntry), qsort_entry_cmp);
+
+    for (int i = 0; i < count; i++) {
+        key_free_local(a->entries[i].key);
+        value_free(a->entries[i].value);
+    }
+    free(a->entries);
+    a->entries = NULL;
+    a->size = 0;
+    a->capacity = 0;
+
+    for (int i = 0; i < count; i++) {
+        Key k;
+        if (preserve_keys) {
+            k = (entries[i].key.type == KEY_STRING)
+                ? key_string(entries[i].key.s ? entries[i].key.s : "")
+                : key_int(entries[i].key.i);
+        } else {
+            k = key_int(i);
+        }
+        array_set(a, k, entries[i].value);
+        key_free_local(entries[i].key);
+    }
+    free(entries);
+    return value_bool(1);
+}
+
+static Value n_sort(Env *env, int argc, Value *argv){
+    return n_sort_common(env, argc, argv, 0, 0, 0);
+}
+
+static Value n_rsort(Env *env, int argc, Value *argv){
+    return n_sort_common(env, argc, argv, 0, 1, 0);
+}
+
+static Value n_asort(Env *env, int argc, Value *argv){
+    return n_sort_common(env, argc, argv, 0, 0, 1);
+}
+
+static Value n_arsort(Env *env, int argc, Value *argv){
+    return n_sort_common(env, argc, argv, 0, 1, 1);
+}
+
+static Value n_ksort(Env *env, int argc, Value *argv){
+    return n_sort_common(env, argc, argv, 1, 0, 1);
+}
+
+static Value n_krsort(Env *env, int argc, Value *argv){
+    return n_sort_common(env, argc, argv, 1, 1, 1);
 }
 
 static Value n_trim(Env *env, int argc, Value *argv){
@@ -1560,6 +1701,12 @@ void install_stdlib(void){
     register_function("slice", n_slice);
     register_function("splice", n_splice);
     register_function("reverse", n_reverse);
+    register_function("sort", n_sort);
+    register_function("rsort", n_rsort);
+    register_function("asort", n_asort);
+    register_function("arsort", n_arsort);
+    register_function("ksort", n_ksort);
+    register_function("krsort", n_krsort);
     register_function("int", n_int);
     register_function("float", n_float);
     register_function("str", n_str);
