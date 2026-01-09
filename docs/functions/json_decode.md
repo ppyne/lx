@@ -23,12 +23,15 @@ Returns the decoded value, or `undefined` on invalid JSON.
 ### Examples
 
 ```php
-var_dump(json_decode("{\"a\":1}"));
+$json = "{\"a\":1}";
+if (is_json($json)) {
+    print_r(json_decode($json));
+}
 
 /* Will output:
-array(1) {
-  ["a"]=>
-  int(1)
-}
+Array
+(
+    [a] => 1
+)
 */
 ```

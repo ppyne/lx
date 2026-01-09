@@ -227,3 +227,8 @@ function f() {
 print("$a\n");
 print("$b\n");
 print("$c\n");
+
+$json = "{\"a\":1}";
+if (is_json($json)) {
+    print_r(json_decode($json));
+}
