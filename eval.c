@@ -1245,6 +1245,13 @@ EvalResult eval_node(AstNode *n, Env *env) {
         case AST_SWITCH: {
             Value sv = eval_expr(n->switch_stmt.expr, env, &ok_flag);
             if (!ok_flag) { value_free(sv); return ok(value_null()); }
+            int strict = 0;
+            if (n->switch_stmt.strict_expr) {
+                Value sv_flag = eval_expr(n->switch_stmt.strict_expr, env, &ok_flag);
+                if (!ok_flag) { value_free(sv); value_free(sv_flag); return ok(value_null()); }
+                strict = value_is_true(sv_flag);
+                value_free(sv_flag);
+            }
 
             int start = -1;
             int default_idx = -1;
@@ -1253,7 +1260,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 if (!ce) { default_idx = i; continue; }
                 Value cv = eval_expr(ce, env, &ok_flag);
                 if (!ok_flag) { value_free(sv); value_free(cv); return ok(value_null()); }
-                int eq = weak_equal(sv, cv);
+                int eq = strict ? strict_equal(sv, cv) : weak_equal(sv, cv);
                 value_free(cv);
                 if (eq) { start = i; break; }
             }

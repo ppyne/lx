@@ -368,6 +368,15 @@ $a !== $b
 
 Arrays compared with `===` are compared by identity.
 
+```php
+$a = [1, 2];
+$b = [1, 2];
+$c = $a;
+
+print($a === $b, "\n"); // false (different instances)
+print($a === $c, "\n"); // true  (same instance)
+```
+
 ---
 
 ### 5.3 Increment and decrement
@@ -610,6 +619,22 @@ switch ($x) {
         break;
 }
 ```
+
+Optional strict mode:
+
+```php
+switch ($x, true) {
+    case 1:
+        print("one");
+        break;
+    default:
+        print("other");
+        break;
+}
+```
+
+When `strict` is `true`, comparisons use strict equality (`===`).
+When omitted or `false`, comparisons use weak equality (`==`).
 
 ---
 

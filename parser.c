@@ -1002,6 +1002,11 @@ static AstNode *parse_statement(Parser *p) {
         RETURN_IF_ERROR(p);
         AstNode *expr = parse_expression(p, PREC_ASSIGN);
         RETURN_IF_ERROR(p);
+        AstNode *strict_expr = NULL;
+        if (match(p, TOK_COMMA)) {
+            strict_expr = parse_expression(p, PREC_ASSIGN);
+            RETURN_IF_ERROR(p);
+        }
         expect(p, TOK_RPAREN, ")");
         RETURN_IF_ERROR(p);
         expect(p, TOK_LBRACE, "{");
@@ -1046,6 +1051,7 @@ static AstNode *parse_statement(Parser *p) {
 
         AstNode *n = node(p, AST_SWITCH);
         n->switch_stmt.expr = expr;
+        n->switch_stmt.strict_expr = strict_expr;
         n->switch_stmt.case_exprs = case_exprs;
         n->switch_stmt.case_bodies = case_bodies;
         n->switch_stmt.case_count = case_count;

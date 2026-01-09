@@ -1,0 +1,25 @@
+$var = "2";
+
+switch ($var) {
+    case 2:
+        print("weak\n");
+        break;
+    default:
+        print("weak_default\n");
+}
+
+switch ($var, true) {
+    case 2:
+        print("strict\n");
+        break;
+    default:
+        print("strict_default\n");
+}
+
+switch ($var, false) {
+    case 2:
+        print("weak2\n");
+        break;
+    default:
+        print("weak2_default\n");
+}

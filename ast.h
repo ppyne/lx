@@ -134,6 +134,7 @@ struct AstNode {
         /* switch */
         struct {
             AstNode *expr;
+            AstNode *strict_expr; /* optional */
             AstNode **case_exprs;  /* NULL for default */
             AstNode **case_bodies; /* AST_BLOCK */
             int case_count;
