@@ -861,7 +861,9 @@ static AstNode *parse_statement(Parser *p) {
         expect(p, TOK_LPAREN, "(");
         RETURN_IF_ERROR(p);
         char **params = NULL;
+        AstNode **param_defaults = NULL;
         int param_count = 0;
+        int saw_default = 0;
         if (!check(p, TOK_RPAREN)) {
             do {
                 if (!check(p, TOK_VAR) && !check(p, TOK_IDENT)) {
@@ -871,6 +873,18 @@ static AstNode *parse_statement(Parser *p) {
                 advance(p);
                 params = realloc(params, sizeof(char *) * (param_count + 1));
                 params[param_count++] = strdup(p->previous.string_val);
+                param_defaults = realloc(param_defaults, sizeof(AstNode *) * param_count);
+                param_defaults[param_count - 1] = NULL;
+
+                if (match(p, TOK_ASSIGN)) {
+                    AstNode *def = parse_expression(p, PREC_ASSIGN);
+                    RETURN_IF_ERROR(p);
+                    param_defaults[param_count - 1] = def;
+                    saw_default = 1;
+                } else if (saw_default) {
+                    parse_error(p, "non-default parameter after default");
+                    RETURN_IF_ERROR(p);
+                }
             } while (match(p, TOK_COMMA));
         }
         expect(p, TOK_RPAREN, ")");
@@ -882,6 +896,7 @@ static AstNode *parse_statement(Parser *p) {
         AstNode *n = node(p, AST_FUNCTION);
         n->func.name = name;
         n->func.params = params;
+        n->func.param_defaults = param_defaults;
         n->func.param_count = param_count;
         n->func.body = body;
         return n;

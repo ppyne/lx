@@ -19,6 +19,7 @@
 typedef struct FunctionDef {
     char *name;
     char **params;
+    AstNode **param_defaults;
     int param_count;
     AstNode *body;
     struct FunctionDef *next;
@@ -75,6 +76,7 @@ static void register_user_fn(AstNode *func_node) {
         /* overwrite params/body pointers (owned by AST lifetime) */
     }
     f->params = func_node->func.params;
+    f->param_defaults = func_node->func.param_defaults;
     f->param_count = func_node->func.param_count;
     f->body = func_node->func.body;
 }
@@ -679,7 +681,22 @@ static Value eval_call(AstNode *n, Env *env, int *ok_flag) {
 
     Env *local = env_new(env); /* lexical chain: local -> caller */
     for (int i=0;i<uf->param_count;i++) {
-        Value v = (i < argc) ? value_copy(argv[i]) : value_null();
+        Value v;
+        if (i < argc) {
+            v = value_copy(argv[i]);
+        } else if (uf->param_defaults && uf->param_defaults[i]) {
+            Value dv = eval_expr(uf->param_defaults[i], local, ok_flag);
+            if (!*ok_flag) {
+                env_free(local);
+                for (int j=0;j<argc;j++) value_free(argv[j]);
+                free(argv);
+                return value_null();
+            }
+            v = value_copy(dv);
+            value_free(dv);
+        } else {
+            v = value_null();
+        }
         env_set(local, uf->params[i], v);
     }
 

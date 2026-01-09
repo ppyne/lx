@@ -140,6 +140,7 @@ struct AstNode {
         struct {
             char *name;
             char **params;
+            AstNode **param_defaults;
             int param_count;
             AstNode *body;
         } func;

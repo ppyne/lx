@@ -626,6 +626,23 @@ function add($a, $b) {
 }
 ```
 
+Parameters may have default values, which makes them optional at call time.
+Defaults are evaluated in the function's local environment (so earlier parameters
+are available).
+
+```php
+function greet($name = "world") {
+    return "hello " . $name;
+}
+
+function sum2($a, $b = $a) {
+    return $a + $b;
+}
+
+print(greet() . "\n");   // hello world
+print(sum2(4) . "\n");   // 8
+```
+
 Parameters may be written with or without `$`.
 
 ```php
