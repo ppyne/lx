@@ -2,11 +2,25 @@ unlink("tmp_dir/a.txt");
 unlink("tmp_dir/b.txt");
 rmdir("tmp_dir");
 unlink("tmp_file.txt");
+unlink("tmp_copy.txt");
+unlink("tmp_copy2.txt");
+unlink("tmp_moved.txt");
+unlink("tmp_moved2.txt");
 
 file_put_contents("tmp_file.txt", "abc");
 print(file_exists("tmp_file.txt") . "\n");
 print(file_size("tmp_file.txt") . "\n");
 print(file_get_contents("tmp_file.txt") . "\n");
+print(copy("tmp_file.txt", "tmp_copy.txt") . "\n");
+print(file_get_contents("tmp_copy.txt") . "\n");
+print(cp("tmp_file.txt", "tmp_copy2.txt") . "\n");
+print(file_get_contents("tmp_copy2.txt") . "\n");
+print(rename("tmp_copy2.txt", "tmp_moved.txt") . "\n");
+print(file_exists("tmp_copy2.txt") . "\n");
+print(file_exists("tmp_moved.txt") . "\n");
+print(mv("tmp_moved.txt", "tmp_moved2.txt") . "\n");
+print(file_exists("tmp_moved.txt") . "\n");
+print(file_exists("tmp_moved2.txt") . "\n");
 print(chmod("tmp_file.txt", 0644) . "\n");
 print(is_file("tmp_file.txt") . "\n");
 print(is_dir("tmp_file.txt") . "\n");
@@ -20,10 +34,20 @@ print(is_file("tmp_dir") . "\n");
 $p = pathinfo("tmp_dir/a.txt");
 print($p["dirname"] . "|" . $p["basename"] . "|" . $p["extension"] . "|" . $p["filename"] . "\n");
 
+file_put_contents("tmp_dir/r.txt", "R");
+print(rename("tmp_dir/r.txt", "r2.txt") . "\n");
+print(file_exists("tmp_dir/r.txt") . "\n");
+print(file_exists("tmp_dir/r2.txt") . "\n");
+
 $lst = list_dir("tmp_dir");
-print($lst[0] . "," . $lst[1] . "\n");
+print($lst[0] . "," . $lst[1] . "," . $lst[2] . "\n");
 
 unlink("tmp_dir/a.txt");
 unlink("tmp_dir/b.txt");
+unlink("tmp_dir/r2.txt");
 rmdir("tmp_dir");
 unlink("tmp_file.txt");
+unlink("tmp_copy.txt");
+unlink("tmp_copy2.txt");
+unlink("tmp_moved.txt");
+unlink("tmp_moved2.txt");

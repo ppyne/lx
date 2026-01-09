@@ -110,6 +110,73 @@ static Value n_unlink(Env *env, int argc, Value *argv){
     return value_bool(unlink(path) == 0);
 }
 
+static Value n_copy(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 2 || argv[0].type != VAL_STRING || argv[1].type != VAL_STRING) {
+        return value_bool(0);
+    }
+    const char *src = argv[0].s ? argv[0].s : "";
+    const char *dst = argv[1].s ? argv[1].s : "";
+    FILE *in = fopen(src, "rb");
+    if (!in) return value_bool(0);
+    FILE *out = fopen(dst, "wb");
+    if (!out) {
+        fclose(in);
+        return value_bool(0);
+    }
+    char buf[8192];
+    size_t n = 0;
+    int ok = 1;
+    while ((n = fread(buf, 1, sizeof(buf), in)) > 0) {
+        if (fwrite(buf, 1, n, out) != n) {
+            ok = 0;
+            break;
+        }
+    }
+    if (ferror(in)) ok = 0;
+    fclose(in);
+    fclose(out);
+    if (!ok) unlink(dst);
+    return value_bool(ok);
+}
+
+static Value n_rename(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 2 || argv[0].type != VAL_STRING || argv[1].type != VAL_STRING) {
+        return value_bool(0);
+    }
+    const char *src = argv[0].s ? argv[0].s : "";
+    const char *dst = argv[1].s ? argv[1].s : "";
+    if (strchr(dst, '/') == NULL) {
+        const char *slash = strrchr(src, '/');
+        if (slash && slash != src) {
+            size_t dirlen = (size_t)(slash - src);
+            size_t dstlen = strlen(dst);
+            char *buf = (char *)malloc(dirlen + 1 + dstlen + 1);
+            if (!buf) return value_bool(0);
+            memcpy(buf, src, dirlen);
+            buf[dirlen] = '/';
+            memcpy(buf + dirlen + 1, dst, dstlen);
+            buf[dirlen + 1 + dstlen] = '\0';
+            int ok = (rename(src, buf) == 0);
+            free(buf);
+            return value_bool(ok);
+        }
+        if (slash && slash == src) {
+            size_t dstlen = strlen(dst);
+            char *buf = (char *)malloc(1 + dstlen + 1);
+            if (!buf) return value_bool(0);
+            buf[0] = '/';
+            memcpy(buf + 1, dst, dstlen);
+            buf[1 + dstlen] = '\0';
+            int ok = (rename(src, buf) == 0);
+            free(buf);
+            return value_bool(ok);
+        }
+    }
+    return value_bool(rename(src, dst) == 0);
+}
+
 static Value n_chmod(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2 || argv[0].type != VAL_STRING) return value_bool(0);
@@ -216,6 +283,10 @@ static void fs_module_init(Env *global){
     lx_register_function("mkdir", n_mkdir);
     lx_register_function("rmdir", n_rmdir);
     lx_register_function("unlink", n_unlink);
+    lx_register_function("copy", n_copy);
+    lx_register_function("cp", n_copy);
+    lx_register_function("rename", n_rename);
+    lx_register_function("mv", n_rename);
     lx_register_function("chmod", n_chmod);
     lx_register_function("pwd", n_pwd);
     lx_register_function("pathinfo", n_pathinfo);

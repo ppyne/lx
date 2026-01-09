@@ -21,6 +21,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [crc32](functions/crc32.md)(string) : int <span style="color:#888">[Strings]</span>
 - [crc32u](functions/crc32u.md)(string) : string <span style="color:#888">[Strings]</span>
 - [chmod](functions/chmod.md)(path, mode) : bool <span style="color:#888">[Extensions: fs]</span>
+- [copy](functions/copy.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
+- [cp](functions/cp.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [date](functions/date.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
@@ -68,6 +70,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [min](functions/min.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
 - [mktime](functions/mktime.md)(hour, min, sec, month, day, year) : int <span style="color:#888">[Extensions: time]</span>
 - [mkdir](functions/mkdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
+- [mv](functions/mv.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [ord](functions/ord.md)(string) : int <span style="color:#888">[Strings]</span>
 - [pathinfo](functions/pathinfo.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
 - [pi](functions/pi.md)() : float <span style="color:#888">[Numeric and math]</span>
@@ -82,6 +85,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [rand](functions/rand.md)() : int <span style="color:#888">[Numeric and math]</span>
 - [rand](functions/rand.md)(max) : int <span style="color:#888">[Numeric and math]</span>
 - [rand](functions/rand.md)(min, max) : int <span style="color:#888">[Numeric and math]</span>
+- [rename](functions/rename.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [reverse](functions/reverse.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [rmdir](functions/rmdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [round](functions/round.md)(value) : float <span style="color:#888">[Numeric and math]</span>
