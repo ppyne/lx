@@ -73,6 +73,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [print](functions/print.md)(...values) <span style="color:#888">[Output and formatting]</span>
 - [printf](functions/printf.md)(format, ...args) <span style="color:#888">[Output and formatting]</span>
 - [push](functions/push.md)(array, value) : int <span style="color:#888">[Arrays]</span>
+- [pwd](functions/pwd.md)() : string <span style="color:#888">[Extensions: fs]</span>
 - [rad2deg](functions/rad2deg.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [rand](functions/rand.md)() : int <span style="color:#888">[Numeric and math]</span>
 - [rand](functions/rand.md)(max) : int <span style="color:#888">[Numeric and math]</span>

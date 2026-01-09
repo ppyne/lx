@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <limits.h>
 
 static char *dup_range(const char *s, size_t n) {
     char *out = (char *)malloc(n + 1);
@@ -117,6 +118,15 @@ static Value n_chmod(Env *env, int argc, Value *argv){
     return value_bool(chmod(path, (mode_t)mode) == 0);
 }
 
+static Value n_pwd(Env *env, int argc, Value *argv){
+    (void)env;
+    (void)argv;
+    if (argc != 0) return value_string("");
+    char buf[PATH_MAX];
+    if (!getcwd(buf, sizeof(buf))) return value_string("");
+    return value_string(buf);
+}
+
 static Value n_pathinfo(Env *env, int argc, Value *argv){
     (void)env;
     Value out = value_array();
@@ -207,6 +217,7 @@ static void fs_module_init(Env *global){
     lx_register_function("rmdir", n_rmdir);
     lx_register_function("unlink", n_unlink);
     lx_register_function("chmod", n_chmod);
+    lx_register_function("pwd", n_pwd);
     lx_register_function("pathinfo", n_pathinfo);
     lx_register_function("list_dir", n_list_dir);
     (void)global;

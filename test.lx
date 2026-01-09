@@ -195,3 +195,4 @@ arsort($fruits);
 foreach ($fruits as $key => $val) {
     print($key, " = ", $val, "\n");
 }
+print(pwd() . "\n");
