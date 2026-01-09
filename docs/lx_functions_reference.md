@@ -20,6 +20,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [count](functions/count.md)(array) : int <span style="color:#888">[Arrays]</span>
 - [crc32](functions/crc32.md)(string) : int <span style="color:#888">[Strings]</span>
 - [crc32u](functions/crc32u.md)(string) : string <span style="color:#888">[Strings]</span>
+- [chmod](functions/chmod.md)(path, mode) : bool <span style="color:#888">[Extensions: fs]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
 - [exp](functions/exp.md)(value) : float <span style="color:#888">[Numeric and math]</span>
