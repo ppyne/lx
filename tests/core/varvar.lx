@@ -1,0 +1,13 @@
+$a = "b";
+$b = "c";
+$c = $$a;
+print($c, "\n");
+
+$$a = "d";
+print($b, "\n");
+
+$name = "arr";
+$arr = ["x" => 1];
+print(($$name)["x"], "\n");
+($$name)["y"] = 2;
+print($arr["y"], "\n");

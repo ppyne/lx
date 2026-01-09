@@ -392,7 +392,10 @@ Token lexer_next(Lexer *l) {
         return number(l);
     }
 
-    if (c == '$') return identifier(l, 1);
+    if (c == '$') {
+        if (peek(l) == '$') return make_token(l, TOK_DOLLAR);
+        return identifier(l, 1);
+    }
     if (isalpha(c) || c == '_') {
         l->cur--;
         return identifier(l, 0);

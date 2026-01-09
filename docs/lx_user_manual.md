@@ -92,6 +92,27 @@ $a = 10;
 Assignments update an existing variable in the nearest enclosing scope.  
 If no binding exists, a new variable is created in the current scope.
 
+Lx also supports **variable variables** using `$$`, like PHP.
+
+```php
+$a = "b";
+$b = "c";
+$c = $$a;
+print($c . "\n"); // c
+
+$$a = "d";
+print($b . "\n"); // d
+```
+
+**Precedence note:** `$$name["x"]` is parsed as `${$name["x"]}`.  
+To index the variable named by `$$name`, use parentheses:
+
+```php
+$name = "arr";
+$arr = ["x" => 1];
+print(($$name)["x"] . "\n"); // 1
+```
+
 ---
 
 ## 3. Types and Values

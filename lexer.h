@@ -74,6 +74,7 @@ typedef enum {
     TOK_AND,        // &&
     TOK_OR,         // ||
     TOK_NOT,        // !
+    TOK_DOLLAR,     // $
 
     TOK_BIT_AND,    // &
     TOK_BIT_OR,     // |

@@ -28,7 +28,9 @@ typedef enum {
 
     AST_INDEX_ASSIGN,
     AST_ASSIGN,
+    AST_ASSIGN_DYNAMIC,
     AST_VAR,
+    AST_VAR_DYNAMIC,
 
     AST_BINARY,
     AST_UNARY,
@@ -168,10 +170,23 @@ struct AstNode {
             Operator op;
         } assign;
 
+        /* dynamic assignment */
+        struct {
+            AstNode *name_expr;
+            AstNode *value;
+            int is_compound;
+            Operator op;
+        } assign_dynamic;
+
         /* variable */
         struct {
             char *name;
         } var;
+
+        /* dynamic variable */
+        struct {
+            AstNode *expr;
+        } var_dynamic;
 
         /* binary op */
         struct {

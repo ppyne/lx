@@ -205,4 +205,11 @@ print(count($argv) . "\n");
 $fruits = ["d" => "lemon", "a" => "orange", "b" => "banana", "c" => "apple"];
 $str = "fruit: ${fruits[\"d\"]}\n";
 print($str);
+$a = "a";
+$a = $a;
+print("$a\n");
 
+$a = 'b';
+$b = 'c';
+$c = $$a;
+print("$c\n");

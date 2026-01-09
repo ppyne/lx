@@ -69,6 +69,7 @@ static const char *token_name(TokenType t) {
         case TOK_AND: return "&&";
         case TOK_OR: return "||";
         case TOK_NOT: return "!";
+        case TOK_DOLLAR: return "$";
         case TOK_BIT_AND: return "&";
         case TOK_BIT_OR: return "|";
         case TOK_BIT_XOR: return "^";
@@ -187,7 +188,7 @@ typedef enum {
 
 static Precedence precedence(TokenType t) {
     switch (t) {
-        case TOK_ASSIGN: return PREC_ASSIGN;
+        case TOK_ASSIGN: return PREC_NONE;
         case TOK_OR: return PREC_OR;
         case TOK_AND: return PREC_AND;
 
@@ -674,7 +675,7 @@ static AstNode *parse_postfix(Parser *p)
         break;
     }
     if (match(p, TOK_PLUS_PLUS)) {
-        if (n->type != AST_VAR && n->type != AST_INDEX) {
+        if (n->type != AST_VAR && n->type != AST_INDEX && n->type != AST_VAR_DYNAMIC) {
             parse_error(p, "++ expects variable or indexed element");
             RETURN_IF_ERROR(p);
         }
@@ -683,7 +684,7 @@ static AstNode *parse_postfix(Parser *p)
         return ix;
     }
     if (match(p, TOK_MINUS_MINUS)) {
-        if (n->type != AST_VAR && n->type != AST_INDEX) {
+        if (n->type != AST_VAR && n->type != AST_INDEX && n->type != AST_VAR_DYNAMIC) {
             parse_error(p, "-- expects variable or indexed element");
             RETURN_IF_ERROR(p);
         }
@@ -701,7 +702,7 @@ static AstNode *parse_unary(Parser *p) {
     if (match(p, TOK_PLUS_PLUS)) {
         AstNode *t = parse_unary(p);
         RETURN_IF_ERROR(p);
-        if (t->type != AST_VAR && t->type != AST_INDEX) {
+        if (t->type != AST_VAR && t->type != AST_INDEX && t->type != AST_VAR_DYNAMIC) {
             parse_error(p, "++ expects variable or indexed element");
             RETURN_IF_ERROR(p);
         }
@@ -712,12 +713,19 @@ static AstNode *parse_unary(Parser *p) {
     if (match(p, TOK_MINUS_MINUS)) {
         AstNode *t = parse_unary(p);
         RETURN_IF_ERROR(p);
-        if (t->type != AST_VAR && t->type != AST_INDEX) {
+        if (t->type != AST_VAR && t->type != AST_INDEX && t->type != AST_VAR_DYNAMIC) {
             parse_error(p, "-- expects variable or indexed element");
             RETURN_IF_ERROR(p);
         }
         AstNode *n = node(p, AST_PRE_DEC);
         n->incdec.target = t;
+        return n;
+    }
+    if (match(p, TOK_DOLLAR)) {
+        AstNode *t = parse_unary(p);
+        RETURN_IF_ERROR(p);
+        AstNode *n = node(p, AST_VAR_DYNAMIC);
+        n->var_dynamic.expr = t;
         return n;
     }
     if (match(p, TOK_NOT)) {
@@ -1119,7 +1127,8 @@ static AstNode *parse_statement(Parser *p) {
         AstNode *target = parse_expression(p, PREC_ASSIGN);
         RETURN_IF_ERROR(p);
 
-        if (target->type != AST_VAR && target->type != AST_INDEX) {
+        if (target->type != AST_VAR && target->type != AST_INDEX &&
+            target->type != AST_VAR_DYNAMIC) {
             parse_error(p, "unset expects variable or indexed element");
             RETURN_IF_ERROR(p);
         }
@@ -1255,16 +1264,24 @@ static AstNode *parse_statement(Parser *p) {
 
     Operator op = OP_ASSIGN;
     if (match(p, TOK_ASSIGN)) {
-        /* must be index assignment */
-        if (e->type != AST_INDEX) {
-            parse_error(p, "left side of assignment is not assignable");
-            RETURN_IF_ERROR(p);
-        }
-
         AstNode *v = parse_expression(p, PREC_ASSIGN);
         RETURN_IF_ERROR(p);
         expect(p, TOK_SEMI, ";");
         RETURN_IF_ERROR(p);
+
+        if (e->type == AST_VAR_DYNAMIC) {
+            AstNode *n = node(p, AST_ASSIGN_DYNAMIC);
+            n->assign_dynamic.name_expr = e->var_dynamic.expr;
+            n->assign_dynamic.value = v;
+            n->assign_dynamic.is_compound = 0;
+            n->assign_dynamic.op = OP_ASSIGN;
+            return n;
+        }
+
+        if (e->type != AST_INDEX) {
+            parse_error(p, "left side of assignment is not assignable");
+            RETURN_IF_ERROR(p);
+        }
 
         AstNode *n = node(p, AST_INDEX_ASSIGN);
         n->index_assign.target = e;
@@ -1275,14 +1292,24 @@ static AstNode *parse_statement(Parser *p) {
     }
     if (is_assign_op(p->current.type, &op)) {
         advance(p);
-        if (e->type != AST_INDEX) {
-            parse_error(p, "left side of assignment is not assignable");
-            RETURN_IF_ERROR(p);
-        }
         AstNode *v = parse_expression(p, PREC_ASSIGN);
         RETURN_IF_ERROR(p);
         expect(p, TOK_SEMI, ";");
         RETURN_IF_ERROR(p);
+
+        if (e->type == AST_VAR_DYNAMIC) {
+            AstNode *n = node(p, AST_ASSIGN_DYNAMIC);
+            n->assign_dynamic.name_expr = e->var_dynamic.expr;
+            n->assign_dynamic.value = v;
+            n->assign_dynamic.is_compound = 1;
+            n->assign_dynamic.op = op;
+            return n;
+        }
+
+        if (e->type != AST_INDEX) {
+            parse_error(p, "left side of assignment is not assignable");
+            RETURN_IF_ERROR(p);
+        }
 
         AstNode *n = node(p, AST_INDEX_ASSIGN);
         n->index_assign.target = e;

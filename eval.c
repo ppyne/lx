@@ -260,9 +260,32 @@ static Value incdec_value(Value cur, int delta) {
     return out;
 }
 
+static char *eval_dynamic_name(AstNode *expr, Env *env, int *ok_flag) {
+    Value namev = eval_expr(expr, env, ok_flag);
+    if (!*ok_flag) return NULL;
+    Value s = value_to_string(namev);
+    value_free(namev);
+    if (s.type != VAL_STRING || !s.s) {
+        value_free(s);
+        *ok_flag = 0;
+        return NULL;
+    }
+    char *name = s.s;
+    s.s = NULL;
+    value_free(s);
+    return name;
+}
+
 static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out_base) {
     if (target->type == AST_VAR) {
         return env_get_ref(env, target->var.name);
+    }
+    if (target->type == AST_VAR_DYNAMIC) {
+        char *name = eval_dynamic_name(target->var_dynamic.expr, env, ok_flag);
+        if (!*ok_flag || !name) return NULL;
+        Value *slot = env_get_ref(env, name);
+        free(name);
+        return slot;
     }
     if (target->type != AST_INDEX) {
         *ok_flag = 0;
@@ -277,13 +300,24 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
         indices[index_count++] = cur->index.index;
         cur = cur->index.target;
     }
-    if (!cur || cur->type != AST_VAR) {
+    if (!cur || (cur->type != AST_VAR && cur->type != AST_VAR_DYNAMIC)) {
         *ok_flag = 0;
         free(indices);
         return NULL;
     }
 
-    const char *varname = cur->var.name;
+    char *dyn_name = NULL;
+    const char *varname = NULL;
+    if (cur->type == AST_VAR_DYNAMIC) {
+        dyn_name = eval_dynamic_name(cur->var_dynamic.expr, env, ok_flag);
+        if (!*ok_flag || !dyn_name) {
+            free(indices);
+            return NULL;
+        }
+        varname = dyn_name;
+    } else {
+        varname = cur->var.name;
+    }
     Value arrv = env_get(env, varname);
     if (arrv.type == VAL_UNDEFINED || arrv.type == VAL_NULL) {
         arrv = value_array();
@@ -293,13 +327,14 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
         *ok_flag = 0;
         value_free(arrv);
         free(indices);
+        free(dyn_name);
         return NULL;
     }
 
     Array *current = arrv.a;
     for (int i = index_count - 1; i > 0; i--) {
         Value idx = eval_expr(indices[i], env, ok_flag);
-        if (!*ok_flag) { value_free(arrv); free(indices); return NULL; }
+        if (!*ok_flag) { value_free(arrv); free(indices); free(dyn_name); return NULL; }
 
         Value *slot = NULL;
         if (idx.type == VAL_STRING) {
@@ -320,13 +355,14 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
             *ok_flag = 0;
             value_free(arrv);
             free(indices);
+            free(dyn_name);
             return NULL;
         }
         current = slot->a;
     }
 
     Value last_idx = eval_expr(indices[0], env, ok_flag);
-    if (!*ok_flag) { value_free(arrv); free(indices); return NULL; }
+    if (!*ok_flag) { value_free(arrv); free(indices); free(dyn_name); return NULL; }
 
     Value *slot = NULL;
     if (last_idx.type == VAL_STRING) {
@@ -340,6 +376,7 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
 
     *out_base = arrv;
     free(indices);
+    free(dyn_name);
     return slot;
 }
 
@@ -702,6 +739,13 @@ static Value eval_expr(AstNode *n, Env *env, int *ok_flag) {
             Value v = env_get(env, n->var.name);
             return v; /* may be VAL_UNDEFINED */
         }
+        case AST_VAR_DYNAMIC: {
+            char *name = eval_dynamic_name(n->var_dynamic.expr, env, ok_flag);
+            if (!*ok_flag || !name) return value_null();
+            Value v = env_get(env, name);
+            free(name);
+            return v;
+        }
 
         case AST_ASSIGN: {
             Value rhs = eval_expr(n->assign.value, env, ok_flag);
@@ -723,6 +767,30 @@ static Value eval_expr(AstNode *n, Env *env, int *ok_flag) {
             /* auto-create array not here; assignment just sets */
             env_set(env, n->assign.name, value_copy(rhs));
             return rhs; /* return assigned value */
+        }
+        case AST_ASSIGN_DYNAMIC: {
+            char *name = eval_dynamic_name(n->assign_dynamic.name_expr, env, ok_flag);
+            if (!*ok_flag || !name) return value_null();
+            Value rhs = eval_expr(n->assign_dynamic.value, env, ok_flag);
+            if (!*ok_flag) { free(name); return value_null(); }
+            if (n->assign_dynamic.is_compound) {
+                Value lhs = env_get(env, name);
+                if (lhs.type == VAL_UNDEFINED || lhs.type == VAL_NULL) {
+                    if (n->assign_dynamic.op == OP_CONCAT) {
+                        lhs = value_string("");
+                    } else {
+                        lhs = value_int(0);
+                    }
+                }
+                Value out = apply_assign_op(n, n->assign_dynamic.op, lhs, value_copy(rhs));
+                env_set(env, name, value_copy(out));
+                value_free(rhs);
+                free(name);
+                return out;
+            }
+            env_set(env, name, value_copy(rhs));
+            free(name);
+            return rhs;
         }
 
         case AST_UNARY:
@@ -837,12 +905,23 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 cur = cur->index.target;
             }
 
-            if (!cur || cur->type != AST_VAR) {
+            if (!cur || (cur->type != AST_VAR && cur->type != AST_VAR_DYNAMIC)) {
                 free(indices);
                 runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment only supports $var[index]");
                 return ok(value_null());
             }
-            const char *varname = cur->var.name;
+            char *dyn_name = NULL;
+            const char *varname = NULL;
+            if (cur->type == AST_VAR_DYNAMIC) {
+                dyn_name = eval_dynamic_name(cur->var_dynamic.expr, env, &ok2);
+                if (!ok2 || !dyn_name) {
+                    free(indices);
+                    return ok(value_null());
+                }
+                varname = dyn_name;
+            } else {
+                varname = cur->var.name;
+            }
 
             Value arrv = env_get(env, varname);
             if (arrv.type == VAL_UNDEFINED || arrv.type == VAL_NULL) {
@@ -853,6 +932,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
             if (arrv.type != VAL_ARRAY) {
                 value_free(arrv);
                 free(indices);
+                free(dyn_name);
                 runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment on non-array");
                 return ok(value_null());
             }
@@ -861,7 +941,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
 
             for (int i = index_count - 1; i > 0; i--) {
                 Value idx = eval_expr(indices[i], env, &ok2);
-                if (!ok2) { value_free(arrv); free(indices); return ok(value_null()); }
+                if (!ok2) { value_free(arrv); free(indices); free(dyn_name); return ok(value_null()); }
 
                 Value *slot = NULL;
                 if (idx.type == VAL_STRING) {
@@ -882,6 +962,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 if (slot->type != VAL_ARRAY) {
                     value_free(arrv);
                     free(indices);
+                    free(dyn_name);
                     runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment on non-array");
                     return ok(value_null());
                 }
@@ -890,10 +971,10 @@ EvalResult eval_node(AstNode *n, Env *env) {
             }
 
             Value last_idx = eval_expr(indices[0], env, &ok2);
-            if (!ok2) { value_free(arrv); free(indices); return ok(value_null()); }
+            if (!ok2) { value_free(arrv); free(indices); free(dyn_name); return ok(value_null()); }
 
             Value val = eval_expr(n->index_assign.value, env, &ok2);
-            if (!ok2) { value_free(arrv); value_free(last_idx); free(indices); return ok(value_null()); }
+            if (!ok2) { value_free(arrv); value_free(last_idx); free(indices); free(dyn_name); return ok(value_null()); }
 
             if (val.type == VAL_ARRAY && val.a) {
                 if (array_contains(val.a, current)) {
@@ -901,6 +982,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
                     value_free(last_idx);
                     value_free(arrv);
                     free(indices);
+                    free(dyn_name);
                     runtime_error(n, LX_ERR_CYCLE, "cyclic array reference");
                     return ok(value_null());
                 }
@@ -936,6 +1018,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
             value_free(last_idx);
             value_free(arrv);
             free(indices);
+            free(dyn_name);
             return ok(value_null());
         }
 
@@ -1135,26 +1218,42 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 env_unset(env, t->var.name);
                 return ok(value_null());
             }
+            if (t->type == AST_VAR_DYNAMIC) {
+                char *name = eval_dynamic_name(t->var_dynamic.expr, env, &ok_flag);
+                if (!ok_flag || !name) return ok(value_null());
+                env_unset(env, name);
+                free(name);
+                return ok(value_null());
+            }
 
             /* Unset an array index. */
             if (t->type == AST_INDEX) {
                 AstNode *base = t->index.target;
 
-                if (base->type != AST_VAR) {
+                if (base->type != AST_VAR && base->type != AST_VAR_DYNAMIC) {
                     runtime_error(n, LX_ERR_UNSET_TARGET, "unset(index) only supports unset($var[index])");
                     return ok(value_null());
                 }
-                const char *varname = base->var.name;
+                char *dyn_name = NULL;
+                const char *varname = NULL;
+                if (base->type == AST_VAR_DYNAMIC) {
+                    dyn_name = eval_dynamic_name(base->var_dynamic.expr, env, &ok_flag);
+                    if (!ok_flag || !dyn_name) return ok(value_null());
+                    varname = dyn_name;
+                } else {
+                    varname = base->var.name;
+                }
 
                 Value arrv = env_get(env, varname);
                 if (arrv.type != VAL_ARRAY) {
                     /* Undefined/null: no-op, PHP-style. */
                     value_free(arrv);
+                    free(dyn_name);
                     return ok(value_null());
                 }
 
                 Value idx = eval_expr(t->index.index, env, &ok_flag);
-                if (!ok_flag) { value_free(arrv); return ok(value_null()); }
+                if (!ok_flag) { value_free(arrv); free(dyn_name); return ok(value_null()); }
 
                 if (idx.type == VAL_STRING) {
                     array_unset(arrv.a, key_string(idx.s));
@@ -1169,6 +1268,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
 
                 value_free(arrv);
                 value_free(idx);
+                free(dyn_name);
                 return ok(value_null());
             }
 
