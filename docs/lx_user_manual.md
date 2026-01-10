@@ -1,6 +1,6 @@
 # Lx Language — User Manual
 
-<img src="docs/lx_mascot.svg" width="128" alt="Lx mascot">
+<img src="lx_mascot.svg" width="128" alt="Lx mascot">
 
 Lx: Power without noise
 
