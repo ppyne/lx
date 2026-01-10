@@ -1,0 +1,28 @@
+$db = pdo_sqlite_open("ext/sqlite_test.db");
+print(is_int($db) . "\n");
+
+pdo_query($db, "DROP TABLE IF EXISTS fruit");
+pdo_query($db, "CREATE TABLE fruit (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, color TEXT, calories INTEGER)");
+pdo_query($db, "INSERT INTO fruit (name, color, calories) VALUES ('apple','red',95)");
+pdo_query($db, "INSERT INTO fruit (name, color, calories) VALUES ('banana','yellow',105)");
+pdo_query($db, "INSERT INTO fruit (name, color, calories) VALUES ('lemon','yellow',29)");
+
+print(pdo_last_insert_id($db) . "\n");
+
+$rows = pdo_query($db, "SELECT name, color FROM fruit WHERE calories < 100 ORDER BY id");
+foreach ($rows as $r) {
+    print($r["name"] . "," . $r["color"] . "\n");
+}
+
+$stmt = pdo_prepare($db, "SELECT name FROM fruit WHERE calories < :calories AND color = :color ORDER BY id");
+print(pdo_execute($stmt, ["calories" => 100, "color" => "yellow"]) . "\n");
+$all = pdo_fetch_all($stmt);
+print(count($all) . "\n");
+print($all[0]["name"] . "\n");
+
+print(pdo_execute($stmt, [":calories" => 150, ":color" => "yellow"]) . "\n");
+print(pdo_fetch($stmt)["name"] . "\n");
+print(pdo_fetch($stmt)["name"] . "\n");
+
+print(pdo_close($db) . "\n");
+unlink("ext/sqlite_test.db");

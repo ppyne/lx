@@ -27,6 +27,7 @@ typedef struct {
 static NativeEntry *g_fns = NULL;
 static int g_count = 0;
 static int g_cap = 0;
+static FILE *g_output = NULL;
 
 static void buf_append(char **buf, size_t *cap, size_t *len, const char *s, size_t n);
 static Value run_include(Env *env, const char *path);
@@ -60,6 +61,10 @@ static void ensure(int need){
     g_fns = ne; g_cap = cap;
 }
 
+void lx_set_output(FILE *f) {
+    g_output = f;
+}
+
 void register_function(const char *name, NativeFn fn){
     for (int i=0;i<g_count;i++){
         if (strcmp(g_fns[i].name, name)==0){
@@ -82,9 +87,10 @@ NativeFn find_function(const char *name){
 
 static Value n_print(Env *env, int argc, Value *argv){
     (void)env;
+    FILE *out = g_output ? g_output : stdout;
     for (int i=0;i<argc;i++){
         Value s = value_to_string(argv[i]);
-        fputs(s.s, stdout);
+        fputs(s.s, out);
         value_free(s);
     }
     return value_void();
@@ -115,7 +121,8 @@ static void dump_pop(DumpState *st) {
 static void writer_write(DumpWriter *w, const char *s, size_t n) {
     if (!w) return;
     if (!w->to_string) {
-        if (n > 0) fwrite(s, 1, n, w->f ? w->f : stdout);
+        FILE *out = w->f ? w->f : (g_output ? g_output : stdout);
+        if (n > 0) fwrite(s, 1, n, out);
         return;
     }
     if (w->len + n + 1 > w->cap) {
@@ -137,7 +144,8 @@ static void writer_puts(DumpWriter *w, const char *s) {
 
 static void writer_putc(DumpWriter *w, char c) {
     if (!w->to_string) {
-        fputc(c, w->f ? w->f : stdout);
+        FILE *out = w->f ? w->f : (g_output ? g_output : stdout);
+        fputc(c, out);
         return;
     }
     if (w->len + 2 > w->cap) {
@@ -340,7 +348,7 @@ static Value n_var_dump(Env *env, int argc, Value *argv){
     }
     DumpState st = {0};
     DumpWriter w = {0};
-    if (!return_string) w.f = stdout;
+    if (!return_string) w.f = g_output ? g_output : stdout;
     for (int i = 0; i < argc; i++) {
         dump_value(argv[i], 0, &st, &w);
         writer_putc(&w, '\n');
@@ -364,7 +372,7 @@ static Value n_print_r(Env *env, int argc, Value *argv){
     }
     DumpState st = {0};
     DumpWriter w = {0};
-    if (!return_string) w.f = stdout;
+    if (!return_string) w.f = g_output ? g_output : stdout;
     print_r_value(argv[0], 0, &st, &w);
     free(st.stack);
     if (return_string) {

@@ -3,3 +3,4 @@ lx
 *.o
 php_refs
 *.swp
+lx_cgi

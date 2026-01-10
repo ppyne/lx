@@ -1,2 +1,2 @@
 Lx 1.0
-extensions: fs, json, serializer, hex, blake2b, time, env, utf8
+extensions: fs, json, serializer, hex, blake2b, time, env, utf8, sqlite

@@ -81,6 +81,14 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [mv](functions/mv.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [ord](functions/ord.md)(string) : int <span style="color:#888">[Strings]</span>
 - [pathinfo](functions/pathinfo.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
+- [pdo_close](functions/pdo_close.md)(db) : bool <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_execute](functions/pdo_execute.md)(stmt[, params]) : bool <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_fetch](functions/pdo_fetch.md)(stmt) : array|undefined <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_fetch_all](functions/pdo_fetch_all.md)(stmt) : array <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_last_insert_id](functions/pdo_last_insert_id.md)(db) : int <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_prepare](functions/pdo_prepare.md)(db, sql[, options]) : stmt|undefined <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_query](functions/pdo_query.md)(db, sql) : array|undefined <span style="color:#888">[Extensions: sqlite]</span>
+- [pdo_sqlite_open](functions/pdo_sqlite_open.md)(path) : resource|undefined <span style="color:#888">[Extensions: sqlite]</span>
 - [pi](functions/pi.md)() : float <span style="color:#888">[Numeric and math]</span>
 - [pop](functions/pop.md)(array) : mixed|undefined <span style="color:#888">[Arrays]</span>
 - [pow](functions/pow.md)(base, exp) : float <span style="color:#888">[Numeric and math]</span>

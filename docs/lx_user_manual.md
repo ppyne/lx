@@ -952,6 +952,7 @@ void register_my_module(void) {
 ```
 
 See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
+See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
 
 Available extensions included with Lx:
 
@@ -963,6 +964,7 @@ Available extensions included with Lx:
 - **blake2b**: [`blake2b`](functions/blake2b.md)
 - **time**: [`time`](functions/time.md), [`date`](functions/date.md), [`gmdate`](functions/gmdate.md), [`mktime`](functions/mktime.md), [`sleep`](functions/sleep.md), [`usleep`](functions/usleep.md)
 - **utf8**: [`glyph_count`](functions/glyph_count.md), [`glyph_at`](functions/glyph_at.md)
+- **sqlite**: [`pdo_sqlite_open`](functions/pdo_sqlite_open.md), [`pdo_query`](functions/pdo_query.md), [`pdo_prepare`](functions/pdo_prepare.md), [`pdo_execute`](functions/pdo_execute.md), [`pdo_fetch`](functions/pdo_fetch.md), [`pdo_fetch_all`](functions/pdo_fetch_all.md), [`pdo_last_insert_id`](functions/pdo_last_insert_id.md), [`pdo_close`](functions/pdo_close.md)
 
 See [Lx Functions Reference](lx_functions_reference.md) for details about the functions.
 

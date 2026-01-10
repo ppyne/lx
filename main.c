@@ -25,6 +25,7 @@ void register_blake2b_module(void);
 void register_time_module(void);
 void register_env_module(void);
 void register_utf8_module(void);
+void register_sqlite_module(void);
 
 /* Stream reading utility. */
 static char *read_stream(FILE *f) {
@@ -139,6 +140,7 @@ int main(int argc, char **argv) {
     register_time_module();
     register_env_module();
     register_utf8_module();
+    register_sqlite_module();
     /* Run extension initializers. */
     lx_init_modules(global);
 
