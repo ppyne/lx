@@ -37,4 +37,24 @@ file: README.md
 directory: docs
 ...
 */
+
+function walk_tree($path, $prefix = "") {
+    if (!ends_with($path, "/")) $path = $path . "/";
+
+    $files = list_dir($path);
+    foreach ($files as $file) {
+        $full = $path . $file;
+
+        if (is_dir($full)) {
+            print($prefix . "├─ " . $file . "/" . LX_EOL);
+            walk_tree($full, $prefix . "│  ");
+        } else {
+            print($prefix . "├─ " . $file . LX_EOL);
+        }
+    }
+}
+
+walk_tree("./");
+
+
 ```
