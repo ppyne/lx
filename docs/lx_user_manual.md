@@ -108,7 +108,7 @@ $$a = 'd';
 print($b . "\n"); // d
 ```
 
-**Precedence note:** `$$name["x"]` is parsed as `${$name["x"]}`.  
+**Precedence note:** `$$name["x"]` is conceptually parsed as `$( $name["x"] )`.  
 To index the variable named by `$$name`, use parentheses:
 
 ```php
