@@ -5,6 +5,16 @@ It is designed for embedded use cases and a minimal, predictable runtime.
 
 <p align="center"><img src="docs/lx_mascot.svg" width="128" alt="Lx mascot"></p>
 
+## Technical overview
+
+Lx is a small interpreted language implemented in C. The front‑end is a hand‑written lexer and
+recursive‑descent parser that builds an AST for expressions, statements, and control flow. The runtime
+evaluates the AST directly (no bytecode), with a dynamic `Value` type supporting int, float, bool,
+string, array, null/undefined/void. Arrays are associative (int/string keys) and use reference
+counting with a periodic mark‑and‑sweep pass to break cycles. The environment model is lexical with
+explicit `global` declarations. Built‑in functions and extensions are registered through a small C
+extension API and exposed at startup.
+
 ## License
 
 BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
