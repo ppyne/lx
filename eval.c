@@ -940,7 +940,48 @@ EvalResult eval_node(AstNode *n, Env *env) {
         case AST_INDEX_ASSIGN: {
             int ok2 = 1;
 
-            AstNode *ix = n->index_assign.target; /* AST_INDEX */
+            AstNode *ix = n->index_assign.target; /* AST_INDEX or AST_INDEX_APPEND */
+            if (ix->type == AST_INDEX_APPEND) {
+                AstNode *cur = ix->index_append.target;
+                if (!cur || (cur->type != AST_VAR && cur->type != AST_VAR_DYNAMIC)) {
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment only supports $var[index]");
+                    return ok(value_null());
+                }
+                char *dyn_name = NULL;
+                const char *varname = NULL;
+                if (cur->type == AST_VAR_DYNAMIC) {
+                    dyn_name = eval_dynamic_name(cur->var_dynamic.expr, env, &ok2);
+                    if (!ok2 || !dyn_name) {
+                        return ok(value_null());
+                    }
+                    varname = dyn_name;
+                } else {
+                    varname = cur->var.name;
+                }
+
+                Value arrv = env_get(env, varname);
+                if (arrv.type == VAL_UNDEFINED || arrv.type == VAL_NULL) {
+                    arrv = value_array();
+                    env_set(env, varname, value_copy(arrv));
+                }
+                if (arrv.type != VAL_ARRAY) {
+                    value_free(arrv);
+                    free(dyn_name);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment on non-array");
+                    return ok(value_null());
+                }
+
+                Value val = eval_expr(n->index_assign.value, env, &ok2);
+                if (!ok2) { value_free(arrv); free(dyn_name); return ok(value_null()); }
+
+                int idx = array_next_index(arrv.a);
+                array_set(arrv.a, key_int(idx), value_copy(val));
+                value_free(val);
+                value_free(arrv);
+                free(dyn_name);
+                return ok(value_null());
+            }
+
             AstNode *cur = ix;
             AstNode **indices = NULL;
             int index_count = 0;

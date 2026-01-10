@@ -676,6 +676,7 @@ Rules:
 - Reading a missing key, or an out of range index, returns `undefined`.
 - Indexing a non-array (except string) returns `undefined`.
 - String indexing returns a one-character string or `undefined`.
+- Appending with `$array[] = value` adds to the next numeric index.
 - Index assignment on a non-array raises a runtime error.
 - Cyclic array reference assignment raises a runtime error.
 

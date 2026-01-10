@@ -6,6 +6,11 @@ print(in_array("2", $a) . "\n");
 print(in_array("2", $a, false) . "\n");
 print(in_array("x", $a) . "\n");
 
+$pushy = [];
+$pushy[] = 1;
+$pushy[] = 2;
+print($pushy[0] . "," . $pushy[1] . "\n");
+
 $vals = values(["a" => 1, "b" => 2, 5 => 3]);
 print($vals[0] . "," . $vals[1] . "," . $vals[2] . "\n");
 

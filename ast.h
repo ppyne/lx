@@ -30,6 +30,7 @@ typedef enum {
     AST_INDEX_ASSIGN,
     AST_ASSIGN,
     AST_ASSIGN_DYNAMIC,
+    AST_INDEX_APPEND,
     AST_DESTRUCT_ASSIGN,
     AST_VAR,
     AST_VAR_DYNAMIC,
@@ -232,6 +233,11 @@ struct AstNode {
             AstNode *target;
             AstNode *index;
         } index;
+
+        /* index append */
+        struct {
+            AstNode *target;
+        } index_append;
 
         /* inc/dec */
         struct {

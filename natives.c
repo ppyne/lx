@@ -584,7 +584,7 @@ static Key key_copy_local(Key k) {
     return out;
 }
 
-static int array_next_index(Array *a) {
+int array_next_index(Array *a) {
     int next = 0;
     if (!a) return 0;
     for (int i = 0; i < a->size; i++) {

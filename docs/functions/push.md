@@ -11,6 +11,7 @@ Domain: Arrays
 `push(array, value) : int`
 
 Appends `value` to `array` and returns the new length.
+This is equivalent to using `$array[] = value`.
 
 ### Parameters
 

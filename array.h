@@ -58,6 +58,8 @@ void   array_set(Array *a, Key k, Value v);
 
 /** @return Number of entries in @p a. */
 int    array_len(Array *a);
+/** @return Next numeric index after the largest integer key. */
+int    array_next_index(Array *a);
 
 /** Remove the entry for @p k if present. */
 void array_unset(Array *a, Key k);

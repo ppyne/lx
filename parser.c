@@ -728,7 +728,11 @@ static AstNode *parse_postfix(Parser *p)
     RETURN_IF_ERROR(p);
 
     for (;;) {
-        if (match(p, TOK_LBRACKET)) {          /* '[' */
+    if (match(p, TOK_LBRACKET)) {          /* '[' */
+            if (match(p, TOK_RBRACKET)) {
+                parse_error(p, "unexpected append in expression");
+                RETURN_IF_ERROR(p);
+            }
             AstNode *idx = parse_expression(p, PREC_ASSIGN);
             expect(p, TOK_RBRACKET, "]");      /* ']' */
             RETURN_IF_ERROR(p);
@@ -1347,6 +1351,12 @@ static AstNode *parse_statement(Parser *p) {
         /* handle possible postfix/indexing */
         while (check(p, TOK_LBRACKET)) {
             advance(p); /* '[' */
+            if (match(p, TOK_RBRACKET)) {
+                AstNode *ix = node(p, AST_INDEX_APPEND);
+                ix->index_append.target = e;
+                e = ix;
+                continue;
+            }
             AstNode *idx = parse_expression(p, PREC_ASSIGN);
             expect(p, TOK_RBRACKET, "]");
             RETURN_IF_ERROR(p);
@@ -1371,6 +1381,10 @@ static AstNode *parse_statement(Parser *p) {
         }
         if (is_assign_op(p->current.type, &op)) {
             advance(p);
+            if (e->type == AST_INDEX_APPEND) {
+                parse_error(p, "append expects simple assignment");
+                RETURN_IF_ERROR(p);
+            }
             AstNode *v = parse_expression(p, PREC_ASSIGN);
             expect(p, TOK_SEMI, ";");
 
@@ -1383,6 +1397,10 @@ static AstNode *parse_statement(Parser *p) {
         }
         if (match(p, TOK_PLUS_PLUS) || match(p, TOK_MINUS_MINUS)) {
             int inc = (p->previous.type == TOK_PLUS_PLUS) ? 1 : -1;
+            if (e->type == AST_INDEX_APPEND) {
+                parse_error(p, "append expects simple assignment");
+                RETURN_IF_ERROR(p);
+            }
             AstNode *v = make_int_literal(p, 1);
             expect(p, TOK_SEMI, ";");
 
@@ -1424,7 +1442,7 @@ static AstNode *parse_statement(Parser *p) {
             return n;
         }
 
-        if (e->type != AST_INDEX) {
+        if (e->type != AST_INDEX && e->type != AST_INDEX_APPEND) {
             parse_error(p, "left side of assignment is not assignable");
             RETURN_IF_ERROR(p);
         }
@@ -1452,7 +1470,7 @@ static AstNode *parse_statement(Parser *p) {
             return n;
         }
 
-        if (e->type != AST_INDEX) {
+        if (e->type != AST_INDEX && e->type != AST_INDEX_APPEND) {
             parse_error(p, "left side of assignment is not assignable");
             RETURN_IF_ERROR(p);
         }
