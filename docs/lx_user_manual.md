@@ -286,9 +286,9 @@ To combine strings with variable values or expressions, explicit string concaten
 
 ```php
 $a = "Hello";
-$b = "World";
+$b = 'World';
 print($a . " " . $b . "\n"); // Prints Hello World
-
+print("$a $b\n"); // Prints Hello World
 printf("%s %s\n", $a, $b); // Prints Hello World
 ```
 
