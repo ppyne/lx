@@ -3,9 +3,9 @@
 Lx is a small, interpreted, dynamically typed scripting language with a PHP-like surface syntax.  
 It is a minimal runtime interpreter with no bytecode or VM layer.
 
-<p align="center"><img src="docs/lx_mascot.svg" width="128" alt="Lx mascot"></p>
+<img src="docs/lx_mascot.svg" width="128" alt="Lx mascot">
 
-Lx: Power without noise.
+Lx: Power without noise
 
 ## Technical overview
 
