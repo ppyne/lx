@@ -28,6 +28,10 @@ Value *env_get_ref(Env *e, const char *name);
 void  env_set(Env *e, const char *name, Value v);
 /** Remove @p name from the current scope if present. */
 void  env_unset(Env *e, const char *name);
+/** Declare @p name as global in the current environment. */
+void  env_add_global(Env *e, const char *name);
+/** @return Non-zero if @p name is declared global in @p e. */
+int   env_is_global(Env *e, const char *name);
 
 /** Callback used by env_visit. */
 typedef void (*EnvVisitFn)(const char *name, Value *value, void *ctx);

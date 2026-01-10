@@ -33,6 +33,7 @@ static const char *token_name(TokenType t) {
         case TOK_CASE: return "case";
         case TOK_DEFAULT: return "default";
         case TOK_FUNCTION: return "function";
+        case TOK_GLOBAL: return "global";
         case TOK_RETURN: return "return";
         case TOK_BREAK: return "break";
         case TOK_CONTINUE: return "continue";
@@ -979,6 +980,35 @@ static AstNode *parse_statement(Parser *p) {
         }
         expect(p, TOK_SEMI, ";");
         RETURN_IF_ERROR(p);
+        return n;
+    }
+
+    /* global */
+    if (match(p, TOK_GLOBAL)) {
+        char **names = NULL;
+        int count = 0;
+
+        if (!check(p, TOK_VAR) && !check(p, TOK_IDENT)) {
+            parse_error(p, "global expects variable name");
+            RETURN_IF_ERROR(p);
+        }
+
+        do {
+            if (!check(p, TOK_VAR) && !check(p, TOK_IDENT)) {
+                parse_error(p, "global expects variable name");
+                RETURN_IF_ERROR(p);
+            }
+            advance(p);
+            names = realloc(names, sizeof(char *) * (count + 1));
+            names[count++] = strdup(p->previous.string_val);
+        } while (match(p, TOK_COMMA));
+
+        expect(p, TOK_SEMI, ";");
+        RETURN_IF_ERROR(p);
+
+        AstNode *n = node(p, AST_GLOBAL);
+        n->global_stmt.names = names;
+        n->global_stmt.count = count;
         return n;
     }
 

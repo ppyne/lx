@@ -1281,6 +1281,13 @@ EvalResult eval_node(AstNode *n, Env *env) {
             return ok(value_null());
         }
 
+        case AST_GLOBAL: {
+            for (int i = 0; i < n->global_stmt.count; i++) {
+                env_add_global(env, n->global_stmt.names[i]);
+            }
+            return ok(value_null());
+        }
+
         case AST_FUNCTION:
             register_user_fn(n);
             return ok(value_null());

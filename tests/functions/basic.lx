@@ -47,11 +47,11 @@ print(no_return()); print("\n");
 $glob = 10;
 
 function set_global($n) {
+    global $glob;
     $glob = $glob + $n;
 }
 
 set_global(5);
 
 print($glob); print("\n");
-
 

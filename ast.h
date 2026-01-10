@@ -19,6 +19,7 @@ typedef enum {
     AST_FOREACH,
     AST_DO_WHILE,
     AST_SWITCH,
+    AST_GLOBAL,
 
     AST_FUNCTION,
     AST_RETURN,
@@ -139,6 +140,12 @@ struct AstNode {
             AstNode **case_bodies; /* AST_BLOCK */
             int case_count;
         } switch_stmt;
+
+        /* global */
+        struct {
+            char **names;
+            int count;
+        } global_stmt;
 
         /* function */
         struct {

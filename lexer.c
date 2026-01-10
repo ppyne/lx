@@ -350,6 +350,7 @@ static Token identifier(Lexer *l, int is_var) {
         KW("case", TOK_CASE);
         KW("default", TOK_DEFAULT);
         KW("function", TOK_FUNCTION);
+        KW("global", TOK_GLOBAL);
         KW("return", TOK_RETURN);
         KW("break", TOK_BREAK);
         KW("continue", TOK_CONTINUE);

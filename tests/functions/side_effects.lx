@@ -3,6 +3,7 @@
 $g = 1;
 
 function inc_global() {
+    global $g;
     $g = $g + 1;
 }
 
@@ -50,6 +51,7 @@ print($c[0]); print("\n");   # 3 (inchangé)
 $sum = 0;
 
 function add_to_sum($arr) {
+    global $sum;
     $sum = $sum + count($arr);
 }
 

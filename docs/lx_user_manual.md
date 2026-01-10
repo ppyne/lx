@@ -89,8 +89,8 @@ Variables are prefixed with `$` and are created by assignment.
 $a = 10;
 ```
 
-Assignments update an existing variable in the nearest enclosing scope.  
-If no binding exists, a new variable is created in the current scope.
+Assignments create or update a variable in the **current scope**.  
+To read or modify globals from inside a function, use `global`.
 
 Lx also supports **variable variables** using `$$`, like PHP.
 
@@ -731,85 +731,41 @@ When printed, `void` produces an empty string.
 
 ### 8.3 Scope and lifetime
 
-Functions execute in a local environment that is linked to the calling environment.
-
-When a variable is assigned inside a function, Lx resolves the assignment as follows:
-
-- If a variable binding with the same name exists in an enclosing scope, that binding is updated.
-
-- Otherwise, a new variable is created in the function’s local scope.
-
-This resolution rule applies uniformly to all assignments.
-
----
-
-#### Updating an existing binding
-
-If a variable already exists in the calling scope, assignments inside the function update that variable.
-
-Example:
+Functions execute in a local environment. Variables are **local by default**.
+To access or modify globals, you must declare them explicitly with `global`.
 
 ```php
+$g = 1;
+
 function inc() {
+    global $g;
     $g = $g + 1;
 }
 
-$g = 1;
 inc();
 print($g . "\n"); // 2
 ```
 
-In this example, `$g` exists in the enclosing scope.  
-The assignment inside `inc` updates the existing binding.
-
----
-
-#### Assignment when no binding exists
-
-If no variable binding exists in any enclosing scope, the assignment creates a **local** variable inside the function.
-
-The variable is evaluated before assignment. If it does not exist, its value is `undefined`.
-
-Example:
+Without `global`, assignments create or update **local** variables only:
 
 ```php
-function f() {
-    $v += 1;
+$g = 1;
+
+function inc_local() {
+    $g = $g + 1; // local $g (starts as undefined)
 }
 
-f();
-print($v . "\n"); // undefined
+inc_local();
+print($g . "\n"); // 1
 ```
-
-In this example:
-
-- `$v` has no existing binding in the enclosing scope.
-
-- `$v` inside the function is evaluated as `undefined`.
-
-- The assignment creates a local `$v` inside the function.
-
-- No variable `$v` exists in the outer scope after the function call.
 
 ---
 
 #### Lifetime rules
 
-- Variables created inside a function exist only for the duration of that function call.
-
-- Variables in enclosing scopes are not implicitly created or modified.
-
+- Variables created inside a function exist only for the duration of that call.
+- Global variables remain available throughout the script.
 - Loop variables remain accessible after the loop finishes.
-
----
-
-#### Notes
-
-- Lx does not implicitly create global variables.
-
-- Variable resolution is explicit and deterministic.
-
-- No scope is modified unless a binding already exists.
 
 ---
 
@@ -921,7 +877,7 @@ Only the specified element is removed; other elements remain unchanged.
 
 - `unset` affects only the current scope.
 
-- It does not create or modify variables in enclosing scopes.
+- It does not create or modify variables in enclosing scopes unless the variable is declared `global`.
 
 - `unset` does not return a value.
 

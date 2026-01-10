@@ -33,15 +33,8 @@ foreach($files as $file) {
 
 /* Could output:
 file: LICENSE
-file: Makefile
 file: README.md
-file: array.c
-file: array.h
-file: ast.h
-file: data.txt
 directory: docs
-file: env.c
-file: env.h
 ...
 */
 ```

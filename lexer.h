@@ -32,6 +32,7 @@ typedef enum {
     TOK_CASE,
     TOK_DEFAULT,
     TOK_FUNCTION,
+    TOK_GLOBAL,
     TOK_RETURN,
     TOK_BREAK,
     TOK_CONTINUE,
