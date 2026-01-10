@@ -953,7 +953,7 @@ void register_my_module(void) {
 
 See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
 
-Built-in extensions:
+Available extensions included with Lx:
 
 - **fs**: [`file_get_contents`](functions/file_get_contents.md), [`file_put_contents`](functions/file_put_contents.md), [`file_exists`](functions/file_exists.md), [`file_size`](functions/file_size.md), [`is_dir`](functions/is_dir.md), [`is_file`](functions/is_file.md), [`mkdir`](functions/mkdir.md), [`rmdir`](functions/rmdir.md), [`unlink`](functions/unlink.md), [`copy`](functions/copy.md), [`cp`](functions/cp.md), [`rename`](functions/rename.md), [`mv`](functions/mv.md), [`chmod`](functions/chmod.md), [`pwd`](functions/pwd.md), [`pathinfo`](functions/pathinfo.md), [`list_dir`](functions/list_dir.md)
 - **env**: [`env_get`](functions/env_get.md), [`env_set`](functions/env_set.md), [`env_unset`](functions/env_unset.md), [`env_list`](functions/env_list.md)
@@ -990,11 +990,4 @@ Limitations:
 
 - No trailing commas in array literals
 - Array to string conversion yields `"array"`
-
----
-
-## 16. Undefined or Unclear Behavior
-
-- Floating-point formatting depends on `%g`
-
-This behavior is undefined or unclear in the current implementation.
+- There is no `echo` language construct like in PHP, the function `print()` reminds it yet.
