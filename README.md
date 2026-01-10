@@ -23,7 +23,7 @@ BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
 
 ## Documentation
 
-- [`docs/lx_user_manual.md`](docs/lx_user_manual.md) — language reference
+- [`docs/lx_user_manual.md`](docs/lx_user_manual.md) — Lx user manuel: the language reference
 - [`docs/lx_functions_reference.md`](docs/lx_functions_reference.md) — functions reference
 - [`docs/llx_predefined_constants.md`](docs/lx_predefined_constants.md) — predefined constants reference
 - [`docs/lx_installation.md`](docs/lx_installation.md) — build, run, and test instructions
