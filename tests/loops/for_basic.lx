@@ -37,3 +37,4 @@ print($j); print("\n");
 
 
 for($i = 0; $i < 2; $i++) print($i . "\n");
+for($i = 0; $i < 2; ++$i) print($i . "\n");

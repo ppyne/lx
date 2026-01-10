@@ -569,13 +569,31 @@ static AstNode *parse_for_clause(Parser *p) {
     int count = 0;
 
     do {
-        if (!check(p, TOK_VAR)) {
-            parse_error(p, "for clause must start with a variable");
-            RETURN_IF_ERROR(p);
+        AstNode *one = NULL;
+        if (match(p, TOK_PLUS_PLUS) || match(p, TOK_MINUS_MINUS)) {
+            int inc = (p->previous.type == TOK_PLUS_PLUS) ? 1 : -1;
+            if (!check(p, TOK_VAR)) {
+                parse_error(p, "for clause expects variable");
+                RETURN_IF_ERROR(p);
+            }
+            advance(p);
+            char *name = strdup(p->previous.string_val);
+            AstNode *val = make_int_literal(p, 1);
+            AstNode *n = node(p, AST_ASSIGN);
+            n->assign.name = name;
+            n->assign.value = val;
+            n->assign.is_compound = 1;
+            n->assign.op = (inc > 0) ? OP_ADD : OP_SUB;
+            one = n;
+        } else {
+            if (!check(p, TOK_VAR)) {
+                parse_error(p, "for clause must start with a variable");
+                RETURN_IF_ERROR(p);
+            }
+            advance(p);
+            char *name = strdup(p->previous.string_val);
+            one = parse_for_assign(p, name);
         }
-        advance(p);
-        char *name = strdup(p->previous.string_val);
-        AstNode *one = parse_for_assign(p, name);
         RETURN_IF_ERROR(p);
         items = realloc(items, sizeof(AstNode *) * (count + 1));
         items[count++] = one;

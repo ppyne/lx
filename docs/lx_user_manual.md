@@ -582,6 +582,14 @@ for ($i = 0; $i < 3; $i++) {
 }
 ```
 
+Prefix increments are also supported in the loop clause:
+
+```php
+for ($i = 0; $i < 3; ++$i) {
+    print($i);
+}
+```
+
 #### foreach
 
 Arrays:
