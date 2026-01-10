@@ -40,10 +40,10 @@ See [Lx Installation and building](lx_installation.md) for details.
 **Running**
 
 ```sh
-./lx test.lx
-cat test.lx | ./lx
+./lx script.lx
+cat script.lx | ./lx
 echo "print(lxinfo());" | ./lx
-./lx < test.lx
+./lx < script.lx
 ```
 
 ---
@@ -77,6 +77,8 @@ Lx supports line and block comments.
 /* block comment */
 
 $a = 5 /* inline comment */ + 2;
+
+#!/usr/local/bin/lx
 ```
 
 Comments may appear anywhere whitespace is allowed.
