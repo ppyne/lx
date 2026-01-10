@@ -399,7 +399,7 @@ Postfix returns the previous value; prefix returns the updated value.
 
 Logical operators are described separately because they affect expression evaluation order through short-circuit semantics.
 
-Lx provides logical AND (`&&`) and logical OR (`||`) operators for conditional evaluation.
+Lx provides logical NOT (`!`), AND (`&&`) and OR (`||`) operators for conditional evaluation.
 
 These operators evaluate their operands according to standard truthiness rules and use **short-circuit evaluation**.
 
@@ -441,6 +441,22 @@ Example:
 $a = 0;
 $b = 1;
 print($a || $b); // true
+```
+
+---
+
+##### Logical NOT (`!`)
+
+`!expr`
+
+- Evaluates `expr` and negates its truthiness.
+- The result is a boolean value.
+
+Example:
+
+```php
+$a = 0;
+print(!$a); // true
 ```
 
 ---
