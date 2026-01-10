@@ -24,6 +24,7 @@ void register_hex_module(void);
 void register_blake2b_module(void);
 void register_time_module(void);
 void register_env_module(void);
+void register_utf8_module(void);
 
 /* Stream reading utility. */
 static char *read_stream(FILE *f) {
@@ -137,6 +138,7 @@ int main(int argc, char **argv) {
     register_blake2b_module();
     register_time_module();
     register_env_module();
+    register_utf8_module();
     /* Run extension initializers. */
     lx_init_modules(global);
 

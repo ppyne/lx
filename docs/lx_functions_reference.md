@@ -39,6 +39,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [float](functions/float.md)(value) : float <span style="color:#888">[Casting helpers]</span>
 - [floor](functions/floor.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [gmdate](functions/gmdate.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
+- [glyph_at](functions/glyph_at.md)(string, index) : string|undefined <span style="color:#888">[Extensions: utf8]</span>
+- [glyph_count](functions/glyph_count.md)(string) : int|undefined <span style="color:#888">[Extensions: utf8]</span>
 - [hex2bin](functions/hex2bin.md)(string) : string|undefined <span style="color:#888">[Extensions: hex]</span>
 - [implode](functions/implode.md)(array, sep) : string <span style="color:#888">[Strings]</span>
 - [implode](functions/implode.md)(sep, array) : string <span style="color:#888">[Strings]</span>

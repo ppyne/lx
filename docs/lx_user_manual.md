@@ -933,6 +933,7 @@ Built-in extensions:
 - **hex**: [`bin2hex`](functions/bin2hex.md), [`hex2bin`](functions/hex2bin.md)
 - **blake2b**: [`blake2b`](functions/blake2b.md)
 - **time**: [`time`](functions/time.md), [`date`](functions/date.md), [`gmdate`](functions/gmdate.md), [`mktime`](functions/mktime.md), [`sleep`](functions/sleep.md), [`usleep`](functions/usleep.md)
+- **utf8**: [`glyph_count`](functions/glyph_count.md), [`glyph_at`](functions/glyph_at.md)
 
 See [Lx Functions Reference](lx_functions_reference.md) for details about the functions.
 

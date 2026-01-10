@@ -1,0 +1,10 @@
+$s = "Aé💡";
+print(glyph_count($s) . "\n");
+print(glyph_at($s, 0) . "\n");
+print(glyph_at($s, 1) . "\n");
+print(glyph_at($s, 2) . "\n");
+print(glyph_at($s, 3) . "\n");
+
+$bad = "A\xC3(";
+print(glyph_count($bad) . "\n");
+print(glyph_at($bad, 1) . "\n");
