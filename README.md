@@ -28,6 +28,7 @@ BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
 - [`docs/llx_predefined_constants.md`](docs/lx_predefined_constants.md) — predefined constants reference
 - [`docs/lx_installation.md`](docs/lx_installation.md) — build, run, and test instructions
 - [`docs/lx_adding_extensions.md`](docs/lx_adding_extensions.md) — how to add your own extensions
+- [`docs/lx_cgi.md`](docs/lx_cgi.md) — CGI wrapper usage (Apache/CGI setup)
 
 ## Quick Start
 

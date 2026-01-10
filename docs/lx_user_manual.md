@@ -37,6 +37,8 @@ The lynx also echoes the name **Lx** itself, reinforcing a strong and simple ide
 
 See [Lx Installation and building](lx_installation.md) for details.
 
+See [Lx CGI wrapper](lx_cgi.md) for CGI/Apache usage.
+
 **Running**
 
 ```sh
