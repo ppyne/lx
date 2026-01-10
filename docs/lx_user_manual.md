@@ -764,12 +764,12 @@ Functions execute in a local environment. Variables are **local by default**.
 To access or modify globals, you must declare them explicitly with `global`.
 
 ```php
-$g = 1;
-
 function inc() {
     global $g;
     $g = $g + 1;
 }
+
+$g = 1;
 
 inc();
 print($g . "\n"); // 2
@@ -778,11 +778,11 @@ print($g . "\n"); // 2
 Without `global`, assignments create or update **local** variables only:
 
 ```php
-$g = 1;
-
 function inc_local() {
     $g = $g + 1; // local $g (starts as undefined)
 }
+
+$g = 1;
 
 inc_local();
 print($g . "\n"); // 1
