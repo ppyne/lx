@@ -35,7 +35,7 @@ The wrapper exposes PHP-like globals:
 
 Example:
 
-```php
+```lx
 print($_GET["name"] . "\n");
 ```
 
@@ -58,8 +58,9 @@ Recommended (sets `PATH_INFO`):
 ScriptAliasMatch ^/(.*\\.lx)$ /path/to/lx_cgi/$1
 ```
 
-If you already use the `$1` suffix form, `lx_cgi` will also try to resolve
-`DOCUMENT_ROOT + /$1` when it sees `/lx_cgi/<file>` in `SCRIPT_FILENAME`.
+`lx_cgi` resolves the script path as `DOCUMENT_ROOT + PATH_INFO`.
+If your server passes `/lx_cgi/<file>` in `SCRIPT_FILENAME`, `lx_cgi` also
+derives the path from that pattern.
 
 ## Custom headers
 
