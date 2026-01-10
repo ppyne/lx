@@ -46,6 +46,8 @@ See [Lx CGI wrapper](lx_cgi.md) for CGI/Apache usage.
 cat script.lx | ./lx
 echo "print(lxinfo());" | ./lx
 ./lx < script.lx
+./lx --version
+./lx -v
 ```
 
 ---

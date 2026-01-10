@@ -16,6 +16,7 @@
 #include "array.h"
 #include "lx_ext.h"
 #include "lx_error.h"
+#include "lx_version.h"
 
 void register_fs_module(void);
 void register_json_module(void);
@@ -72,6 +73,11 @@ int main(int argc, char **argv) {
 
     char *source = NULL;
     char *filename = NULL;
+
+    if (argc >= 2 && (!strcmp(argv[1], "-v") || !strcmp(argv[1], "--version"))) {
+        printf("Lx %s\n", LX_VERSION_STRING);
+        return 0;
+    }
 
     if (!isatty(STDIN_FILENO)) {
         /* Read the script from stdin. */

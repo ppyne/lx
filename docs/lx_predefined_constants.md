@@ -10,7 +10,7 @@ The constants below are always available globally as part of the Lx core and can
 
 - **`LX_VERSION`** (`string`)  
   The version string of the running Lx interpreter.  
-  Example: `"1.0"`
+  Example: `"1.1.0"`
 
 - **`LX_EOL`** (`string`)  
   The end-of-line sequence used by Lx.  

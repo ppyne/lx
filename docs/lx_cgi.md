@@ -35,19 +35,13 @@ The wrapper exposes PHP-like globals:
 
 Example:
 
-```lx
+```php
 print($_GET["name"] . "\n");
+print_r($_SERVER);
+print_r($_REQUEST);
 ```
 
-## Apache configuration (simple CGI with mod_actions)
-
-```
-ScriptAlias /lx_cgi /path/to/lx_cgi
-AddHandler lx-script .lx
-Action lx-script /lx_cgi
-```
-
-## Apache configuration (without mod_actions)
+## Apache configuration (simple CGI without mod_actions)
 
 This variant routes `.lx` files to `lx_cgi` using `ScriptAliasMatch`.
 It requires `mod_alias` and a CGI module (`mod_cgi` or `mod_cgid`).
@@ -61,6 +55,16 @@ ScriptAliasMatch ^/(.*\\.lx)$ /path/to/lx_cgi/$1
 `lx_cgi` resolves the script path as `DOCUMENT_ROOT + PATH_INFO`.
 If your server passes `/lx_cgi/<file>` in `SCRIPT_FILENAME`, `lx_cgi` also
 derives the path from that pattern.
+
+## Apache configuration (simple CGI with mod_actions)
+
+Not tested yet
+
+```
+ScriptAlias /lx_cgi /path/to/lx_cgi
+AddHandler lx-script .lx
+Action lx-script /lx_cgi
+```
 
 ## Custom headers
 

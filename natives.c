@@ -10,6 +10,7 @@
 #include "lx_error.h"
 #include "parser.h"
 #include "eval.h"
+#include "lx_version.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -1504,7 +1505,7 @@ static Value n_lx_info(Env *env, int argc, Value *argv){
     size_t cap = 0;
     size_t len = 0;
     buf_append(&buf, &cap, &len, "Lx ", 3);
-    buf_append(&buf, &cap, &len, "1.0", 3);
+    buf_append(&buf, &cap, &len, LX_VERSION_STRING, strlen(LX_VERSION_STRING));
     buf_append(&buf, &cap, &len, "\n", 1);
     buf_append(&buf, &cap, &len, "extensions: ", 12);
     int count = lx_extension_count();

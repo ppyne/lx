@@ -1,1 +1,1 @@
-print(lxinfo());
+print(substr(lxinfo(), 0, 3) == "Lx " ? "true\n" : "false\n");

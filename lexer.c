@@ -8,6 +8,8 @@
 #include <ctype.h>
 #include <limits.h>
 #include <float.h>
+
+#include "lx_version.h"
 #include "lexer.h"
 
 static char peek(Lexer *l) {
@@ -262,7 +264,7 @@ static Token identifier(Lexer *l, int is_var) {
         }
         if (len == 10 && !strncmp(s, "LX_VERSION", len)) {
             Token tok = make_token(l, TOK_STRING);
-            tok.string_val = strdup("1.0");
+            tok.string_val = strdup(LX_VERSION_STRING);
             return tok;
         }
         if (len == 10 && !strncmp(s, "LX_INT_MAX", len)) {
