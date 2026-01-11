@@ -28,7 +28,8 @@ lx_cgi: $(LX_DEPS) $(CORE_OBJS) $(CGI_OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 version: $(VERSION_FILE)
-	@major=$$(awk '$$2=="LX_VERSION_MAJOR"{print $$3}' lx_version.h); \
+	@command -v awk >/dev/null 2>&1 && command -v git >/dev/null 2>&1 || exit 0; \
+	major=$$(awk '$$2=="LX_VERSION_MAJOR"{print $$3}' lx_version.h); \
 	minor=$$(awk '$$2=="LX_VERSION_MINOR"{print $$3}' lx_version.h); \
 	branch=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ""); \
 	if [ -f $(VERSION_FILE) ]; then \

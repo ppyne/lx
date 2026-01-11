@@ -14,15 +14,17 @@ make lx_cgi
 Text outside `<?lx ... ?>` is emitted as HTML. Code inside the tag is executed.
 The closing `?>` is optional if the file ends in Lx code.
 
-Example:
+Example of `hello.lx`:
 
 ```html
 <h1>Hello</h1>
 <?lx
 $name = "world";
-print("Hello " . $name);
+print("<p>Hello $name</p>");
 ?>
 ```
+
+If you place this script in your local Apache environment, in your `DocumentRoot` directory, in your browser you may run `hello.lx` at the URL `http://localhost/hello.lx` depending of your own configuration.
 
 ## CGI environment variables
 
@@ -41,30 +43,31 @@ print_r($_SERVER);
 print_r($_REQUEST);
 ```
 
-## Apache configuration (simple CGI without mod_actions)
+## Apache configuration (example)
 
 This variant routes `.lx` files to `lx_cgi` using `ScriptAliasMatch`.
 It requires `mod_alias` and a CGI module (`mod_cgi` or `mod_cgid`).
 
-Recommended (sets `PATH_INFO`):
-
 ```
 ScriptAliasMatch ^/(.*\\.lx)$ /path/to/lx_cgi/$1
+```
+
+You have to configure `/path/to` as a directory. Where is an example:
+
+```
+<Directory "/path/to">
+    Options +ExecCGI
+    AllowOverride None
+    Options None
+    Require all granted
+</Directory>
 ```
 
 `lx_cgi` resolves the script path as `DOCUMENT_ROOT + PATH_INFO`.
 If your server passes `/lx_cgi/<file>` in `SCRIPT_FILENAME`, `lx_cgi` also
 derives the path from that pattern.
 
-## Apache configuration (simple CGI with mod_actions)
-
-Not tested yet
-
-```
-ScriptAlias /lx_cgi /path/to/lx_cgi
-AddHandler lx-script .lx
-Action lx-script /lx_cgi
-```
+**Note**: errors from Lx are returned into Apache's error_log file.
 
 ## Custom headers
 
@@ -77,11 +80,14 @@ Content-Type: text/html; charset=utf-8
 
 You can override it or add additional headers:
 
-```lx
+```
 <?lx
+// Delivering plain UTF-8 text
 header("Content-Type: text/plain; charset=utf-8");
-header("X-Powered-By: Lx");
-print("Hello\n");
+// Advertise the Lx technology
+header('X-Powered-By: Lx ' . LX_VERSION);
+// Print a greeting
+print("Hello world!\n");
 ?>
 ```
 

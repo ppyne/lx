@@ -33,6 +33,8 @@ BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
 
 ## Quick Start
 
+**Requirement**: if you want the extension ext_sqlite available in Lx, install the sqlite3 library and header files (on Debian like distribs `sudo apt install libsqlite3-dev`, on RedHat like distribs `sudo dnf install sqlite-devel` or `sudo yum install sqlite-devel`, for MacPorts `sudo port install sqlite3` (you may need to add -I/opt/local/include and -L/opt/local/lib in the Makefile)).
+
 ```sh
 cd lx
 make

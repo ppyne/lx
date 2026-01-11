@@ -41,6 +41,8 @@ See [Lx CGI wrapper](lx_cgi.md) for CGI/Apache usage.
 
 **Running**
 
+There are various way to run Lx:
+
 ```sh
 ./lx script.lx
 cat script.lx | ./lx
@@ -49,6 +51,15 @@ echo "print(lxinfo());" | ./lx
 ./lx --version
 ./lx -v
 ```
+
+And there is even a wrapper for CGI:
+
+```sh
+lx_cgi
+```
+
+See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
+
 
 ---
 
@@ -865,6 +876,8 @@ available in the CGI context.
 - **`$_POST`**: Parsed POST body parameters (form-encoded).
 - **`$_REQUEST`**: Merged view of `$_GET` and `$_POST`.
 
+See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
+
 ---
 
 ## 14. Memory management
@@ -969,9 +982,8 @@ void register_my_module(void) {
 ```
 
 See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
-See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
 
-Available extensions included with Lx:
+### Available extensions included with Lx
 
 - **fs**: [`file_get_contents`](functions/file_get_contents.md), [`file_put_contents`](functions/file_put_contents.md), [`file_exists`](functions/file_exists.md), [`file_size`](functions/file_size.md), [`is_dir`](functions/is_dir.md), [`is_file`](functions/is_file.md), [`mkdir`](functions/mkdir.md), [`rmdir`](functions/rmdir.md), [`unlink`](functions/unlink.md), [`copy`](functions/copy.md), [`cp`](functions/cp.md), [`rename`](functions/rename.md), [`mv`](functions/mv.md), [`chmod`](functions/chmod.md), [`pwd`](functions/pwd.md), [`pathinfo`](functions/pathinfo.md), [`list_dir`](functions/list_dir.md)
 - **env**: [`env_get`](functions/env_get.md), [`env_set`](functions/env_set.md), [`env_unset`](functions/env_unset.md), [`env_list`](functions/env_list.md)
@@ -990,7 +1002,16 @@ See [Lx Functions Reference](lx_functions_reference.md) for details about the fu
 
 ---
 
-## 16. Errors and Limitations
+## 16. Lx CGI wrapper
+
+There is a wrapper to execute `.lx` templates that contain HTML mixed with `<?lx ... ?>` blocks,
+similar to PHP. It is intentionally minimal and runs Lx in-process.
+
+See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
+
+---
+
+## 17. Errors and Limitations
 
 Errors stop execution immediately and are printed as a single line:
 
