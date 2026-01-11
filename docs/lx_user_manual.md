@@ -854,7 +854,20 @@ print($argv[0] . "\n");
 
 ---
 
-## 13. Memory management
+## 13. Predefined CGI variables
+
+When running under the CGI wrapper (`lx_cgi`), Lx exposes a small set of
+predefined variables that mirror common web runtimes. These variables are only
+available in the CGI context.
+
+- **`$_SERVER`**: Environment and request metadata (headers, method, URI, etc).
+- **`$_GET`**: Query string parameters.
+- **`$_POST`**: Parsed POST body parameters (form-encoded).
+- **`$_REQUEST`**: Merged view of `$_GET` and `$_POST`.
+
+---
+
+## 14. Memory management
 
 Values are reference-counted. Arrays are additionally tracked by a periodic mark-and-sweep pass.
 
@@ -928,7 +941,7 @@ Only the specified element is removed; other elements remain unchanged.
 
 ---
 
-## 14. Extensions
+## 15. Extensions
 
 Lx exposes a C extension API (see `lx_ext.h`) to register functions, constants, and variables.
 Extensions are initialized at startup and run in the global environment.
@@ -970,11 +983,14 @@ Available extensions included with Lx:
 - **utf8**: [`glyph_count`](functions/glyph_count.md), [`glyph_at`](functions/glyph_at.md)
 - **sqlite**: [`pdo_sqlite_open`](functions/pdo_sqlite_open.md), [`pdo_query`](functions/pdo_query.md), [`pdo_prepare`](functions/pdo_prepare.md), [`pdo_execute`](functions/pdo_execute.md), [`pdo_fetch`](functions/pdo_fetch.md), [`pdo_fetch_all`](functions/pdo_fetch_all.md), [`pdo_last_insert_id`](functions/pdo_last_insert_id.md), [`pdo_close`](functions/pdo_close.md)
 
+Lx provides a minimal PDO-like mechanism for SQLite. See
+[PDO/SQLite Guide](lx_database_reference.md) for an introduction and examples.
+
 See [Lx Functions Reference](lx_functions_reference.md) for details about the functions.
 
 ---
 
-## 15. Errors and Limitations
+## 16. Errors and Limitations
 
 Errors stop execution immediately and are printed as a single line:
 

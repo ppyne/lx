@@ -28,3 +28,7 @@ pdo_execute($stmt, ["color" => "red"]);
 $row = pdo_fetch($stmt);
 print($row["name"] . "\n");
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

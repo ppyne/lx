@@ -28,3 +28,7 @@ Returns an array of rows, or `undefined` on error.
 $rows = pdo_query($db, "SELECT name FROM fruit");
 print($rows[0]["name"] . "\n");
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

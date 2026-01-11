@@ -27,3 +27,7 @@ Returns a statement handle, or `undefined` on error.
 ```php
 $stmt = pdo_prepare($db, "SELECT name FROM fruit WHERE color = :color");
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

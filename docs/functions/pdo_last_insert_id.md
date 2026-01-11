@@ -26,3 +26,7 @@ Returns an integer id.
 pdo_query($db, "INSERT INTO t (name) VALUES ('a')");
 print(pdo_last_insert_id($db) . "\n");
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

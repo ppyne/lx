@@ -30,15 +30,24 @@ lx_cgi: $(LX_DEPS) $(CORE_OBJS) $(CGI_OBJS)
 version: $(VERSION_FILE)
 	@major=$$(awk '$$2=="LX_VERSION_MAJOR"{print $$3}' lx_version.h); \
 	minor=$$(awk '$$2=="LX_VERSION_MINOR"{print $$3}' lx_version.h); \
+	branch=$$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo ""); \
 	if [ -f $(VERSION_FILE) ]; then \
 		read fmaj fmin fbuild < $(VERSION_FILE); \
 	else \
 		fmaj=""; fmin=""; fbuild=""; \
 	fi; \
-	if [ "$$fmaj" != "$$major" ] || [ "$$fmin" != "$$minor" ] || [ -z "$$fbuild" ]; then \
-		build=0; \
+	if [ "$$branch" = "dev" ]; then \
+		if [ "$$fmaj" != "$$major" ] || [ "$$fmin" != "$$minor" ] || [ -z "$$fbuild" ]; then \
+			build=0; \
+		else \
+			build=$$((fbuild + 1)); \
+		fi; \
 	else \
-		build=$$((fbuild + 1)); \
+		if [ "$$fmaj" != "$$major" ] || [ "$$fmin" != "$$minor" ] || [ -z "$$fbuild" ]; then \
+			build=0; \
+		else \
+			build=$$fbuild; \
+		fi; \
 	fi; \
 	echo "$$major $$minor $$build" > $(VERSION_FILE); \
 	printf "/* Auto-generated. Do not edit. */\n#ifndef LX_VERSION_BUILD\n#define LX_VERSION_BUILD %s\n#endif\n" "$$build" > $(VERSION_HEADER)

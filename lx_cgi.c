@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <unistd.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -445,6 +446,15 @@ int main(void) {
         fprintf(stderr, "lx_cgi: missing script path\n");
         free(path);
         return 1;
+    }
+
+    char *last_slash = strrchr(path, '/');
+    if (last_slash) {
+        *last_slash = '\0';
+        if (*path) {
+            (void)chdir(path);
+        }
+        *last_slash = '/';
     }
 
     const char *dbg = getenv("LX_CGI_DEBUG");

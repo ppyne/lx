@@ -28,3 +28,7 @@ Returns `true` on success, `false` on error.
 $stmt = pdo_prepare($db, "SELECT name FROM fruit WHERE color = :color");
 pdo_execute($stmt, ["color" => "red"]);
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

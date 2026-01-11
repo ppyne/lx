@@ -27,3 +27,7 @@ Returns a database handle, or `undefined` on error.
 $db = pdo_sqlite_open("test.db");
 print($db . "\n");
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

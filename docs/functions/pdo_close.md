@@ -26,3 +26,7 @@ Returns `true` on success, otherwise `false`.
 $db = pdo_sqlite_open("test.db");
 print(pdo_close($db) . "\n");
 ```
+
+### PDO Guide
+
+See [PDO/SQLite Guide](../lx_database_reference.md) for an introduction and examples.

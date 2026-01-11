@@ -23,8 +23,9 @@ BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
 
 ## Documentation
 
-- [`docs/lx_user_manual.md`](docs/lx_user_manual.md) — Lx user manuel: the language reference
+- [`docs/lx_user_manual.md`](docs/lx_user_manual.md) — Lx user manual: the language reference
 - [`docs/lx_functions_reference.md`](docs/lx_functions_reference.md) — functions reference
+- [`docs/lx_database_reference.md`](docs/lx_database_reference.md) — PDO/SQLite quick guide and examples
 - [`docs/llx_predefined_constants.md`](docs/lx_predefined_constants.md) — predefined constants reference
 - [`docs/lx_installation.md`](docs/lx_installation.md) — build, run, and test instructions
 - [`docs/lx_adding_extensions.md`](docs/lx_adding_extensions.md) — how to add your own extensions
