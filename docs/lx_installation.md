@@ -5,10 +5,10 @@ This document explains how to build, run, and test the Lx interpreter from sourc
 ## Prerequisites
 
 - A C compiler that supports C99 (e.g., `gcc` or `clang`)
-- If you want the SQLite extension available in Lx, install the sqlite3 library and header files*
+- If you want the SQLite extension available in Lx, install the sqlite3 library and header files
 - `make`
 
-* To install the sqlite3 library and header files:
+To install the sqlite3 library and header files:
 
 - on **Debian**-like distros: `sudo apt install libsqlite3-dev`
 - on **RedHat**-like distros: `sudo dnf install sqlite-devel` or `sudo yum install sqlite-devel`
