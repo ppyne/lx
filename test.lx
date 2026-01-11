@@ -312,3 +312,5 @@ inc_local();
 print($g . "\n"); // 1
 
 print('Version: ' . LX_VERSION . LX_EOL);
+
+print(lxinfo());

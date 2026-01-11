@@ -17,16 +17,35 @@
 #include "lx_ext.h"
 #include "lx_error.h"
 #include "lx_version.h"
+#include "config.h"
 
+#if LX_ENABLE_FS
 void register_fs_module(void);
+#endif
+#if LX_ENABLE_JSON
 void register_json_module(void);
+#endif
+#if LX_ENABLE_SERIALIZER
 void register_serializer_module(void);
+#endif
+#if LX_ENABLE_HEX
 void register_hex_module(void);
+#endif
+#if LX_ENABLE_BLAKE2B
 void register_blake2b_module(void);
+#endif
+#if LX_ENABLE_TIME
 void register_time_module(void);
+#endif
+#if LX_ENABLE_ENV
 void register_env_module(void);
+#endif
+#if LX_ENABLE_UTF8
 void register_utf8_module(void);
+#endif
+#if LX_ENABLE_SQLITE
 void register_sqlite_module(void);
+#endif
 
 /* Stream reading utility. */
 static char *read_stream(FILE *f) {
@@ -138,15 +157,33 @@ int main(int argc, char **argv) {
 
     /* Install the standard library. */
     install_stdlib();
+#if LX_ENABLE_FS
     register_fs_module();
+#endif
+#if LX_ENABLE_JSON
     register_json_module();
+#endif
+#if LX_ENABLE_SERIALIZER
     register_serializer_module();
+#endif
+#if LX_ENABLE_HEX
     register_hex_module();
+#endif
+#if LX_ENABLE_BLAKE2B
     register_blake2b_module();
+#endif
+#if LX_ENABLE_TIME
     register_time_module();
+#endif
+#if LX_ENABLE_ENV
     register_env_module();
+#endif
+#if LX_ENABLE_UTF8
     register_utf8_module();
+#endif
+#if LX_ENABLE_SQLITE
     register_sqlite_module();
+#endif
     /* Run extension initializers. */
     lx_init_modules(global);
 

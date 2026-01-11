@@ -26,9 +26,12 @@ Returns `void`.
 
 ```lx
 <?lx
+// Delivering plain UTF-8 text
 header("Content-Type: text/plain; charset=utf-8");
-header("X-Powered-By: Lx");
-print("Hello\n");
+// Advertise the Lx technology
+header('X-Powered-By: Lx ' . LX_VERSION);
+// Print a greeting
+print("Hello world!\n");
 ?>
 ```
 

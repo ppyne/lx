@@ -1,9 +1,52 @@
 CC ?= gcc
 CFLAGS ?= -Wall -Wextra -std=c99 -O2
-LDFLAGS ?= -lm -lsqlite3
+LDFLAGS ?= -lm
 NO_VERSION ?= 0
+CONFIG_H ?= config.h
 
-SRCS = lexer.c parser.c main.c value.c array.c env.c natives.c eval.c gc.c lx_ext.c lx_error.c ext_fs.c ext_json.c ext_serializer.c ext_hex.c ext_blake2b.c ext_time.c ext_env.c ext_utf8.c ext_sqlite.c blake2b-ref.c
+BASE_SRCS = lexer.c parser.c main.c value.c array.c env.c natives.c eval.c gc.c lx_ext.c lx_error.c
+EXT_SRCS =
+LX_ENABLE_FS := $(shell awk '/^\#define[ \t]+LX_ENABLE_FS/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_JSON := $(shell awk '/^\#define[ \t]+LX_ENABLE_JSON/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_SERIALIZER := $(shell awk '/^\#define[ \t]+LX_ENABLE_SERIALIZER/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_HEX := $(shell awk '/^\#define[ \t]+LX_ENABLE_HEX/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_BLAKE2B := $(shell awk '/^\#define[ \t]+LX_ENABLE_BLAKE2B/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_TIME := $(shell awk '/^\#define[ \t]+LX_ENABLE_TIME/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_ENV := $(shell awk '/^\#define[ \t]+LX_ENABLE_ENV/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_UTF8 := $(shell awk '/^\#define[ \t]+LX_ENABLE_UTF8/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_SQLITE := $(shell awk '/^\#define[ \t]+LX_ENABLE_SQLITE/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_INCLUDE := $(shell awk '/^\#define[ \t]+LX_ENABLE_INCLUDE/{print $$3}' $(CONFIG_H) 2>/dev/null)
+
+ifneq ($(LX_ENABLE_FS),0)
+EXT_SRCS += ext_fs.c
+endif
+ifneq ($(LX_ENABLE_JSON),0)
+EXT_SRCS += ext_json.c
+endif
+ifneq ($(LX_ENABLE_SERIALIZER),0)
+EXT_SRCS += ext_serializer.c
+endif
+ifneq ($(LX_ENABLE_HEX),0)
+EXT_SRCS += ext_hex.c
+endif
+ifneq ($(LX_ENABLE_BLAKE2B),0)
+EXT_SRCS += ext_blake2b.c blake2b-ref.c
+endif
+ifneq ($(LX_ENABLE_TIME),0)
+EXT_SRCS += ext_time.c
+endif
+ifneq ($(LX_ENABLE_ENV),0)
+EXT_SRCS += ext_env.c
+endif
+ifneq ($(LX_ENABLE_UTF8),0)
+EXT_SRCS += ext_utf8.c
+endif
+ifneq ($(LX_ENABLE_SQLITE),0)
+EXT_SRCS += ext_sqlite.c
+LDFLAGS += -lsqlite3
+endif
+
+SRCS = $(BASE_SRCS) $(EXT_SRCS)
 OBJS = $(SRCS:.c=.o)
 CORE_OBJS = $(filter-out main.o,$(OBJS))
 CGI_OBJS = lx_cgi.o
@@ -24,7 +67,7 @@ lx: $(LX_DEPS) $(OBJS)
 lx_cgi: $(LX_DEPS) $(CORE_OBJS) $(CGI_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(CORE_OBJS) $(CGI_OBJS) $(LDFLAGS)
 
-%.o: %.c $(VERSION_HEADER)
+%.o: %.c $(VERSION_HEADER) $(CONFIG_H)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 version: $(VERSION_FILE)

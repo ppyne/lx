@@ -11,6 +11,7 @@
 #include "parser.h"
 #include "eval.h"
 #include "lx_version.h"
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -31,9 +32,11 @@ static int g_cap = 0;
 static FILE *g_output = NULL;
 
 static void buf_append(char **buf, size_t *cap, size_t *len, const char *s, size_t n);
+#if LX_ENABLE_INCLUDE
 static Value run_include(Env *env, const char *path);
 static int include_seen(const char *path);
 static void include_mark(const char *path);
+#endif
 
 typedef struct {
     Array **stack;
@@ -532,6 +535,7 @@ static Value n_base64_decode(Env *env, int argc, Value *argv){
     return v;
 }
 
+#if LX_ENABLE_INCLUDE
 static Value n_include(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1 || argv[0].type != VAL_STRING) return value_bool(0);
@@ -550,6 +554,7 @@ static Value n_include_once(Env *env, int argc, Value *argv){
     if (r.type == VAL_BOOL && r.b) include_mark(path);
     return r;
 }
+#endif
 
 static Value n_count(Env *env, int argc, Value *argv){
     (void)env;
@@ -614,6 +619,7 @@ static void reindex_numeric_keys(Array *a) {
     }
 }
 
+#if LX_ENABLE_INCLUDE
 static char *read_file_all(const char *path) {
     FILE *f = fopen(path, "rb");
     if (!f) return NULL;
@@ -639,6 +645,7 @@ static char *resolve_path(const char *path) {
 static char **g_includes = NULL;
 static int g_include_count = 0;
 static int g_include_cap = 0;
+
 
 static void include_ensure(int need) {
     if (g_include_cap >= need) return;
@@ -692,6 +699,7 @@ static Value run_include(Env *env, const char *path) {
     if (lx_has_error()) return value_bool(0);
     return value_bool(1);
 }
+#endif
 
 static int weak_equal_native(Value a, Value b) {
     if (value_is_number(a) && value_is_number(b)) {
@@ -1989,8 +1997,10 @@ void install_stdlib(void){
     register_function("print",   n_print);
     register_function("print_r", n_print_r);
     register_function("var_dump", n_var_dump);
+#if LX_ENABLE_INCLUDE
     register_function("include", n_include);
     register_function("include_once", n_include_once);
+#endif
     register_function("abs",     n_abs);
     register_function("min",     n_min);
     register_function("max",     n_max);

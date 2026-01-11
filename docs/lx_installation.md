@@ -5,16 +5,19 @@ This document explains how to build, run, and test the Lx interpreter from sourc
 ## Prerequisites
 
 - A C compiler that supports C99 (e.g., `gcc` or `clang`)
-- If you want the extension ext_sqlite available in Lx, install the sqlite3 library and header files*
+- If you want the SQLite extension available in Lx, install the sqlite3 library and header files*
 - `make`
 
 * To install the sqlite3 library and header files:
 
-- on **Debian** like distribs `sudo apt install libsqlite3-dev`,
-- on **RedHat** like distribs `sudo dnf install sqlite-devel` or `sudo yum install sqlite-devel`,
-- on **MacOs X** with MacPorts `sudo port install sqlite3`. You may need to add -I/opt/local/include and -L/opt/local/lib in the Makefile in the LDFLAGS.
+- on **Debian**-like distros: `sudo apt install libsqlite3-dev`
+- on **RedHat**-like distros: `sudo dnf install sqlite-devel` or `sudo yum install sqlite-devel`
+- on **macOS** with MacPorts: `sudo port install sqlite3` (you may need to add `-I/opt/local/include` and `-L/opt/local/lib` to `LDFLAGS`)
 
-You may need to adjust parameters in the Makefile, and the rest of the C code if you dont want an extension (there is no config.h at present).
+If you want to enable or disable extensions, edit `config.h` before building. Each
+`LX_ENABLE_*` macro can be set to `1` (enabled) or `0` (disabled). The build
+will only compile the enabled extensions, and tests for disabled extensions are
+skipped.
 
 ## Build
 
