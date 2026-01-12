@@ -1924,6 +1924,80 @@ static Value n_html_text_escape(Env *env, int argc, Value *argv){
     return out;
 }
 
+static int is_url_safe_char(unsigned char c) {
+    if (c >= 'A' && c <= 'Z') return 1;
+    if (c >= 'a' && c <= 'z') return 1;
+    if (c >= '0' && c <= '9') return 1;
+    return c == '-' || c == '_' || c == '.' || c == '~';
+}
+
+static Value n_url_encode(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_string("");
+    Value sv = value_to_string(argv[0]);
+    const unsigned char *s = (const unsigned char *)(sv.s ? sv.s : "");
+    char *buf = NULL;
+    size_t cap = 0;
+    size_t len = 0;
+    static const char *hex = "0123456789ABCDEF";
+    for (size_t i = 0; s[i]; i++) {
+        unsigned char c = s[i];
+        if (c == ' ') {
+            buf_append(&buf, &cap, &len, "+", 1);
+        } else if (is_url_safe_char(c)) {
+            buf_append(&buf, &cap, &len, (const char *)&c, 1);
+        } else {
+            char esc[3];
+            esc[0] = '%';
+            esc[1] = hex[c >> 4];
+            esc[2] = hex[c & 0x0F];
+            buf_append(&buf, &cap, &len, esc, 3);
+        }
+    }
+    Value out = value_string(buf ? buf : "");
+    free(buf);
+    value_free(sv);
+    return out;
+}
+
+static int hex_val(int c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+static Value n_url_decode(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_string("");
+    Value sv = value_to_string(argv[0]);
+    const char *s = sv.s ? sv.s : "";
+    char *buf = NULL;
+    size_t cap = 0;
+    size_t len = 0;
+    for (size_t i = 0; s[i]; i++) {
+        if (s[i] == '+') {
+            buf_append(&buf, &cap, &len, " ", 1);
+            continue;
+        }
+        if (s[i] == '%' && s[i + 1] && s[i + 2]) {
+            int h1 = hex_val((unsigned char)s[i + 1]);
+            int h2 = hex_val((unsigned char)s[i + 2]);
+            if (h1 >= 0 && h2 >= 0) {
+                char c = (char)((h1 << 4) | h2);
+                buf_append(&buf, &cap, &len, &c, 1);
+                i += 2;
+                continue;
+            }
+        }
+        buf_append(&buf, &cap, &len, &s[i], 1);
+    }
+    Value out = value_string(buf ? buf : "");
+    free(buf);
+    value_free(sv);
+    return out;
+}
+
 static Value n_str_contains(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2 || argv[0].type != VAL_STRING || argv[1].type != VAL_STRING) {
@@ -2532,6 +2606,8 @@ void install_stdlib(void){
     register_function("strcmp",  n_strcmp);
     register_function("str_replace", n_str_replace);
     register_function("blob_concat", n_blob_concat);
+    register_function("url_encode", n_url_encode);
+    register_function("url_decode", n_url_decode);
     register_function("str_contains", n_str_contains);
     register_function("starts_with", n_starts_with);
     register_function("ends_with", n_ends_with);

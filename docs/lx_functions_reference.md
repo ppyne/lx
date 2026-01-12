@@ -169,6 +169,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [trim](functions/trim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [type](functions/type.md)(value) : string <span style="color:#888">[Types and inspection]</span>
 - [ucfirst](functions/ucfirst.md)(string) : string <span style="color:#888">[Strings]</span>
+- [url_decode](functions/url_decode.md)(string) : string <span style="color:#888">[Strings]</span>
+- [url_encode](functions/url_encode.md)(string) : string <span style="color:#888">[Strings]</span>
 - [unlink](functions/unlink.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [unserialize](functions/unserialize.md)(string) : mixed|undefined <span style="color:#888">[Extensions: serializer]</span>
 - [unshift](functions/unshift.md)(array, value) : int <span style="color:#888">[Arrays]</span>

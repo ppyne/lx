@@ -16,3 +16,5 @@ print(starts_with("banana", "ba") . "\n");
 print(starts_with("banana", "na") . "\n");
 print(ends_with("banana", "na") . "\n");
 print(ends_with("banana", "ba") . "\n");
+print(url_encode("a b&c=1") . "\n");
+print(url_decode("a+b%26c%3D1") . "\n");
