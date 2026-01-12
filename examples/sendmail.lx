@@ -1,0 +1,47 @@
+function _normalize_headers($headers) {
+    $out = [];
+    if ($headers == null) return $out;
+    foreach ($headers as $k => $v) {
+        if (type($k) == "int") {
+            $out[] = str($v);
+        } else {
+            $out[] = str($k) . ": " . str($v);
+        }
+    }
+    return $out;
+}
+
+function sendmail($to, $subject, $body, $from = null, $headers = null) {
+    $msg = "";
+    if ($from != null) $msg = $msg . "From: " . $from . "\n";
+    $msg = $msg . "To: " . $to . "\n";
+    $msg = $msg . "Subject: " . $subject . "\n";
+    foreach (_normalize_headers($headers) as $h) $msg = $msg . $h . "\n";
+    $msg = $msg . "\n" . $body . "\n";
+
+    $path = tempnam("lx_mail_");
+    file_put_contents($path, $msg);
+
+    $cmd = "sendmail -t -oi < \"" . shell_escape($path) . "\"";
+    $out = [];
+    $code = exec($cmd, $out);
+
+    unlink($path);
+    return $code;
+}
+
+/*
+Example:
+
+$to = "alice@example.com";
+$subject = "Hello from Lx";
+$body = "This message was sent using the local sendmail utility.";
+$from = "bob@example.com";
+$headers = [
+    "Reply-To" => "bob@example.com",
+    "X-Lx-Example" => "sendmail"
+];
+
+$code = sendmail($to, $subject, $body, $from, $headers);
+print("sendmail exit code: " . $code . "\n");
+*/

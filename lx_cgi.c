@@ -203,6 +203,20 @@ static Value n_header(Env *env, int argc, Value *argv) {
     return value_void();
 }
 
+static Value n_write_blob(Env *env, int argc, Value *argv) {
+    (void)env;
+    if (argc != 1) return value_undefined();
+    if (argv[0].type != VAL_BLOB || !argv[0].blob) return value_undefined();
+    Blob *b = argv[0].blob;
+    FILE *out = lx_get_output();
+    if (!out) return value_undefined();
+    size_t n = 0;
+    if (b->data && b->len > 0) {
+        n = fwrite(b->data, 1, b->len, out);
+    }
+    return value_int((lx_int_t)n);
+}
+
 static int copy_file(const char *src, const char *dst) {
     FILE *in = fopen(src, "rb");
     if (!in) return 0;
@@ -1259,6 +1273,7 @@ static int run_script(const char *source, const char *filename) {
     Env *global = env_new(NULL);
     install_stdlib();
     register_function("header", n_header);
+    register_function("write_blob", n_write_blob);
     register_function("move_uploaded_file", n_move_uploaded_file);
     register_function("setcookie", n_setcookie);
 #if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER

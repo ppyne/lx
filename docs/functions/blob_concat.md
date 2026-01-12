@@ -25,5 +25,5 @@ Returns a blob, or `undefined` on error.
 
 ```php
 $b = blob_concat("A", blob("B"));
-print(blob_len($b) . "\n");
+print(blob_size($b) . "\n");
 ```

@@ -472,7 +472,7 @@ static Value n_strlen(Env *env, int argc, Value *argv){
     return value_int(len);
 }
 
-static Value n_blob_len(Env *env, int argc, Value *argv){
+static Value n_blob_size(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1 || argv[0].type != VAL_BLOB || !argv[0].blob) return value_undefined();
     return value_int((int)argv[0].blob->len);
@@ -2583,7 +2583,7 @@ void install_stdlib(void){
     register_function("floor",   n_floor);
     register_function("ceil",    n_ceil);
     register_function("strlen",  n_strlen);
-    register_function("blob_len",  n_blob_len);
+    register_function("blob_size",  n_blob_size);
     register_function("base64_encode", n_base64_encode);
     register_function("base64_decode", n_base64_decode);
     register_function("blob_to_base64", n_blob_to_base64);

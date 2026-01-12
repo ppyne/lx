@@ -15,7 +15,7 @@
   "blob_concat",
   "blob_from_base64",
   "blob_from_hex",
-  "blob_len",
+  "blob_size",
   "blob_slice",
   "blob_to_base64",
   "blob_to_hex",
@@ -41,6 +41,7 @@
   "deg2rad",
   "ends_with",
   "exec",
+  "shell_escape",
   "env_get",
   "env_list",
   "env_set",
@@ -119,6 +120,8 @@
   "pwd",
   "rad2deg",
   "rand",
+  "read_key",
+  "read_line",
   "rename",
   "reverse",
   "rmdir",
@@ -170,5 +173,6 @@
   "usleep",
   "upper",
   "values",
-  "var_dump"
+  "var_dump",
+  "write_blob"
 ]

@@ -31,7 +31,7 @@ $b[2] = "B";
 file_put_contents("tmp_blob.bin", $b);
 print(file_get_contents("tmp_blob.bin") . "\n");
 $bb = file_get_contents("tmp_blob.bin", true);
-print(blob_len($bb) . "\n");
+print(blob_size($bb) . "\n");
 print($bb[0] . "," . $bb[1] . "," . $bb[2] . "\n");
 
 mkdir("tmp_dir");

@@ -6,5 +6,5 @@ print(hex2bin("123") . "\n");
 $b = blob("Hi");
 print(blob_to_hex($b) . "\n");
 $b2 = blob_from_hex("4869");
-print(blob_len($b2) . "\n");
+print(blob_size($b2) . "\n");
 print($b2[0] . "," . $b2[1] . "\n");

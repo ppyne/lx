@@ -1,6 +1,6 @@
-# blob_len
+# blob_size
 
-Blob length
+Blob size
 
 Domain: Binary
 
@@ -8,7 +8,7 @@ Domain: Binary
 
 ### Description
 
-`blob_len(blob) : int`
+`blob_size(blob) : int`
 
 Returns the size of a blob in bytes.
 
@@ -18,11 +18,11 @@ Returns the size of a blob in bytes.
 
 ### Return Values
 
-Returns the blob length, or `undefined` on error.
+Returns the blob size, or `undefined` on error.
 
 ### Examples
 
 ```php
 $b = blob("Hi");
-print(blob_len($b) . "\n");
+print(blob_size($b) . "\n");
 ```

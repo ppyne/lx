@@ -55,6 +55,9 @@ void register_ed25519_module(void);
 #if LX_ENABLE_EXEC
 void register_exec_module(void);
 #endif
+#if LX_ENABLE_CLI
+void register_cli_module(void);
+#endif
 
 /* Stream reading utility. */
 static char *read_stream(FILE *f) {
@@ -201,6 +204,9 @@ int main(int argc, char **argv) {
 #endif
 #if LX_ENABLE_EXEC
     register_exec_module();
+#endif
+#if LX_ENABLE_CLI
+    register_cli_module();
 #endif
     /* Run extension initializers. */
     lx_init_modules(global);

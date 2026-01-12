@@ -24,5 +24,5 @@ Returns a blob, or `undefined` on error.
 
 ```php
 $b = blob_from_hex("4869");
-print(blob_len($b) . "\n");
+print(blob_size($b) . "\n");
 ```

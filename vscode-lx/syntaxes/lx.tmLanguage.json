@@ -3,92 +3,157 @@
   "scopeName": "source.lx",
   "patterns": [
     {
-      "name": "comment.line.shebang.lx",
-      "match": "^#!.*$"
-    },
-    {
-      "name": "comment.line.double-slash.lx",
-      "match": "//.*$"
-    },
-    {
-      "name": "comment.line.number-sign.lx",
-      "match": "#.*$"
-    },
-    {
-      "name": "comment.block.lx",
-      "begin": "/\\*",
-      "end": "\\*/"
-    },
-    {
-      "name": "string.quoted.double.lx",
-      "begin": "\"",
-      "end": "\"",
+      "begin": "\\A(?![\\s\\S]*<\\?lx\\b)",
+      "end": "\\z",
+      "name": "meta.embedded.block.lx",
       "patterns": [
-        {
-          "name": "constant.character.escape.lx",
-          "match": "\\\\."
-        }
+        { "include": "#lx" }
       ]
     },
     {
-      "name": "string.quoted.single.lx",
-      "begin": "'",
-      "end": "'",
+      "begin": "<\\?lx\\b",
+      "beginCaptures": {
+        "0": { "name": "meta.tag.lx" }
+      },
+      "end": "\\?>",
+      "endCaptures": {
+        "0": { "name": "meta.tag.lx" }
+      },
+      "name": "meta.embedded.block.lx",
       "patterns": [
-        {
-          "name": "constant.character.escape.lx",
-          "match": "\\\\."
-        }
+        { "include": "#lx" }
       ]
     },
     {
-      "name": "constant.numeric.lx",
-      "match": "\\b0x[0-9A-Fa-f]+\\b"
-    },
-    {
-      "name": "constant.numeric.lx",
-      "match": "\\b0b[01]+\\b"
-    },
-    {
-      "name": "constant.numeric.lx",
-      "match": "\\b0[0-7]+\\b"
-    },
-    {
-      "name": "constant.numeric.lx",
-      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b"
-    },
-    {
-      "name": "constant.numeric.lx",
-      "match": "\\b\\d+([eE][+-]?\\d+)?\\b"
-    },
-    {
-      "name": "keyword.control.lx",
-      "match": "\\b(if|else|while|do|for|foreach|switch|case|default|break|continue|return|function|global|unset|include|include_once)\\b"
-    },
-    {
-      "name": "keyword.other.lx",
-      "match": "\\b(as)\\b"
-    },
-    {
-      "name": "constant.language.lx",
-      "match": "\\b(true|false|null|undefined|void)\\b"
-    },
-    {
-      "name": "constant.other.lx",
-      "match": "\\bLX_[A-Z0-9_]+\\b"
-    },
-    {
-      "name": "variable.other.lx",
-      "match": "\\$[A-Za-z_][A-Za-z0-9_]*"
-    },
-    {
-      "name": "entity.name.function.lx",
-      "match": "\\bfunction\\s+([A-Za-z_][A-Za-z0-9_]*)\\b"
-    },
-    {
-      "name": "support.function.lx",
-      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()"
+      "include": "#html"
     }
   ],
-  "repository": {}
+  "repository": {
+    "lx": {
+      "patterns": [
+        {
+          "name": "comment.line.shebang.lx",
+          "match": "^#!.*$"
+        },
+        {
+          "name": "comment.line.double-slash.lx",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.line.number-sign.lx",
+          "match": "#.*$"
+        },
+        {
+          "name": "comment.block.lx",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "name": "string.quoted.double.lx",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.lx",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.lx",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.lx",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "constant.numeric.lx",
+          "match": "\\b0x[0-9A-Fa-f]+\\b"
+        },
+        {
+          "name": "constant.numeric.lx",
+          "match": "\\b0b[01]+\\b"
+        },
+        {
+          "name": "constant.numeric.lx",
+          "match": "\\b0[0-7]+\\b"
+        },
+        {
+          "name": "constant.numeric.lx",
+          "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.lx",
+          "match": "\\b\\d+([eE][+-]?\\d+)?\\b"
+        },
+        {
+          "name": "keyword.control.lx",
+          "match": "\\b(if|else|while|do|for|foreach|switch|case|default|break|continue|return|function|global|unset|include|include_once)\\b"
+        },
+        {
+          "name": "keyword.other.lx",
+          "match": "\\b(as)\\b"
+        },
+        {
+          "name": "constant.language.lx",
+          "match": "\\b(true|false|null|undefined|void)\\b"
+        },
+        {
+          "name": "constant.other.lx",
+          "match": "\\bLX_[A-Z0-9_]+\\b"
+        },
+        {
+          "name": "variable.other.lx",
+          "match": "\\$[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
+          "name": "entity.name.function.lx",
+          "match": "\\bfunction\\s+([A-Za-z_][A-Za-z0-9_]*)\\b"
+        },
+        {
+          "name": "support.function.lx",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()"
+        }
+      ]
+    },
+    "html": {
+      "patterns": [
+        {
+          "name": "constant.character.entity.lx",
+          "match": "&[A-Za-z0-9#]+;"
+        },
+        {
+          "name": "meta.tag.lx",
+          "begin": "<\\/?([A-Za-z][A-Za-z0-9-]*)",
+          "beginCaptures": {
+            "1": { "name": "entity.name.tag.lx" }
+          },
+          "end": "\\s*/?>",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.tag.end.lx" }
+          },
+          "patterns": [
+            {
+              "name": "entity.other.attribute-name.lx",
+              "match": "\\b[A-Za-z_:][A-Za-z0-9_:\\-\\.]*\\b"
+            },
+            {
+              "name": "string.quoted.double.lx",
+              "begin": "\"",
+              "end": "\""
+            },
+            {
+              "name": "string.quoted.single.lx",
+              "begin": "'",
+              "end": "'"
+            }
+          ]
+        }
+      ]
+    }
+  }
 }

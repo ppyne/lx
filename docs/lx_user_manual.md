@@ -249,7 +249,7 @@ Key behaviors:
 
 Common helpers:
 
-- `blob_len`, `blob_slice`, `blob_concat`
+- `blob_size`, `blob_slice`, `blob_concat`
 - `blob_to_base64`, `blob_from_base64`
 - `blob_to_hex`, `blob_from_hex`
 

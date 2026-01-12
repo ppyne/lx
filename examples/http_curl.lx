@@ -1,12 +1,3 @@
-function _shell_escape($s) {
-    $s = str_replace("\\", "\\\\", $s);
-    $s = str_replace("\"", "\\\"", $s);
-    $s = str_replace("'", "\\'", $s);
-    $s = str_replace("\r", "\\r", $s);
-    $s = str_replace("\n", "\\n", $s);
-    return $s;
-}
-
 function _normalize_headers($headers) {
     $out = [];
     if ($headers == null) return $out;
@@ -23,19 +14,19 @@ function _normalize_headers($headers) {
 function _curl_request($method, $url, $headers, $body, $timeout) {
     $body_path = tempnam("lx_curl_body_");
     $head_path = tempnam("lx_curl_head_");
-    $cmd = "curl -sS -D \"" . _shell_escape($head_path) . "\" -o \"" . _shell_escape($body_path) . "\"";
-    $cmd = $cmd . " -X \"" . _shell_escape($method) . "\"";
+    $cmd = "curl -sS -D \"" . shell_escape($head_path) . "\" -o \"" . shell_escape($body_path) . "\"";
+    $cmd = $cmd . " -X \"" . shell_escape($method) . "\"";
     if ($timeout != null) {
         $cmd = $cmd . " --max-time " . int($timeout);
     }
     foreach (_normalize_headers($headers) as $h) {
-        $cmd = $cmd . " -H \"" . _shell_escape($h) . "\"";
+        $cmd = $cmd . " -H \"" . shell_escape($h) . "\"";
     }
     if ($body != null) {
-        $cmd = $cmd . " --data \"" . _shell_escape($body) . "\"";
+        $cmd = $cmd . " --data \"" . shell_escape($body) . "\"";
     }
     $cmd = $cmd . " -w \"__STATUS__%{http_code}\"";
-    $cmd = $cmd . " \"" . _shell_escape($url) . "\"";
+    $cmd = $cmd . " \"" . shell_escape($url) . "\"";
 
     $out = [];
     exec($cmd, $out);
@@ -91,4 +82,11 @@ $res = http_get("https://example.com", $headers, 5);
 print($res[0] . "\n");
 print(join($res[1], "\n") . "\n");
 print($res[2] . "\n");
+
+Image download:
+
+$res = http_get("https://example.com/image.jpg");
+if ($res[0] == 200) {
+    file_put_contents("image.jpg", $res[2]);
+}
 */

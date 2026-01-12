@@ -166,6 +166,37 @@ static int run_exec(const char *cmd, Array *out) {
     return 1;
 }
 
+static Value n_shell_escape(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_string("");
+    Value sv = value_to_string(argv[0]);
+    const char *s = sv.s ? sv.s : "";
+    char *buf = NULL;
+    size_t len = 0;
+    size_t cap = 0;
+
+    for (const char *p = s; *p; p++) {
+        if (*p == '\\') {
+            append_buf(&buf, &len, &cap, "\\\\", 2);
+        } else if (*p == '"') {
+            append_buf(&buf, &len, &cap, "\\\"", 2);
+        } else if (*p == '\'') {
+            append_buf(&buf, &len, &cap, "\\'", 2);
+        } else if (*p == '\r') {
+            append_buf(&buf, &len, &cap, "\\r", 2);
+        } else if (*p == '\n') {
+            append_buf(&buf, &len, &cap, "\\n", 2);
+        } else {
+            append_buf(&buf, &len, &cap, p, 1);
+        }
+    }
+
+    Value out = value_string(buf ? buf : "");
+    free(buf);
+    value_free(sv);
+    return out;
+}
+
 static Value n_exec(Env *env, int argc, Value *argv){
     (void)env;
     if (argc < 1) return value_int(-1);
@@ -195,6 +226,7 @@ static Value n_exec(Env *env, int argc, Value *argv){
 
 static void exec_module_init(Env *global){
     lx_register_function("exec", n_exec);
+    lx_register_function("shell_escape", n_shell_escape);
     (void)global;
 }
 

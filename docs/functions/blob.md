@@ -30,5 +30,5 @@ Returns a blob.
 
 ```php
 $b = blob("ABC");
-print(blob_len($b) . "\n"); // 3
+print(blob_size($b) . "\n"); // 3
 ```

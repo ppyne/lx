@@ -1,0 +1,15 @@
+function imagemagick_resize_fit($input_path, $output_path, $max_width, $max_height) {
+    $cmd = "convert \"" . shell_escape($input_path) . "\"";
+    $cmd = $cmd . " -resize " . int($max_width) . "x" . int($max_height);
+    $cmd = $cmd . " \"" . shell_escape($output_path) . "\"";
+    $out = [];
+    return exec($cmd, $out);
+}
+
+/*
+Example:
+
+// Resize an image to fit within 64x64, preserving aspect ratio.
+$code = imagemagick_resize_fit("input.jpg", "output.jpg", 64, 64);
+print("convert exit code: " . $code . "\n");
+*/

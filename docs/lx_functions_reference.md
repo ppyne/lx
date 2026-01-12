@@ -18,7 +18,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [blob_concat](functions/blob_concat.md)(a, b) : blob <span style="color:#888">[Binary]</span>
 - [blob_from_base64](functions/blob_from_base64.md)(string) : blob <span style="color:#888">[Binary]</span>
 - [blob_from_hex](functions/blob_from_hex.md)(string) : blob <span style="color:#888">[Extensions: hex]</span>
-- [blob_len](functions/blob_len.md)(blob) : int <span style="color:#888">[Binary]</span>
+- [blob_size](functions/blob_size.md)(blob) : int <span style="color:#888">[Binary]</span>
 - [blob_slice](functions/blob_slice.md)(blob, start[, length]) : blob <span style="color:#888">[Binary]</span>
 - [blob_to_base64](functions/blob_to_base64.md)(blob) : string <span style="color:#888">[Binary]</span>
 - [blob_to_hex](functions/blob_to_hex.md)(blob) : string <span style="color:#888">[Extensions: hex]</span>
@@ -44,6 +44,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
 - [exec](functions/exec.md)(command[, output]) : int <span style="color:#888">[Extensions: exec]</span>
+- [shell_escape](functions/shell_escape.md)(text) : string <span style="color:#888">[Extensions: exec]</span>
 - [env_get](functions/env_get.md)(name[, default]) : string|undefined <span style="color:#888">[Extensions: env]</span>
 - [env_list](functions/env_list.md)() : array <span style="color:#888">[Extensions: env]</span>
 - [env_set](functions/env_set.md)(name, value) : bool <span style="color:#888">[Extensions: env]</span>
@@ -126,6 +127,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [rand](functions/rand.md)() : int <span style="color:#888">[Numeric and math]</span>
 - [rand](functions/rand.md)(max) : int <span style="color:#888">[Numeric and math]</span>
 - [rand](functions/rand.md)(min, max) : int <span style="color:#888">[Numeric and math]</span>
+- [read_key](functions/read_key.md)([prompt]) : int <span style="color:#888">[Extensions: cli]</span>
+- [read_line](functions/read_line.md)([prompt]) : string <span style="color:#888">[Extensions: cli]</span>
 - [rename](functions/rename.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [reverse](functions/reverse.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [rmdir](functions/rmdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
@@ -180,3 +183,4 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [upper](functions/upper.md)(string) : string <span style="color:#888">[Strings]</span>
 - [values](functions/values.md)(array) : array <span style="color:#888">[Arrays]</span>
 - [var_dump](functions/var_dump.md)(...values[, return]) : string <span style="color:#888">[Output and formatting]</span>
+- [write_blob](functions/write_blob.md)(blob) : int <span style="color:#888">[HTTP]</span>

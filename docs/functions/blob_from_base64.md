@@ -24,5 +24,5 @@ Returns a blob, or `undefined` on error.
 
 ```php
 $b = blob_from_base64("QUJD");
-print(blob_len($b) . "\n");
+print(blob_size($b) . "\n");
 ```

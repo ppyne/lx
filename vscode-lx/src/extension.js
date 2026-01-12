@@ -48,7 +48,18 @@ function activate(context) {
   const provider = vscode.languages.registerCompletionItemProvider(
     "lx",
     {
-      provideCompletionItems() {
+      provideCompletionItems(document, position) {
+        const text = document.getText();
+        const openTag = "<?lx";
+        const closeTag = "?>";
+        const hasTags = text.indexOf(openTag) !== -1;
+        if (hasTags) {
+          const offset = document.offsetAt(position);
+          const lastOpen = text.lastIndexOf(openTag, offset);
+          const lastClose = text.lastIndexOf(closeTag, offset);
+          if (lastOpen === -1 || lastClose > lastOpen) return [];
+          if (offset <= lastOpen + openTag.length) return [];
+        }
         const items = [];
         for (const name of builtins) items.push(buildFunctionItem(name));
         for (const name of keywordList) items.push(buildKeywordItem(name));
