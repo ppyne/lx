@@ -46,12 +46,15 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [file_put_contents](functions/file_put_contents.md)(path, data) : int <span style="color:#888">[Extensions: fs]</span>
 - [file_size](functions/file_size.md)(path) : int|undefined <span style="color:#888">[Extensions: fs]</span>
 - [float](functions/float.md)(value) : float <span style="color:#888">[Casting helpers]</span>
+- [first](functions/first.md)(array) : mixed|array <span style="color:#888">[Arrays]</span>
 - [floor](functions/floor.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [gmdate](functions/gmdate.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
 - [header](functions/header.md)(value) : void <span style="color:#888">[HTTP]</span>
 - [glyph_at](functions/glyph_at.md)(string, index) : string|undefined <span style="color:#888">[Extensions: utf8]</span>
 - [glyph_count](functions/glyph_count.md)(string) : int|undefined <span style="color:#888">[Extensions: utf8]</span>
 - [hex2bin](functions/hex2bin.md)(string) : string|undefined <span style="color:#888">[Extensions: hex]</span>
+- [html_attr_escape](functions/html_attr_escape.md)(value) : string <span style="color:#888">[Strings]</span>
+- [html_text_escape](functions/html_text_escape.md)(value) : string <span style="color:#888">[Strings]</span>
 - [implode](functions/implode.md)(array, sep) : string <span style="color:#888">[Strings]</span>
 - [implode](functions/implode.md)(sep, array) : string <span style="color:#888">[Strings]</span>
 - [in_array](functions/in_array.md)(value, array[, strict]) : bool <span style="color:#888">[Arrays]</span>

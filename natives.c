@@ -1243,6 +1243,14 @@ static Value n_pop(Env *env, int argc, Value *argv){
     return out;
 }
 
+static Value n_first(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_ARRAY || !argv[0].a) return value_array();
+    Array *a = argv[0].a;
+    if (a->size == 0) return value_array();
+    return value_copy(a->entries[0].value);
+}
+
 static Value n_shift(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1 || argv[0].type != VAL_ARRAY || !argv[0].a) return value_undefined();
@@ -1691,6 +1699,52 @@ static Value n_str_replace(Env *env, int argc, Value *argv){
     value_free(nv);
     value_free(rv);
     value_free(hv);
+    return out;
+}
+
+static Value n_html_attr_escape(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_string("");
+    Value sv = value_to_string(argv[0]);
+    const char *s = sv.s ? sv.s : "";
+    char *buf = NULL;
+    size_t cap = 0;
+    size_t len = 0;
+    for (const char *p = s; *p; p++) {
+        if (*p == '"') {
+            buf_append(&buf, &cap, &len, "&quot;", 6);
+        } else {
+            buf_append(&buf, &cap, &len, p, 1);
+        }
+    }
+    Value out = value_string(buf ? buf : "");
+    free(buf);
+    value_free(sv);
+    return out;
+}
+
+static Value n_html_text_escape(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_string("");
+    Value sv = value_to_string(argv[0]);
+    const char *s = sv.s ? sv.s : "";
+    char *buf = NULL;
+    size_t cap = 0;
+    size_t len = 0;
+    for (const char *p = s; *p; p++) {
+        if (*p == '&') {
+            buf_append(&buf, &cap, &len, "&amp;", 5);
+        } else if (*p == '<') {
+            buf_append(&buf, &cap, &len, "&lt;", 4);
+        } else if (*p == '>') {
+            buf_append(&buf, &cap, &len, "&gt;", 4);
+        } else {
+            buf_append(&buf, &cap, &len, p, 1);
+        }
+    }
+    Value out = value_string(buf ? buf : "");
+    free(buf);
+    value_free(sv);
     return out;
 }
 
@@ -2347,6 +2401,7 @@ void install_stdlib(void){
     register_function("in_array", n_in_array);
     register_function("push", n_push);
     register_function("pop", n_pop);
+    register_function("first", n_first);
     register_function("shift", n_shift);
     register_function("unshift", n_unshift);
     register_function("merge", n_merge);
@@ -2366,6 +2421,8 @@ void install_stdlib(void){
     register_function("str", n_str);
     register_function("split", n_split);
     register_function("join", n_join);
+    register_function("html_attr_escape", n_html_attr_escape);
+    register_function("html_text_escape", n_html_text_escape);
     register_function("explode", n_split);
     register_function("implode", n_join);
 }

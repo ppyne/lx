@@ -35,6 +35,7 @@ The wrapper exposes PHP-like globals:
 - `$_REQUEST` — merge of `$_GET` and `$_POST` (POST overrides)
 - `$_SERVER` — all environment variables
 - `$_FILES` — uploaded files metadata (multipart only)
+- `$_COOKIES` — parsed cookies from the `Cookie` header
 
 Example:
 

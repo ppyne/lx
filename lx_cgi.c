@@ -351,6 +351,14 @@ static char *dup_range(const char *s, size_t n) {
     return out;
 }
 
+static char *dup_trim_range(const char *s, size_t n) {
+    size_t start = 0;
+    size_t end = n;
+    while (start < end && (s[start] == ' ' || s[start] == '\t')) start++;
+    while (end > start && (s[end - 1] == ' ' || s[end - 1] == '\t')) end--;
+    return dup_range(s + start, end - start);
+}
+
 static const char *memmem_local(const char *hay, size_t hlen, const char *needle, size_t nlen) {
     if (!needle || nlen == 0 || !hay || hlen < nlen) return NULL;
     for (size_t i = 0; i <= hlen - nlen; i++) {
@@ -673,6 +681,36 @@ static Value parse_kv(const char *qs) {
     return out;
 }
 
+static Value parse_cookies(const char *hdr) {
+    Value out = value_array();
+    if (!hdr) return out;
+    const char *p = hdr;
+    while (*p) {
+        while (*p == ';' || *p == ' ' || *p == '\t') p++;
+        if (!*p) break;
+        const char *end = strchr(p, ';');
+        if (!end) end = p + strlen(p);
+        const char *eq = memchr(p, '=', (size_t)(end - p));
+        if (!eq) {
+            p = end;
+            continue;
+        }
+        char *kraw = dup_trim_range(p, (size_t)(eq - p));
+        char *vraw = dup_trim_range(eq + 1, (size_t)(end - eq - 1));
+        if (!kraw || !vraw) { free(kraw); free(vraw); return out; }
+        char *k = url_decode(kraw);
+        char *v = url_decode(vraw);
+        free(kraw);
+        free(vraw);
+        if (!k || !v) { free(k); free(v); return out; }
+        array_set(out.a, key_string(k), value_string(v));
+        free(k);
+        free(v);
+        p = end;
+    }
+    return out;
+}
+
 static void env_set_array(Env *env, const char *name, Value arr) {
     env_set(env, name, arr);
 }
@@ -751,12 +789,14 @@ static void install_std_env(Env *global) {
     }
     Value req = merge_request(get, post);
     Value server = build_server_env();
+    Value cookies = parse_cookies(getenv("HTTP_COOKIE"));
 
     env_set_array(global, "_GET", get);
     env_set_array(global, "_POST", post);
     env_set_array(global, "_REQUEST", req);
     env_set_array(global, "_SERVER", server);
     env_set_array(global, "_FILES", files);
+    env_set_array(global, "_COOKIES", cookies);
 }
 
 static int run_script(const char *source, const char *filename) {
