@@ -161,7 +161,9 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [strtolower](functions/strtolower.md)(string) : string <span style="color:#888">[Strings]</span>
 - [strtoupper](functions/strtoupper.md)(string) : string <span style="color:#888">[Strings]</span>
 - [substr](functions/substr.md)(string, start[, length]) : string <span style="color:#888">[Strings]</span>
+- [sys_get_temp_dir](functions/sys_get_temp_dir.md)() : string <span style="color:#888">[Extensions: fs]</span>
 - [tan](functions/tan.md)(value) : float <span style="color:#888">[Numeric and math]</span>
+- [tempnam](functions/tempnam.md)([prefix]) : string|undefined <span style="color:#888">[Extensions: fs]</span>
 - [time](functions/time.md)() : int <span style="color:#888">[Extensions: time]</span>
 - [tz_get](functions/tz_get.md)() : string <span style="color:#888">[Extensions: time]</span>
 - [tz_list](functions/tz_list.md)() : array <span style="color:#888">[Extensions: time]</span>

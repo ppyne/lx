@@ -20,6 +20,46 @@ static char *dup_range(const char *s, size_t n) {
     return out;
 }
 
+static const char *fs_temp_dir(void) {
+    const char *vars[] = { "TMPDIR", "TMP", "TEMP", "TEMPDIR" };
+    for (size_t i = 0; i < sizeof(vars) / sizeof(vars[0]); i++) {
+        const char *v = getenv(vars[i]);
+        if (v && *v) return v;
+    }
+    return "/tmp";
+}
+
+static Value n_sys_get_temp_dir(Env *env, int argc, Value *argv){
+    (void)env;
+    (void)argv;
+    if (argc != 0) return value_string("");
+    return value_string(fs_temp_dir());
+}
+
+static Value n_tempnam(Env *env, int argc, Value *argv){
+    (void)env;
+    const char *prefix = "lx";
+    if (argc == 1 && argv[0].type == VAL_STRING && argv[0].s && *argv[0].s) {
+        prefix = argv[0].s;
+    } else if (argc != 0 && argc != 1) {
+        return value_undefined();
+    }
+
+    const char *dir = fs_temp_dir();
+    size_t dlen = strlen(dir);
+    size_t plen = strlen(prefix);
+    if (dlen + 1 + plen + 6 + 1 >= PATH_MAX) return value_undefined();
+
+    char path[PATH_MAX];
+    int add_slash = (dlen > 0 && dir[dlen - 1] != '/');
+    snprintf(path, sizeof(path), "%s%s%sXXXXXX", dir, add_slash ? "/" : "", prefix);
+
+    int fd = mkstemp(path);
+    if (fd < 0) return value_undefined();
+    close(fd);
+    return value_string(path);
+}
+
 static Value n_file_get_contents(Env *env, int argc, Value *argv){
     (void)env;
     int want_blob = 0;
@@ -306,6 +346,8 @@ static void fs_module_init(Env *global){
     lx_register_function("mv", n_rename);
     lx_register_function("chmod", n_chmod);
     lx_register_function("pwd", n_pwd);
+    lx_register_function("sys_get_temp_dir", n_sys_get_temp_dir);
+    lx_register_function("tempnam", n_tempnam);
     lx_register_function("pathinfo", n_pathinfo);
     lx_register_function("list_dir", n_list_dir);
     (void)global;

@@ -1,4 +1,4 @@
 /* Auto-generated. Do not edit. */
 #ifndef LX_VERSION_BUILD
-#define LX_VERSION_BUILD 47
+#define LX_VERSION_BUILD 49
 #endif

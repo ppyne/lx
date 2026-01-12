@@ -51,6 +51,12 @@ print(file_exists("tmp_dir/r2.txt") . "\n");
 $lst = list_dir("tmp_dir");
 print($lst[0] . "," . $lst[1] . "," . $lst[2] . "\n");
 
+$tmp_dir = sys_get_temp_dir();
+print(is_dir($tmp_dir) . "\n");
+$tmp = tempnam("lx");
+print(is_file($tmp) . "\n");
+unlink($tmp);
+
 unlink("tmp_dir/a.txt");
 unlink("tmp_dir/b.txt");
 unlink("tmp_dir/r2.txt");

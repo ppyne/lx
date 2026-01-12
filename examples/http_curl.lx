@@ -1,5 +1,10 @@
 function _shell_escape($s) {
-    return str_replace("\"", "\\\"", $s);
+    $s = str_replace("\\", "\\\\", $s);
+    $s = str_replace("\"", "\\\"", $s);
+    $s = str_replace("'", "\\'", $s);
+    $s = str_replace("\r", "\\r", $s);
+    $s = str_replace("\n", "\\n", $s);
+    return $s;
 }
 
 function _normalize_headers($headers) {
@@ -16,7 +21,10 @@ function _normalize_headers($headers) {
 }
 
 function _curl_request($method, $url, $headers, $body, $timeout) {
-    $cmd = "curl -sS -D - -o - -X \"" . _shell_escape($method) . "\"";
+    $body_path = tempnam("lx_curl_body_");
+    $head_path = tempnam("lx_curl_head_");
+    $cmd = "curl -sS -D \"" . _shell_escape($head_path) . "\" -o \"" . _shell_escape($body_path) . "\"";
+    $cmd = $cmd . " -X \"" . _shell_escape($method) . "\"";
     if ($timeout != null) {
         $cmd = $cmd . " --max-time " . int($timeout);
     }
@@ -26,38 +34,37 @@ function _curl_request($method, $url, $headers, $body, $timeout) {
     if ($body != null) {
         $cmd = $cmd . " --data \"" . _shell_escape($body) . "\"";
     }
-    $cmd = $cmd . " -w \"\\n__STATUS__%{http_code}\\n\"";
+    $cmd = $cmd . " -w \"__STATUS__%{http_code}\"";
     $cmd = $cmd . " \"" . _shell_escape($url) . "\"";
 
     $out = [];
     exec($cmd, $out);
-
-    $stdout = [];
-    foreach ($out as $row) {
-        if ($row[1] == LX_STDOUT) $stdout[] = $row[0];
-    }
-
-    $raw = join($stdout, "\n");
-    $parts = split("\n__STATUS__", $raw);
-    $payload = $parts[0];
     $status_str = "0";
-    if (count($parts) > 1) $status_str = trim($parts[1]);
+    foreach ($out as $row) {
+        if ($row[1] == LX_STDOUT && starts_with($row[0], "__STATUS__")) {
+            $status_str = substr($row[0], 10);
+            break;
+        }
+    }
     $status_code = int($status_str);
 
+    $headers_raw = file_get_contents($head_path);
+    $headers_raw = str_replace("\r\n", "\n", $headers_raw);
+    $headers_raw = rtrim($headers_raw);
+    $header_blocks = split("\n\n", $headers_raw);
     $headers_str = "";
-    $body_str = $payload;
-    $idx = strrpos($payload, "\n\n");
-    if ($idx != undefined) {
-        $headers_str = substr($payload, 0, $idx);
-        $body_str = substr($payload, $idx + 2);
+    if (count($header_blocks) > 0) {
+        $headers_str = $header_blocks[count($header_blocks) - 1];
     }
-
     $headers_arr = [];
-    if ($headers_str != "") {
-        $headers_arr = split("\n", $headers_str);
-    }
+    if ($headers_str != "") $headers_arr = split("\n", $headers_str);
 
-    return [$status_code, $headers_arr, $body_str];
+    $body_blob = file_get_contents($body_path, true);
+
+    unlink($head_path);
+    unlink($body_path);
+
+    return [$status_code, $headers_arr, $body_blob];
 }
 
 function http_get($url, $headers = null, $timeout = null) {

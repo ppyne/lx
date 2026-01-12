@@ -31,6 +31,7 @@ BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.
 - [`docs/lx_adding_extensions.md`](docs/lx_adding_extensions.md) — how to add your own extensions
 - [`docs/lx_cgi.md`](docs/lx_cgi.md) — CGI wrapper usage (Apache/CGI setup)
 - [`examples/`](examples) — small scripts demonstrating typical use cases
+- [`vscode-lx/`](vscode-lx) — VS Code extension (syntax highlighting and completions)
 
 ## Quick Start
 
