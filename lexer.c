@@ -493,7 +493,7 @@ Token lexer_next(Lexer *l) {
         case ']': return make_token(l,TOK_RBRACKET);
         case ',': return make_token(l,TOK_COMMA);
         case ';': return make_token(l,TOK_SEMI);
-        case '?': return make_token(l,TOK_QUESTION);
+        case '?': return match(l,'?') ? make_token(l,TOK_NULL_COALESCE) : make_token(l,TOK_QUESTION);
         case ':': return make_token(l,TOK_COLON);
     }
 

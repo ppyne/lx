@@ -568,7 +568,23 @@ print($a > 0 ? "yes" : "no");
 
 ---
 
-### 5.7 Destructuring assignment
+### 5.7 Null coalescing operator
+
+```
+expr1 ?? expr2
+```
+
+Returns `expr1` unless it is `null` or `undefined`, otherwise returns `expr2`.
+
+Example:
+
+```php
+print($maybe ?? "fallback");
+```
+
+---
+
+### 5.8 Destructuring assignment
 
 You can assign multiple variables from an array value using bracket syntax:
 

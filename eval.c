@@ -933,6 +933,15 @@ static Value eval_expr(AstNode *n, Env *env, int *ok_flag) {
             }
             return eval_expr(n->ternary.else_expr, env, ok_flag);
         }
+        case AST_NULL_COALESCE: {
+            Value left = eval_expr(n->null_coalesce.left, env, ok_flag);
+            if (!*ok_flag) return value_null();
+            if (left.type != VAL_UNDEFINED && left.type != VAL_NULL) {
+                return left;
+            }
+            value_free(left);
+            return eval_expr(n->null_coalesce.right, env, ok_flag);
+        }
 
         default:
             *ok_flag = 0;

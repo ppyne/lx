@@ -86,6 +86,7 @@ static const char *token_name(TokenType t) {
         case TOK_COMMA: return ",";
         case TOK_SEMI: return ";";
         case TOK_QUESTION: return "?";
+        case TOK_NULL_COALESCE: return "??";
         case TOK_COLON: return ":";
         case TOK_ARROW: return "=>";
         default: return "token";
@@ -170,6 +171,7 @@ static AstNode *node(Parser *p, AstType t) {
 typedef enum {
     PREC_NONE = 0,
     PREC_ASSIGN,      /* = */
+    PREC_COALESCE,    /* ?? */
     PREC_OR,          /* || */
     PREC_AND,         /* && */
     PREC_EQUAL,       /* == != === !== */
@@ -190,6 +192,7 @@ typedef enum {
 static Precedence precedence(TokenType t) {
     switch (t) {
         case TOK_ASSIGN: return PREC_NONE;
+        case TOK_NULL_COALESCE: return PREC_COALESCE;
         case TOK_OR: return PREC_OR;
         case TOK_AND: return PREC_AND;
 
@@ -860,18 +863,25 @@ static AstNode *parse_expression_with_left(Parser *p, AstNode *left, Precedence 
         TokenType op_tok = p->current.type;
         advance(p);
 
-        /* right associativity for ** */
+        /* right associativity for ** and ?? */
         Precedence next_prec =
-            (op_tok == TOK_POW) ? (pcur) : (pcur + 1);
+            (op_tok == TOK_POW || op_tok == TOK_NULL_COALESCE) ? (pcur) : (pcur + 1);
 
         AstNode *right = parse_expression(p, next_prec);
         RETURN_IF_ERROR(p);
 
-    AstNode *b = node(p, AST_BINARY);
-        b->binary.op = op_from_token(op_tok);
-        b->binary.left = left;
-        b->binary.right = right;
-        left = b;
+        if (op_tok == TOK_NULL_COALESCE) {
+            AstNode *n = node(p, AST_NULL_COALESCE);
+            n->null_coalesce.left = left;
+            n->null_coalesce.right = right;
+            left = n;
+        } else {
+            AstNode *b = node(p, AST_BINARY);
+            b->binary.op = op_from_token(op_tok);
+            b->binary.left = left;
+            b->binary.right = right;
+            left = b;
+        }
     }
     if (prec <= PREC_ASSIGN && match(p, TOK_QUESTION)) {
         AstNode *then_expr = parse_expression(p, PREC_ASSIGN);

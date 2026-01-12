@@ -49,6 +49,7 @@ typedef enum {
     AST_ARRAY_LITERAL,
 
     AST_TERNARY,
+    AST_NULL_COALESCE,
 
     AST_MAGIC_FUNCTION,
 
@@ -257,6 +258,12 @@ struct AstNode {
             AstNode *then_expr;
             AstNode *else_expr;
         } ternary;
+
+        /* null coalesce */
+        struct {
+            AstNode *left;
+            AstNode *right;
+        } null_coalesce;
 
         /* literal */
         struct {

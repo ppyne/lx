@@ -1,0 +1,12 @@
+$a = null;
+print(($a ?? "b") . "\n");
+$a = undefined;
+print(($a ?? "x") . "\n");
+$a = 0;
+print(($a ?? "y") . "\n");
+$arr = [];
+print(($arr["missing"] ?? "none") . "\n");
+$a = null;
+$b = null;
+$c = "c";
+print(($a ?? $b ?? $c) . "\n");

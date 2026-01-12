@@ -96,6 +96,7 @@ typedef enum {
     TOK_COMMA,
     TOK_SEMI,
     TOK_QUESTION,   // ?
+    TOK_NULL_COALESCE, // ??
     TOK_COLON,      // :
     TOK_ARROW       // =>
 } TokenType;
