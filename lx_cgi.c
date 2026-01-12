@@ -878,7 +878,7 @@ static void install_std_env(Env *global) {
     env_set_array(global, "_REQUEST", req);
     env_set_array(global, "_SERVER", server);
     env_set_array(global, "_FILES", files);
-    env_set_array(global, "_COOKIES", cookies);
+    env_set_array(global, "_COOKIE", cookies);
 }
 
 static int run_script(const char *source, const char *filename) {

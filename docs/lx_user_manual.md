@@ -917,7 +917,7 @@ available in the CGI context.
 - **`$_POST`**: Parsed POST body parameters (form-encoded or multipart fields).
 - **`$_REQUEST`**: Merged view of `$_GET` and `$_POST`.
 - **`$_FILES`**: Uploaded files metadata (multipart only).
-- **`$_COOKIES`**: Parsed cookies from the `Cookie` header.
+- **`$_COOKIE`**: Parsed cookies from the `Cookie` header.
 
 See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
 
