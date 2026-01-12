@@ -1,0 +1,10 @@
+$key = "0123456789abcdef0123456789abcdef";
+$nonce = "abcdefghijklmnopqrstuvwx";
+$plain = "hello world";
+$cipher = aead_encrypt($key, $nonce, $plain);
+$decoded = aead_decrypt($key, $nonce, $cipher);
+print(str($decoded) . "\n");
+$tampered = $cipher;
+$tampered[0] = byte(255);
+$bad = aead_decrypt($key, $nonce, $tampered);
+print(is_undefined($bad) . "\n");

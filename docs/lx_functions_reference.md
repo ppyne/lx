@@ -4,6 +4,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 
 - [abs](functions/abs.md)(value) : int|float <span style="color:#888">[Numeric and math]</span>
 - [acos](functions/acos.md)(value) : float <span style="color:#888">[Numeric and math]</span>
+- [aead_decrypt](functions/aead_decrypt.md)(key, nonce, ciphertext[, aad]) : blob|undefined <span style="color:#888">[Extensions: aead]</span>
+- [aead_encrypt](functions/aead_encrypt.md)(key, nonce, plaintext[, aad]) : blob|undefined <span style="color:#888">[Extensions: aead]</span>
 - [asin](functions/asin.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [atan](functions/atan.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [atan2](functions/atan2.md)(y, x) : float <span style="color:#888">[Numeric and math]</span>

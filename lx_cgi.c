@@ -47,6 +47,9 @@ void register_utf8_module(void);
 #if LX_ENABLE_SQLITE
 void register_sqlite_module(void);
 #endif
+#if LX_ENABLE_AEAD
+void register_aead_module(void);
+#endif
 
 extern char **environ;
 
@@ -67,6 +70,9 @@ typedef struct {
 } UploadList;
 
 static UploadList g_uploads = {0};
+
+static int append_str(char **buf, size_t *len, size_t *cap, const char *s);
+static int append_char(char **buf, size_t *len, size_t *cap, char c);
 
 static void headers_reset(void) {
     for (int i = 0; i < g_headers.count; i++) {
@@ -916,6 +922,9 @@ static int run_script(const char *source, const char *filename) {
 #endif
 #if LX_ENABLE_SQLITE
     register_sqlite_module();
+#endif
+#if LX_ENABLE_AEAD
+    register_aead_module();
 #endif
     lx_init_modules(global);
     install_std_env(global);

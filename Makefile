@@ -16,6 +16,7 @@ LX_ENABLE_ENV := $(shell awk '/^\#define[ \t]+LX_ENABLE_ENV/{print $$3}' $(CONFI
 LX_ENABLE_UTF8 := $(shell awk '/^\#define[ \t]+LX_ENABLE_UTF8/{print $$3}' $(CONFIG_H) 2>/dev/null)
 LX_ENABLE_SQLITE := $(shell awk '/^\#define[ \t]+LX_ENABLE_SQLITE/{print $$3}' $(CONFIG_H) 2>/dev/null)
 LX_ENABLE_INCLUDE := $(shell awk '/^\#define[ \t]+LX_ENABLE_INCLUDE/{print $$3}' $(CONFIG_H) 2>/dev/null)
+LX_ENABLE_AEAD := $(shell awk '/^\#define[ \t]+LX_ENABLE_AEAD/{print $$3}' $(CONFIG_H) 2>/dev/null)
 
 ifneq ($(LX_ENABLE_FS),0)
 EXT_SRCS += ext_fs.c
@@ -44,6 +45,9 @@ endif
 ifneq ($(LX_ENABLE_SQLITE),0)
 EXT_SRCS += ext_sqlite.c
 LDFLAGS += -lsqlite3
+endif
+ifneq ($(LX_ENABLE_AEAD),0)
+EXT_SRCS += ext_aead.c monocypher.c
 endif
 
 SRCS = $(BASE_SRCS) $(EXT_SRCS)

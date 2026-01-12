@@ -8,7 +8,7 @@
 #define LX_ENABLE_ENV 1
 #define LX_ENABLE_UTF8 1
 #define LX_ENABLE_SQLITE 1
-#define LX_ENABLE_INCLUDE 1
+#define LX_ENABLE_AEAD 1
 
 /* CGI upload settings (lx_cgi only). */
 #define FILE_UPLOADS 1
@@ -19,3 +19,5 @@
 
 /* 32 = int (assuming 32-bit int), 64 = long long */
 #define LX_INT_BITS 64
+
+#define LX_ENABLE_INCLUDE 1

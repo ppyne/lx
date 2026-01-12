@@ -28,6 +28,7 @@ for t in $(find . -name "*.lx"); do
         ./ext/env.lx) ext_key="LX_ENABLE_ENV" ;;
         ./ext/utf8.lx) ext_key="LX_ENABLE_UTF8" ;;
         ./ext/sqlite.lx) ext_key="LX_ENABLE_SQLITE" ;;
+        ./ext/aead.lx) ext_key="LX_ENABLE_AEAD" ;;
         *) ext_key="" ;;
     esac
 
