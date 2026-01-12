@@ -35,6 +35,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [copy](functions/copy.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [cp](functions/cp.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [date](functions/date.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
+- [date_tz](functions/date_tz.md)(format[, timestamp], timezone) : string <span style="color:#888">[Extensions: time]</span>
 - [ed25519_keypair](functions/ed25519_keypair.md)() : array <span style="color:#888">[Extensions: ed25519]</span>
 - [ed25519_seed_keypair](functions/ed25519_seed_keypair.md)(seed) : array <span style="color:#888">[Extensions: ed25519]</span>
 - [ed25519_public_key](functions/ed25519_public_key.md)(secret) : blob|undefined <span style="color:#888">[Extensions: ed25519]</span>
@@ -162,6 +163,9 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [substr](functions/substr.md)(string, start[, length]) : string <span style="color:#888">[Strings]</span>
 - [tan](functions/tan.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [time](functions/time.md)() : int <span style="color:#888">[Extensions: time]</span>
+- [tz_get](functions/tz_get.md)() : string <span style="color:#888">[Extensions: time]</span>
+- [tz_list](functions/tz_list.md)() : array <span style="color:#888">[Extensions: time]</span>
+- [tz_set](functions/tz_set.md)(name) : bool <span style="color:#888">[Extensions: time]</span>
 - [trim](functions/trim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [type](functions/type.md)(value) : string <span style="color:#888">[Types and inspection]</span>
 - [ucfirst](functions/ucfirst.md)(string) : string <span style="color:#888">[Strings]</span>

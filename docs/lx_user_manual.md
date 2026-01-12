@@ -1051,7 +1051,7 @@ See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
 - **serializer**: [`serialize`](functions/serialize.md), [`unserialize`](functions/unserialize.md)
 - **hex**: [`bin2hex`](functions/bin2hex.md), [`hex2bin`](functions/hex2bin.md), [`blob_to_hex`](functions/blob_to_hex.md), [`blob_from_hex`](functions/blob_from_hex.md)
 - **blake2b**: [`blake2b`](functions/blake2b.md)
-- **time**: [`time`](functions/time.md), [`date`](functions/date.md), [`gmdate`](functions/gmdate.md), [`mktime`](functions/mktime.md), [`sleep`](functions/sleep.md), [`usleep`](functions/usleep.md)
+- **time**: [`time`](functions/time.md), [`date`](functions/date.md), [`gmdate`](functions/gmdate.md), [`date_tz`](functions/date_tz.md), [`tz_set`](functions/tz_set.md), [`tz_get`](functions/tz_get.md), [`tz_list`](functions/tz_list.md), [`mktime`](functions/mktime.md), [`sleep`](functions/sleep.md), [`usleep`](functions/usleep.md)
 - **utf8**: [`glyph_count`](functions/glyph_count.md), [`glyph_at`](functions/glyph_at.md)
 - **sqlite**: [`pdo_sqlite_open`](functions/pdo_sqlite_open.md), [`pdo_query`](functions/pdo_query.md), [`pdo_prepare`](functions/pdo_prepare.md), [`pdo_execute`](functions/pdo_execute.md), [`pdo_fetch`](functions/pdo_fetch.md), [`pdo_fetch_all`](functions/pdo_fetch_all.md), [`pdo_last_insert_id`](functions/pdo_last_insert_id.md), [`pdo_close`](functions/pdo_close.md)
 

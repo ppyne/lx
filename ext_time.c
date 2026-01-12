@@ -3,6 +3,8 @@
  * @brief Time extension module.
  */
 #include "lx_ext.h"
+#include "array.h"
+#include "config.h"
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -213,6 +215,52 @@ static Value format_date(const char *fmt, const struct tm *tmv, time_t ts, int u
                 buf_append(&out, &cap, &len, tz, strlen(tz));
                 break;
             }
+            case 'e': {
+                const char *tz = utc ? "UTC" : getenv("TZ");
+                if (!tz || !*tz) {
+                    tz = tzname[tmv->tm_isdst > 0];
+                }
+                buf_append(&out, &cap, &len, tz ? tz : "", tz ? strlen(tz) : 0);
+                break;
+            }
+            case 'T': {
+                const char *abbr = utc ? "UTC" : tzname[tmv->tm_isdst > 0];
+                buf_append(&out, &cap, &len, abbr ? abbr : "", abbr ? strlen(abbr) : 0);
+                break;
+            }
+            case 'I':
+                buf_append_int(&out, &cap, &len, tmv->tm_isdst > 0, 0);
+                break;
+            case 'Z': {
+                int offset = utc ? 0 : tz_offset_seconds(ts);
+                buf_append_int(&out, &cap, &len, offset, 0);
+                break;
+            }
+            case 'O': {
+                char tz[8];
+                int offset = utc ? 0 : tz_offset_seconds(ts);
+                format_tz_offset(tz, sizeof(tz), offset, 0);
+                buf_append(&out, &cap, &len, tz, strlen(tz));
+                break;
+            }
+            case 'P': {
+                char tz[8];
+                int offset = utc ? 0 : tz_offset_seconds(ts);
+                format_tz_offset(tz, sizeof(tz), offset, 1);
+                buf_append(&out, &cap, &len, tz, strlen(tz));
+                break;
+            }
+            case 'p': {
+                char tz[8];
+                int offset = utc ? 0 : tz_offset_seconds(ts);
+                if (offset == 0) {
+                    buf_append(&out, &cap, &len, "Z", 1);
+                } else {
+                    format_tz_offset(tz, sizeof(tz), offset, 1);
+                    buf_append(&out, &cap, &len, tz, strlen(tz));
+                }
+                break;
+            }
             case 't': {
                 int year = tmv->tm_year + 1900;
                 int month = tmv->tm_mon + 1;
@@ -261,6 +309,113 @@ static Value n_gmdate(Env *env, int argc, Value *argv){
     return n_date_like(argc, argv, 1);
 }
 
+static Value n_tz_set(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_bool(0);
+    Value zv = value_to_string(argv[0]);
+    const char *tz = zv.s ? zv.s : "";
+    if (*tz) {
+        setenv("TZ", tz, 1);
+    } else {
+        unsetenv("TZ");
+    }
+    tzset();
+    value_free(zv);
+    return value_bool(1);
+}
+
+static Value n_tz_get(Env *env, int argc, Value *argv){
+    (void)env;
+    (void)argc;
+    (void)argv;
+    const char *tz = getenv("TZ");
+    return value_string(tz ? tz : "");
+}
+
+static Value n_date_tz(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc < 2) return value_string("");
+    if (argv[0].type != VAL_STRING) return value_string("");
+    time_t ts = time(NULL);
+    const char *tz = NULL;
+    if (argc == 2) {
+        if (argv[1].type != VAL_STRING) return value_string("");
+        tz = argv[1].s ? argv[1].s : "";
+    } else {
+        ts = (time_t)value_to_int(argv[1]).i;
+        if (argv[2].type != VAL_STRING) return value_string("");
+        tz = argv[2].s ? argv[2].s : "";
+    }
+    char *old = NULL;
+    const char *cur = getenv("TZ");
+    if (cur) old = strdup(cur);
+    if (tz && *tz) setenv("TZ", tz, 1);
+    else unsetenv("TZ");
+    tzset();
+
+    struct tm tmbuf;
+    struct tm *tmv = localtime_r(&ts, &tmbuf);
+    Value out = tmv ? format_date(argv[0].s ? argv[0].s : "", tmv, ts, 0)
+                    : value_string("");
+
+    if (old) {
+        setenv("TZ", old, 1);
+        free(old);
+    } else {
+        unsetenv("TZ");
+    }
+    tzset();
+    return out;
+}
+
+static Value n_tz_list(Env *env, int argc, Value *argv){
+    (void)env;
+    (void)argc;
+    (void)argv;
+    Value out = value_array();
+    const char *paths[] = {
+        "/usr/share/zoneinfo/zone.tab",
+        "/usr/share/zoneinfo/zone1970.tab"
+    };
+    FILE *f = NULL;
+    for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); i++) {
+        f = fopen(paths[i], "r");
+        if (f) break;
+    }
+    if (!f) return out;
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+        if (line[0] == '#') continue;
+        char *p = line;
+        char *cols[3] = {0};
+        int c = 0;
+        while (*p && c < 3) {
+            char *tab = strchr(p, '\t');
+            if (!tab) tab = strchr(p, ' ');
+            if (tab) {
+                *tab = '\0';
+                cols[c++] = p;
+                p = tab + 1;
+                while (*p == '\t' || *p == ' ') p++;
+            } else {
+                cols[c++] = p;
+                break;
+            }
+        }
+        if (c >= 3 && cols[2]) {
+            char *name = cols[2];
+            char *nl = strchr(name, '\n');
+            if (nl) *nl = '\0';
+            if (*name) {
+                lx_int_t idx = array_next_index(out.a);
+                array_set(out.a, key_int(idx), value_string(name));
+            }
+        }
+    }
+    fclose(f);
+    return out;
+}
+
 static Value n_mktime(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 6) return value_int(0);
@@ -295,9 +450,17 @@ static Value n_usleep(Env *env, int argc, Value *argv){
 }
 
 static void time_module_init(Env *global){
+    if (LX_DEFAULT_TIMEZONE[0] != '\0' && (!getenv("TZ") || !*getenv("TZ"))) {
+        setenv("TZ", LX_DEFAULT_TIMEZONE, 1);
+        tzset();
+    }
     lx_register_function("time", n_time);
     lx_register_function("date", n_date);
     lx_register_function("gmdate", n_gmdate);
+    lx_register_function("date_tz", n_date_tz);
+    lx_register_function("tz_set", n_tz_set);
+    lx_register_function("tz_get", n_tz_get);
+    lx_register_function("tz_list", n_tz_list);
     lx_register_function("mktime", n_mktime);
     lx_register_function("sleep", n_sleep);
     lx_register_function("usleep", n_usleep);

@@ -12,7 +12,9 @@ Domain: Extensions: time
 
 Formats a local date/time according to `format`.
 
-Supported format characters: `Y`, `y`, `m`, `n`, `d`, `j`, `S`, `H`, `h`, `G`, `i`, `s`, `a`, `A`, `M`, `F`, `D`, `l`, `w`, `z`, `W`, `L`, `t`, `U`, `c`, `r`. Use `\` to escape a character.
+Use `tz_set()` to change the local timezone for `date()`.
+
+Supported format characters: `Y`, `y`, `m`, `n`, `d`, `j`, `S`, `H`, `h`, `G`, `i`, `s`, `a`, `A`, `M`, `F`, `D`, `l`, `w`, `z`, `W`, `L`, `t`, `U`, `c`, `r`, `e`, `I`, `O`, `P`, `p`, `T`, `Z`. Use `\` to escape a character.
 The `S` suffix is typically used together with `j`.
 
 ### Supported formats
@@ -45,6 +47,13 @@ The `S` suffix is typically used together with `j`.
 | `U` | Seconds since Unix Epoch | `1700000000` |
 | `c` | ISO 8601 date (non-expanded) | `1970-01-01T00:00:00+00:00` |
 | `r` | RFC 2822/RFC 5322 formatted date | `Thu, 01 Jan 1970 00:00:00 +0000` |
+| `e` | Timezone identifier | `UTC`, `Europe/Paris` |
+| `I` | Whether DST is in effect | `1` or `0` |
+| `O` | Difference to GMT without colon | `+0000` |
+| `P` | Difference to GMT with colon | `+00:00` |
+| `p` | Difference to GMT with colon, or `Z` | `Z`, `+00:00` |
+| `T` | Timezone abbreviation | `UTC`, `CET` |
+| `Z` | Offset from UTC in seconds | `0`, `3600` |
 
 ### Parameters
 

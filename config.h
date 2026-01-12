@@ -30,6 +30,9 @@
 #define SESSION_GC_PROB 1
 #define SESSION_GC_DIV 100
 
+/* Timezone default (ext_time). Empty string keeps the system default. */
+#define LX_DEFAULT_TIMEZONE ""
+
 /* 32 = int (assuming 32-bit int), 64 = long long */
 #define LX_INT_BITS 64
 
