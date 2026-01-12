@@ -7,6 +7,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -58,6 +59,14 @@ typedef struct {
 static HeaderList g_headers = {0};
 static int g_headers_sent = 0;
 
+typedef struct {
+    char **paths;
+    size_t count;
+    size_t cap;
+} UploadList;
+
+static UploadList g_uploads = {0};
+
 static void headers_reset(void) {
     for (int i = 0; i < g_headers.count; i++) {
         free(g_headers.items[i]);
@@ -69,6 +78,54 @@ static void headers_reset(void) {
     free(g_headers.content_type);
     g_headers.content_type = NULL;
     g_headers_sent = 0;
+}
+
+static void uploads_reset(void) {
+    for (size_t i = 0; i < g_uploads.count; i++) {
+        if (g_uploads.paths[i]) {
+            unlink(g_uploads.paths[i]);
+            free(g_uploads.paths[i]);
+        }
+    }
+    free(g_uploads.paths);
+    g_uploads.paths = NULL;
+    g_uploads.count = 0;
+    g_uploads.cap = 0;
+}
+
+static int uploads_track(const char *path) {
+    if (!path || !*path) return 0;
+    if (g_uploads.count + 1 > g_uploads.cap) {
+        size_t cap = g_uploads.cap ? g_uploads.cap * 2 : 8;
+        char **paths = (char **)realloc(g_uploads.paths, cap * sizeof(char *));
+        if (!paths) return 0;
+        g_uploads.paths = paths;
+        g_uploads.cap = cap;
+    }
+    g_uploads.paths[g_uploads.count++] = strdup(path);
+    return 1;
+}
+
+static int uploads_untrack(const char *path) {
+    if (!path || !*path) return 0;
+    for (size_t i = 0; i < g_uploads.count; i++) {
+        if (g_uploads.paths[i] && strcmp(g_uploads.paths[i], path) == 0) {
+            free(g_uploads.paths[i]);
+            g_uploads.paths[i] = g_uploads.paths[g_uploads.count - 1];
+            g_uploads.paths[g_uploads.count - 1] = NULL;
+            g_uploads.count--;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int uploads_is_tracked(const char *path) {
+    if (!path || !*path) return 0;
+    for (size_t i = 0; i < g_uploads.count; i++) {
+        if (g_uploads.paths[i] && strcmp(g_uploads.paths[i], path) == 0) return 1;
+    }
+    return 0;
 }
 
 static void headers_add(const char *line) {
@@ -112,6 +169,44 @@ static Value n_header(Env *env, int argc, Value *argv) {
     }
     value_free(s);
     return value_void();
+}
+
+static int copy_file(const char *src, const char *dst) {
+    FILE *in = fopen(src, "rb");
+    if (!in) return 0;
+    FILE *out = fopen(dst, "wb");
+    if (!out) { fclose(in); return 0; }
+    char buf[8192];
+    size_t n = 0;
+    while ((n = fread(buf, 1, sizeof(buf), in)) > 0) {
+        if (fwrite(buf, 1, n, out) != n) { fclose(in); fclose(out); return 0; }
+    }
+    fclose(in);
+    fclose(out);
+    return 1;
+}
+
+static Value n_move_uploaded_file(Env *env, int argc, Value *argv) {
+    (void)env;
+    if (argc != 2) return value_bool(0);
+    Value srcv = value_to_string(argv[0]);
+    Value dstv = value_to_string(argv[1]);
+    const char *src = srcv.s ? srcv.s : "";
+    const char *dst = dstv.s ? dstv.s : "";
+    if (!uploads_is_tracked(src) || !*dst) {
+        value_free(srcv);
+        value_free(dstv);
+        return value_bool(0);
+    }
+    int ok = (rename(src, dst) == 0);
+    if (!ok) {
+        ok = copy_file(src, dst);
+        if (ok) unlink(src);
+    }
+    if (ok) uploads_untrack(src);
+    value_free(srcv);
+    value_free(dstv);
+    return value_bool(ok);
 }
 
 static char *read_file_all(const char *path) {
@@ -248,6 +343,305 @@ static char *url_decode(const char *s) {
     return out;
 }
 
+static char *dup_range(const char *s, size_t n) {
+    char *out = (char *)malloc(n + 1);
+    if (!out) return NULL;
+    memcpy(out, s, n);
+    out[n] = '\0';
+    return out;
+}
+
+static const char *memmem_local(const char *hay, size_t hlen, const char *needle, size_t nlen) {
+    if (!needle || nlen == 0 || !hay || hlen < nlen) return NULL;
+    for (size_t i = 0; i <= hlen - nlen; i++) {
+        if (hay[i] == needle[0] && memcmp(hay + i, needle, nlen) == 0) return hay + i;
+    }
+    return NULL;
+}
+
+static char *disposition_param(const char *line, const char *key) {
+    size_t klen = strlen(key);
+    const char *p = line;
+    while ((p = strstr(p, key)) != NULL) {
+        if (p != line && p[-1] != ';' && p[-1] != ' ') { p += klen; continue; }
+        p += klen;
+        if (*p != '=') continue;
+        p++;
+        if (*p == '"') {
+            p++;
+            const char *end = strchr(p, '"');
+            if (!end) return NULL;
+            return dup_range(p, (size_t)(end - p));
+        }
+        const char *end = p;
+        while (*end && *end != ';' && *end != '\r' && *end != '\n') end++;
+        return dup_range(p, (size_t)(end - p));
+    }
+    return NULL;
+}
+
+typedef struct {
+    char *name;
+    char *filename;
+    char *content_type;
+} PartInfo;
+
+static void part_info_reset(PartInfo *info) {
+    if (!info) return;
+    free(info->name);
+    free(info->filename);
+    free(info->content_type);
+    info->name = NULL;
+    info->filename = NULL;
+    info->content_type = NULL;
+}
+
+static void parse_part_headers(const char *hdr, size_t len, PartInfo *info) {
+    const char *p = hdr;
+    const char *end = hdr + len;
+    while (p < end) {
+        const char *eol = memmem_local(p, (size_t)(end - p), "\r\n", 2);
+        size_t line_len = eol ? (size_t)(eol - p) : (size_t)(end - p);
+        if (line_len == 0) break;
+        if (line_len >= 20 && strncasecmp(p, "Content-Disposition:", 20) == 0) {
+            const char *val = p + 20;
+            while (*val == ' ' || *val == '\t') val++;
+            char *name = disposition_param(val, "name");
+            char *filename = disposition_param(val, "filename");
+            if (name) { free(info->name); info->name = name; }
+            if (filename) { free(info->filename); info->filename = filename; }
+        } else if (line_len >= 13 && strncasecmp(p, "Content-Type:", 13) == 0) {
+            const char *val = p + 13;
+            while (*val == ' ' || *val == '\t') val++;
+            char *ctype = dup_range(val, line_len - (size_t)(val - p));
+            if (ctype) {
+                free(info->content_type);
+                info->content_type = ctype;
+            }
+        }
+        if (!eol) break;
+        p = eol + 2;
+    }
+}
+
+static void add_post_value(Value post, const char *name, Value v) {
+    if (!post.a || !name) { value_free(v); return; }
+    size_t nlen = strlen(name);
+    if (nlen >= 2 && name[nlen - 2] == '[' && name[nlen - 1] == ']') {
+        char *base = dup_range(name, nlen - 2);
+        if (!base) { value_free(v); return; }
+        Value *slot = array_get_ref(post.a, key_string(base));
+        if (slot->type != VAL_ARRAY) {
+            Value old = *slot;
+            *slot = value_array();
+            if (old.type != VAL_UNDEFINED) {
+                array_set(slot->a, key_int(0), old);
+            } else {
+                value_free(old);
+            }
+        }
+        lx_int_t idx = array_next_index(slot->a);
+        array_set(slot->a, key_int(idx), v);
+        free(base);
+        return;
+    }
+    array_set(post.a, key_string(name), v);
+}
+
+static void file_entry_append(Value entry, const char *key, Value v) {
+    Value *slot = array_get_ref(entry.a, key_string(key));
+    if (slot->type != VAL_ARRAY) {
+        Value old = *slot;
+        *slot = value_array();
+        if (old.type != VAL_UNDEFINED) {
+            array_set(slot->a, key_int(0), old);
+        } else {
+            value_free(old);
+        }
+    }
+    lx_int_t idx = array_next_index(slot->a);
+    array_set(slot->a, key_int(idx), v);
+}
+
+static void add_file_entry(Value files, const char *field, const char *name,
+                           const char *type, const char *tmp_name,
+                           size_t size, int error) {
+    if (!files.a || !field) return;
+    Value *slot = array_get_ref(files.a, key_string(field));
+    if (slot->type == VAL_UNDEFINED) {
+        Value entry = value_array();
+        array_set(entry.a, key_string("name"), value_string(name ? name : ""));
+        array_set(entry.a, key_string("type"), value_string(type ? type : ""));
+        array_set(entry.a, key_string("tmp_name"), value_string(tmp_name ? tmp_name : ""));
+        array_set(entry.a, key_string("size"), value_int((lx_int_t)size));
+        array_set(entry.a, key_string("error"), value_int(error));
+        *slot = entry;
+        return;
+    }
+    if (slot->type != VAL_ARRAY || !slot->a) {
+        value_free(*slot);
+        *slot = value_array();
+    }
+    file_entry_append(*slot, "name", value_string(name ? name : ""));
+    file_entry_append(*slot, "type", value_string(type ? type : ""));
+    file_entry_append(*slot, "tmp_name", value_string(tmp_name ? tmp_name : ""));
+    file_entry_append(*slot, "size", value_int((lx_int_t)size));
+    file_entry_append(*slot, "error", value_int(error));
+}
+
+static int read_body(size_t len, char **out) {
+    if (!out) return 0;
+    *out = NULL;
+    if (len == 0) return 1;
+    char *buf = (char *)malloc(len + 1);
+    if (!buf) return 0;
+    size_t n = fread(buf, 1, len, stdin);
+    buf[n] = '\0';
+    *out = buf;
+    return n == len;
+}
+
+static void discard_body(size_t len) {
+    char buf[4096];
+    while (len > 0) {
+        size_t chunk = len > sizeof(buf) ? sizeof(buf) : len;
+        size_t n = fread(buf, 1, chunk, stdin);
+        if (n == 0) break;
+        len -= n;
+    }
+}
+
+static int parse_content_length(size_t *out_len) {
+    const char *len_s = getenv("CONTENT_LENGTH");
+    if (!len_s || !*len_s) return 0;
+    char *end = NULL;
+    unsigned long long v = strtoull(len_s, &end, 10);
+    if (!end || end == len_s) return 0;
+    if (v > SIZE_MAX) return 0;
+    *out_len = (size_t)v;
+    return 1;
+}
+
+static int extract_boundary(const char *ctype, char **out) {
+    if (!ctype || !out) return 0;
+    const char *b = strstr(ctype, "boundary=");
+    if (!b) return 0;
+    b += 9;
+    if (*b == '"') {
+        b++;
+        const char *end = strchr(b, '"');
+        if (!end) return 0;
+        *out = dup_range(b, (size_t)(end - b));
+        return *out != NULL;
+    }
+    const char *end = b;
+    while (*end && *end != ';' && *end != ' ' && *end != '\t') end++;
+    *out = dup_range(b, (size_t)(end - b));
+    return *out != NULL;
+}
+
+static void parse_multipart_body(const char *data, size_t len, const char *boundary,
+                                 Value post, Value files) {
+    if (!data || !boundary || !*boundary) return;
+    size_t b_len = strlen(boundary);
+    size_t marker_len = b_len + 2;
+    char *marker = (char *)malloc(marker_len + 1);
+    if (!marker) return;
+    marker[0] = '-';
+    marker[1] = '-';
+    memcpy(marker + 2, boundary, b_len);
+    marker[marker_len] = '\0';
+
+    const char *p = data;
+    const char *end = data + len;
+    const char *pos = memmem_local(p, len, marker, marker_len);
+    if (!pos) { free(marker); return; }
+    p = pos + marker_len;
+    if (p + 2 <= end && p[0] == '-' && p[1] == '-') { free(marker); return; }
+    if (p + 2 <= end && p[0] == '\r' && p[1] == '\n') p += 2;
+
+    size_t upload_count = 0;
+
+    while (p < end) {
+        const char *hdr_end = memmem_local(p, (size_t)(end - p), "\r\n\r\n", 4);
+        if (!hdr_end) break;
+        PartInfo info = {0};
+        parse_part_headers(p, (size_t)(hdr_end - p), &info);
+        const char *content_start = hdr_end + 4;
+
+        const char *search = content_start;
+        const char *next = NULL;
+        while (search < end) {
+            next = memmem_local(search, (size_t)(end - search), marker, marker_len);
+            if (!next) break;
+            if (next >= data + 2 && next[-2] == '\r' && next[-1] == '\n') break;
+            search = next + 1;
+        }
+        if (!next) { part_info_reset(&info); break; }
+        const char *content_end = next - 2;
+        if (content_end < content_start) content_end = content_start;
+        size_t content_len = (size_t)(content_end - content_start);
+
+        if (info.name && *info.name) {
+            if (info.filename) {
+                int err = 0;
+                char tmp_path[PATH_MAX];
+                tmp_path[0] = '\0';
+                if (!FILE_UPLOADS) {
+                    err = 1;
+                } else if (upload_count >= (size_t)MAX_FILE_UPLOADS) {
+                    err = 1;
+                } else if (content_len > (size_t)UPLOAD_MAX_FILESIZE) {
+                    err = 1;
+                } else if (info.filename[0] == '\0') {
+                    err = 4;
+                } else {
+                    const char *dir = UPLOAD_TMP_DIR;
+                    if (!dir || !*dir) dir = "/tmp";
+                    snprintf(tmp_path, sizeof(tmp_path), "%s/lx_upload_XXXXXX", dir);
+                    int fd = mkstemp(tmp_path);
+                    if (fd == -1) {
+                        err = 6;
+                    } else {
+                        FILE *out = fdopen(fd, "wb");
+                        if (!out) {
+                            close(fd);
+                            unlink(tmp_path);
+                            tmp_path[0] = '\0';
+                            err = 7;
+                        } else {
+                            size_t written = fwrite(content_start, 1, content_len, out);
+                            fclose(out);
+                            if (written != content_len) {
+                                unlink(tmp_path);
+                                tmp_path[0] = '\0';
+                                err = 7;
+                            } else {
+                                uploads_track(tmp_path);
+                                upload_count++;
+                            }
+                        }
+                    }
+                }
+                add_file_entry(files, info.name, info.filename,
+                               info.content_type ? info.content_type : "",
+                               tmp_path[0] ? tmp_path : "",
+                               content_len, err);
+            } else {
+                Value v = value_string_n(content_start, content_len);
+                add_post_value(post, info.name, v);
+            }
+        }
+
+        part_info_reset(&info);
+        p = next + marker_len;
+        if (p + 2 <= end && p[0] == '-' && p[1] == '-') break;
+        if (p + 2 <= end && p[0] == '\r' && p[1] == '\n') p += 2;
+    }
+
+    free(marker);
+}
+
 static Value parse_kv(const char *qs) {
     Value out = value_array();
     if (!qs) return out;
@@ -276,20 +670,6 @@ static Value parse_kv(const char *qs) {
         if (!amp) break;
         p = amp + 1;
     }
-    return out;
-}
-
-static Value read_post(void) {
-    const char *len_s = getenv("CONTENT_LENGTH");
-    if (!len_s) return value_array();
-    long len = strtol(len_s, NULL, 10);
-    if (len <= 0 || len > 1024 * 1024) return value_array();
-    char *buf = (char *)malloc((size_t)len + 1);
-    if (!buf) return value_array();
-    size_t n = fread(buf, 1, (size_t)len, stdin);
-    buf[n] = '\0';
-    Value out = parse_kv(buf);
-    free(buf);
     return out;
 }
 
@@ -338,11 +718,36 @@ static Value build_server_env(void) {
 static void install_std_env(Env *global) {
     Value get = parse_kv(getenv("QUERY_STRING"));
     Value post = value_array();
+    Value files = value_array();
     const char *method = getenv("REQUEST_METHOD");
     const char *ctype = getenv("CONTENT_TYPE");
-    if (method && strcmp(method, "POST") == 0 &&
-        ctype && strstr(ctype, "application/x-www-form-urlencoded") == ctype) {
-        post = read_post();
+    if (method && strcmp(method, "POST") == 0 && ctype) {
+        size_t content_len = 0;
+        if (parse_content_length(&content_len)) {
+            if (content_len > (size_t)POST_MAX_SIZE) {
+                discard_body(content_len);
+            } else if (strstr(ctype, "multipart/form-data") == ctype) {
+                char *boundary = NULL;
+                if (extract_boundary(ctype, &boundary)) {
+                    char *body = NULL;
+                    if (read_body(content_len, &body) && body) {
+                        parse_multipart_body(body, content_len, boundary, post, files);
+                    }
+                    free(body);
+                }
+                free(boundary);
+            } else if (strstr(ctype, "application/x-www-form-urlencoded") == ctype) {
+                char *body = NULL;
+                if (read_body(content_len, &body) && body) {
+                    Value parsed = parse_kv(body);
+                    value_free(post);
+                    post = parsed;
+                }
+                free(body);
+            } else {
+                discard_body(content_len);
+            }
+        }
     }
     Value req = merge_request(get, post);
     Value server = build_server_env();
@@ -351,6 +756,7 @@ static void install_std_env(Env *global) {
     env_set_array(global, "_POST", post);
     env_set_array(global, "_REQUEST", req);
     env_set_array(global, "_SERVER", server);
+    env_set_array(global, "_FILES", files);
 }
 
 static int run_script(const char *source, const char *filename) {
@@ -369,6 +775,7 @@ static int run_script(const char *source, const char *filename) {
     Env *global = env_new(NULL);
     install_stdlib();
     register_function("header", n_header);
+    register_function("move_uploaded_file", n_move_uploaded_file);
 #if LX_ENABLE_FS
     register_fs_module();
 #endif
@@ -551,5 +958,6 @@ int main(void) {
     }
     fclose(body);
     headers_reset();
+    uploads_reset();
     return rc;
 }

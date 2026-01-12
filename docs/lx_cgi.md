@@ -31,9 +31,10 @@ If you place this script in your local Apache environment, in your `DocumentRoot
 The wrapper exposes PHP-like globals:
 
 - `$_GET` — parsed from `QUERY_STRING`
-- `$_POST` — parsed from POST body (form-urlencoded)
+- `$_POST` — parsed POST body parameters (form-urlencoded or multipart fields)
 - `$_REQUEST` — merge of `$_GET` and `$_POST` (POST overrides)
 - `$_SERVER` — all environment variables
+- `$_FILES` — uploaded files metadata (multipart only)
 
 Example:
 
@@ -93,6 +94,25 @@ print("Hello world!\n");
 
 ## Notes
 
-- Only `application/x-www-form-urlencoded` POST bodies are parsed.
-- File uploads and multipart are not supported.
+- `multipart/form-data` is supported for form fields and file uploads.
+- File uploads are stored in a temp directory and removed at the end of the request.
 - SQLite/FS/etc extensions are available (same as the normal `lx` binary).
+
+## File uploads
+
+When the request is `multipart/form-data`, file uploads are exposed through `$_FILES`.
+Each field contains `name`, `type`, `size`, `tmp_name`, and `error`. If a field
+has multiple files, these values become arrays (mirroring PHP's shape).
+
+Use `move_uploaded_file(tmp_name, destination)` to move a temporary file into
+its final location. The function returns `true` on success.
+
+Upload behavior is controlled by `config.h`:
+
+- `FILE_UPLOADS` (0/1): enable or disable uploads
+- `UPLOAD_TMP_DIR`: temp directory for uploads
+- `MAX_FILE_UPLOADS`: max number of uploaded files per request
+- `UPLOAD_MAX_FILESIZE`: max size per file in bytes
+- `POST_MAX_SIZE`: max total POST body size in bytes
+
+If `POST_MAX_SIZE` is exceeded, `$_POST` and `$_FILES` are empty.

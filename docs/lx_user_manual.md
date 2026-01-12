@@ -914,8 +914,9 @@ available in the CGI context.
 
 - **`$_SERVER`**: Environment and request metadata (headers, method, URI, etc).
 - **`$_GET`**: Query string parameters.
-- **`$_POST`**: Parsed POST body parameters (form-encoded).
+- **`$_POST`**: Parsed POST body parameters (form-encoded or multipart fields).
 - **`$_REQUEST`**: Merged view of `$_GET` and `$_POST`.
+- **`$_FILES`**: Uploaded files metadata (multipart only).
 
 See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
 

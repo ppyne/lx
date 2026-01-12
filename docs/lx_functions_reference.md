@@ -90,6 +90,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [mktime](functions/mktime.md)(hour, min, sec, month, day, year) : int <span style="color:#888">[Extensions: time]</span>
 - [mkdir](functions/mkdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [mv](functions/mv.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
+- [move_uploaded_file](functions/move_uploaded_file.md)(tmp_name, destination) : bool <span style="color:#888">[HTTP]</span>
 - [ord](functions/ord.md)(string) : byte <span style="color:#888">[Strings]</span>
 - [pathinfo](functions/pathinfo.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
 - [pdo_close](functions/pdo_close.md)(db) : bool <span style="color:#888">[Extensions: sqlite]</span>

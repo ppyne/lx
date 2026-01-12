@@ -10,5 +10,12 @@
 #define LX_ENABLE_SQLITE 1
 #define LX_ENABLE_INCLUDE 1
 
+/* CGI upload settings (lx_cgi only). */
+#define FILE_UPLOADS 1
+#define UPLOAD_TMP_DIR "/tmp"
+#define MAX_FILE_UPLOADS 20
+#define UPLOAD_MAX_FILESIZE (2 * 1024 * 1024)
+#define POST_MAX_SIZE (8 * 1024 * 1024)
+
 /* 32 = int (assuming 32-bit int), 64 = long long */
 #define LX_INT_BITS 64
