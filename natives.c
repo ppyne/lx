@@ -1442,6 +1442,15 @@ typedef struct {
 static int g_sort_desc = 0;
 static int g_sort_by_key = 0;
 
+typedef struct {
+    Array *arr;
+    int order;
+    int mode;
+} MultiSortSpec;
+
+static MultiSortSpec *g_msort_specs = NULL;
+static int g_msort_count = 0;
+
 static int key_compare_native(Key a, Key b) {
     if (a.type == KEY_INT && b.type == KEY_INT) {
         if (a.i < b.i) return -1;
@@ -1477,6 +1486,43 @@ static int qsort_entry_cmp(const void *pa, const void *pb) {
         ? key_compare_native(a->key, b->key)
         : value_compare_native(a->value, b->value);
     return g_sort_desc ? -cmp : cmp;
+}
+
+static int multisort_value_cmp(Value a, Value b, int mode) {
+    if (mode == 1) { /* SORT_NUMERIC */
+        double da = value_as_double(a);
+        double db = value_as_double(b);
+        if (da < db) return -1;
+        if (da > db) return 1;
+        return 0;
+    }
+    if (mode == 2) { /* SORT_STRING */
+        Value sa = value_to_string(a);
+        Value sb = value_to_string(b);
+        int cmp = strcmp(sa.s ? sa.s : "", sb.s ? sb.s : "");
+        value_free(sa);
+        value_free(sb);
+        return cmp;
+    }
+    return value_compare_native(a, b);
+}
+
+static int qsort_multisort_cmp(const void *pa, const void *pb) {
+    size_t ia = *(const size_t *)pa;
+    size_t ib = *(const size_t *)pb;
+    for (int i = 0; i < g_msort_count; i++) {
+        Array *a = g_msort_specs[i].arr;
+        Value va = a->entries[ia].value;
+        Value vb = a->entries[ib].value;
+        int cmp = multisort_value_cmp(va, vb, g_msort_specs[i].mode);
+        if (cmp != 0) {
+            if (g_msort_specs[i].order == 3) cmp = -cmp; /* SORT_DESC */
+            return cmp;
+        }
+    }
+    if (ia < ib) return -1;
+    if (ia > ib) return 1;
+    return 0;
 }
 
 static Value n_sort_common(Env *env, int argc, Value *argv, int by_key, int desc, int preserve_keys){
@@ -1544,6 +1590,97 @@ static Value n_ksort(Env *env, int argc, Value *argv){
 
 static Value n_krsort(Env *env, int argc, Value *argv){
     return n_sort_common(env, argc, argv, 1, 1, 1);
+}
+
+static int is_sort_order(lx_int_t v) {
+    return v == 3 || v == 4;
+}
+
+static int is_sort_mode(lx_int_t v) {
+    return v == 0 || v == 1 || v == 2;
+}
+
+static Value n_multisort(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc < 1) return value_bool(0);
+    int spec_cap = 8;
+    int spec_count = 0;
+    MultiSortSpec *specs = (MultiSortSpec *)calloc((size_t)spec_cap, sizeof(MultiSortSpec));
+    if (!specs) return value_bool(0);
+
+    int i = 0;
+    while (i < argc) {
+        if (argv[i].type != VAL_ARRAY || !argv[i].a) { free(specs); return value_bool(0); }
+        if (spec_count >= spec_cap) {
+            int ncap = spec_cap * 2;
+            MultiSortSpec *ns = (MultiSortSpec *)realloc(specs, (size_t)ncap * sizeof(MultiSortSpec));
+            if (!ns) { free(specs); return value_bool(0); }
+            specs = ns;
+            spec_cap = ncap;
+        }
+        specs[spec_count].arr = argv[i].a;
+        specs[spec_count].order = 4; /* SORT_ASC */
+        specs[spec_count].mode = 0;  /* SORT_REGULAR */
+        i++;
+
+        if (i < argc && argv[i].type == VAL_INT) {
+            lx_int_t v = argv[i].i;
+            if (is_sort_order(v)) {
+                specs[spec_count].order = (int)v;
+                i++;
+            }
+        }
+        if (i < argc && argv[i].type == VAL_INT) {
+            lx_int_t v = argv[i].i;
+            if (is_sort_mode(v)) {
+                specs[spec_count].mode = (int)v;
+                i++;
+            }
+        }
+
+        spec_count++;
+    }
+
+    size_t count = specs[0].arr->size;
+    for (int s = 1; s < spec_count; s++) {
+        if (specs[s].arr->size != count) {
+            free(specs);
+            return value_bool(0);
+        }
+    }
+    if (count <= 1) { free(specs); return value_bool(1); }
+
+    size_t *indices = (size_t *)malloc(count * sizeof(size_t));
+    if (!indices) { free(specs); return value_bool(0); }
+    for (size_t k = 0; k < count; k++) indices[k] = k;
+
+    g_msort_specs = specs;
+    g_msort_count = spec_count;
+    qsort(indices, count, sizeof(size_t), qsort_multisort_cmp);
+    g_msort_specs = NULL;
+    g_msort_count = 0;
+
+    for (int s = 0; s < spec_count; s++) {
+        Array *a = specs[s].arr;
+        ArrayEntry *entries = (ArrayEntry *)calloc(count, sizeof(ArrayEntry));
+        if (!entries) { free(indices); free(specs); return value_bool(0); }
+        for (size_t k = 0; k < count; k++) {
+            entries[k].key = key_int((lx_int_t)k);
+            entries[k].value = value_copy(a->entries[indices[k]].value);
+        }
+        for (size_t k = 0; k < a->size; k++) {
+            key_free_local(a->entries[k].key);
+            value_free(a->entries[k].value);
+        }
+        free(a->entries);
+        a->entries = entries;
+        a->size = count;
+        a->capacity = count;
+    }
+
+    free(indices);
+    free(specs);
+    return value_bool(1);
 }
 
 static Value n_trim(Env *env, int argc, Value *argv){
@@ -2408,6 +2545,7 @@ void install_stdlib(void){
     register_function("slice", n_slice);
     register_function("splice", n_splice);
     register_function("reverse", n_reverse);
+    register_function("multisort", n_multisort);
     register_function("sort", n_sort);
     register_function("rsort", n_rsort);
     register_function("asort", n_asort);

@@ -302,6 +302,41 @@ static Token identifier(Lexer *l, int is_var) {
             tok.int_val = lx_endianness();
             return tok;
         }
+        if (len == 15 && !strncmp(s, "LX_ENDIAN_LITTLE", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 0;
+            return tok;
+        }
+        if (len == 12 && !strncmp(s, "LX_ENDIAN_BIG", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 1;
+            return tok;
+        }
+        if (len == 8 && !strncmp(s, "SORT_ASC", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 4;
+            return tok;
+        }
+        if (len == 9 && !strncmp(s, "SORT_DESC", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 3;
+            return tok;
+        }
+        if (len == 12 && !strncmp(s, "SORT_REGULAR", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 0;
+            return tok;
+        }
+        if (len == 12 && !strncmp(s, "SORT_NUMERIC", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 1;
+            return tok;
+        }
+        if (len == 11 && !strncmp(s, "SORT_STRING", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 2;
+            return tok;
+        }
         if (len == 12 && !strncmp(s, "LX_FLOAT_DIG", len)) {
             Token tok = make_token(l, TOK_INT);
             tok.int_val = DBL_DIG;

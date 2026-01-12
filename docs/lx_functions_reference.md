@@ -97,6 +97,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [max](functions/max.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
 - [merge](functions/merge.md)(array, array) : array <span style="color:#888">[Arrays]</span>
 - [min](functions/min.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
+- [multisort](functions/multisort.md)(array1[, order1[, mode1]], array2[, order2[, mode2]], ...) : bool <span style="color:#888">[Arrays]</span>
 - [mktime](functions/mktime.md)(hour, min, sec, month, day, year) : int <span style="color:#888">[Extensions: time]</span>
 - [mkdir](functions/mkdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [mv](functions/mv.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>

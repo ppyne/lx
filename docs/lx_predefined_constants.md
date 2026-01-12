@@ -21,6 +21,12 @@ The constants below are always available globally as part of the Lx core and can
   `0` for little-endian (x86, x86_64, most ARM), `1` for big-endian (some legacy PowerPC, SPARC).  
   This indicates the byte order used when `blob()` copies raw numeric memory; the resulting byte sequence is platform-dependent.
 
+- **`LX_ENDIAN_LITTLE`** (`int`)  
+  Constant for little-endian (`0`).
+
+- **`LX_ENDIAN_BIG`** (`int`)  
+  Constant for big-endian (`1`).
+
 ---
 
 ## Integer Limits
@@ -61,6 +67,25 @@ These values reflect the integer representation used internally by the interpret
   The largest floating-point value supported.
 
 These constants describe the floating-point characteristics of the current Lx implementation.
+
+---
+
+## Sorting constants
+
+- **`SORT_ASC`** (`int`)  
+  Sort ascending (value `4`).
+
+- **`SORT_DESC`** (`int`)  
+  Sort descending (value `3`).
+
+- **`SORT_REGULAR`** (`int`)  
+  Regular comparisons (value `0`).
+
+- **`SORT_NUMERIC`** (`int`)  
+  Numeric comparisons (value `1`).
+
+- **`SORT_STRING`** (`int`)  
+  String comparisons (value `2`).
 
 ---
 
