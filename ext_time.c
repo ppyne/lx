@@ -266,12 +266,12 @@ static Value n_mktime(Env *env, int argc, Value *argv){
     if (argc != 6) return value_int(0);
     struct tm t;
     memset(&t, 0, sizeof(t));
-    t.tm_hour = value_to_int(argv[0]).i;
-    t.tm_min = value_to_int(argv[1]).i;
-    t.tm_sec = value_to_int(argv[2]).i;
-    t.tm_mon = value_to_int(argv[3]).i - 1;
-    t.tm_mday = value_to_int(argv[4]).i;
-    t.tm_year = value_to_int(argv[5]).i - 1900;
+    t.tm_hour = (int)value_to_int(argv[0]).i;
+    t.tm_min = (int)value_to_int(argv[1]).i;
+    t.tm_sec = (int)value_to_int(argv[2]).i;
+    t.tm_mon = (int)value_to_int(argv[3]).i - 1;
+    t.tm_mday = (int)value_to_int(argv[4]).i;
+    t.tm_year = (int)value_to_int(argv[5]).i - 1900;
     time_t ts = mktime(&t);
     return value_int((int)ts);
 }
@@ -279,7 +279,7 @@ static Value n_mktime(Env *env, int argc, Value *argv){
 static Value n_sleep(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_int(0);
-    int sec = value_to_int(argv[0]).i;
+    int sec = (int)value_to_int(argv[0]).i;
     if (sec < 0) sec = 0;
     unsigned int rem = sleep((unsigned int)sec);
     return value_int((int)rem);
@@ -288,7 +288,7 @@ static Value n_sleep(Env *env, int argc, Value *argv){
 static Value n_usleep(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_void();
-    int usec = value_to_int(argv[0]).i;
+    int usec = (int)value_to_int(argv[0]).i;
     if (usec < 0) usec = 0;
     usleep((useconds_t)usec);
     return value_void();

@@ -14,7 +14,7 @@ typedef enum { KEY_INT, KEY_STRING } KeyType;
 typedef struct {
     KeyType type;
     union {
-        int i;    /**< Integer key. */
+        lx_int_t i;    /**< Integer key. */
         char *s; /**< Owned string key. */
     };
 } Key;
@@ -36,7 +36,7 @@ struct Array {
 };
 
 /** @return An integer key wrapper. */
-Key   key_int(int i);
+Key   key_int(lx_int_t i);
 /** @return A string key wrapper (owned copy). */
 Key   key_string(const char *s);
 
@@ -59,7 +59,7 @@ void   array_set(Array *a, Key k, Value v);
 /** @return Number of entries in @p a. */
 int    array_len(Array *a);
 /** @return Next numeric index after the largest integer key. */
-int    array_next_index(Array *a);
+lx_int_t array_next_index(Array *a);
 
 /** Remove the entry for @p k if present. */
 void array_unset(Array *a, Key k);

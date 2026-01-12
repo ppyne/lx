@@ -26,7 +26,12 @@ foreach ($b as $k => $v) {
 
 print(byte(300) . "\n");
 print(byte(-5) . "\n");
-print(blob_len(blob(1)) . "\n");
+$bl = blob_len(blob(1));
+if (LX_INT_SIZE == 4) {
+    print(($bl == 4) . "\n");
+} else if (LX_INT_SIZE == 8) {
+    print(($bl == 8) . "\n");
+}
 
 $b2 = blob("A");
 $b2[1] = byte(0);

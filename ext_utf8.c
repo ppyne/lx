@@ -76,7 +76,7 @@ static Value n_glyph_count(Env *env, int argc, Value *argv){
 static Value n_glyph_at(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2 || argv[0].type != VAL_STRING) return value_undefined();
-    int idx = value_to_int(argv[1]).i;
+    int idx = (int)value_to_int(argv[1]).i;
     if (idx < 0) return value_undefined();
     const unsigned char *s = (const unsigned char *)(argv[0].s ? argv[0].s : "");
     size_t len = strlen((const char *)s);

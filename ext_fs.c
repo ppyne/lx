@@ -198,7 +198,7 @@ static Value n_chmod(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2 || argv[0].type != VAL_STRING) return value_bool(0);
     const char *path = argv[0].s ? argv[0].s : "";
-    int mode = value_to_int(argv[1]).i;
+    int mode = (int)value_to_int(argv[1]).i;
     return value_bool(chmod(path, (mode_t)mode) == 0);
 }
 

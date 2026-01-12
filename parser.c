@@ -96,7 +96,7 @@ static void token_desc(Token tok, char *buf, size_t n) {
     if (n == 0) return;
     switch (tok.type) {
         case TOK_INT:
-            snprintf(buf, n, "int %d", tok.int_val);
+            snprintf(buf, n, "int %" LX_INT_FMT, tok.int_val);
             break;
         case TOK_FLOAT:
             snprintf(buf, n, "float %g", tok.float_val);
@@ -271,7 +271,7 @@ static int is_assign_op(TokenType t, Operator *op_out) {
     }
 }
 
-static AstNode *make_int_literal(Parser *p, int v) {
+static AstNode *make_int_literal(Parser *p, lx_int_t v) {
     AstNode *n = node(p, AST_LITERAL);
     n->literal.token.type = TOK_INT;
     n->literal.token.int_val = v;

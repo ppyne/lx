@@ -54,7 +54,7 @@ static int array_contains(Array *hay, Array *needle) {
     return found;
 }
 
-Key key_int(int i) { Key k; k.type=KEY_INT; k.i=i; return k; }
+Key key_int(lx_int_t i) { Key k; k.type=KEY_INT; k.i=i; return k; }
 Key key_string(const char *s) { Key k; k.type=KEY_STRING; k.s=strdup(s?s:""); return k; }
 
 Array *array_new(void) {

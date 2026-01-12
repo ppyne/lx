@@ -199,15 +199,15 @@ static Token number(Lexer *l) {
             if (peek(l) == 'x' || peek(l) == 'X') {
                 advance(l);
                 while (isxdigit(peek(l))) advance(l);
-                Token tok = make_token(l, TOK_INT);
-                tok.int_val = (int)strtol(start, NULL, 16);
+    Token tok = make_token(l, TOK_INT);
+    tok.int_val = (lx_int_t)strtoll(start, NULL, 16);
                 return tok;
             }
             if (peek(l) == 'b' || peek(l) == 'B') {
                 advance(l);
                 while (peek(l) == '0' || peek(l) == '1') advance(l);
                 Token tok = make_token(l, TOK_INT);
-                tok.int_val = (int)strtol(start + 2, NULL, 2);
+            tok.int_val = (lx_int_t)strtoll(start + 2, NULL, 2);
                 return tok;
             }
             while (isdigit(peek(l))) advance(l);
@@ -242,13 +242,13 @@ static Token number(Lexer *l) {
         }
         if (octal_ok) {
             Token tok = make_token(l, TOK_INT);
-            tok.int_val = (int)strtol(start, NULL, 8);
+            tok.int_val = (lx_int_t)strtoll(start, NULL, 8);
             return tok;
         }
     }
 
     Token tok = make_token(l, TOK_INT);
-    tok.int_val = (int)strtol(start, NULL, 10);
+    tok.int_val = (lx_int_t)strtoll(start, NULL, 10);
     return tok;
 }
 
@@ -275,17 +275,17 @@ static Token identifier(Lexer *l, int is_var) {
         }
         if (len == 10 && !strncmp(s, "LX_INT_MAX", len)) {
             Token tok = make_token(l, TOK_INT);
-            tok.int_val = INT_MAX;
+            tok.int_val = (lx_int_t)LX_INT_MAX;
             return tok;
         }
         if (len == 10 && !strncmp(s, "LX_INT_MIN", len)) {
             Token tok = make_token(l, TOK_INT);
-            tok.int_val = INT_MIN;
+            tok.int_val = (lx_int_t)LX_INT_MIN;
             return tok;
         }
         if (len == 11 && !strncmp(s, "LX_INT_SIZE", len)) {
             Token tok = make_token(l, TOK_INT);
-            tok.int_val = (int)sizeof(int);
+            tok.int_val = (lx_int_t)LX_INT_SIZE;
             return tok;
         }
         if (len == 13 && !strncmp(s, "LX_ENDIANNESS", len)) {

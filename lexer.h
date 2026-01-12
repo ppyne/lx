@@ -5,6 +5,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "lx_int.h"
+
 /** Token kinds produced by the lexer. */
 typedef enum {
     TOK_EOF,
@@ -105,7 +107,7 @@ typedef struct {
     int col;
 
     union {
-        int    int_val;
+        lx_int_t int_val;
         double float_val;
         char  *string_val;
     };

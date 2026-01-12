@@ -17,7 +17,8 @@ To install the sqlite3 library and header files:
 If you want to enable or disable extensions, edit `config.h` before building. Each
 `LX_ENABLE_*` macro can be set to `1` (enabled) or `0` (disabled). The build
 will only compile the enabled extensions, and tests for disabled extensions are
-skipped.
+skipped. You can also set `LX_INT_BITS` to `64` or `32` to control the integer
+width used by Lx (default is 64).
 
 ## Build
 

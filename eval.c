@@ -408,15 +408,15 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
     return slot;
 }
 
-static Value string_index(Value s, int idx) {
+static Value string_index(Value s, lx_int_t idx) {
     if (s.type != VAL_STRING || !s.s)
         return value_undefined();
 
-    int len = (int)strlen(s.s);
-    if (idx < 0 || idx >= len)
+    size_t len = strlen(s.s);
+    if (idx < 0 || (size_t)idx >= len)
         return value_undefined();
 
-    return value_string_n(&s.s[idx], 1);
+    return value_string_n(&s.s[(size_t)idx], 1);
 }
 
 static int value_to_byte(Value v, unsigned char *out) {
@@ -424,7 +424,7 @@ static int value_to_byte(Value v, unsigned char *out) {
     if (v.type == VAL_BYTE) { *out = v.byte; return 1; }
     if (v.type == VAL_INT || v.type == VAL_BOOL || v.type == VAL_FLOAT) {
         Value iv = value_to_int(v);
-        int n = iv.i;
+        lx_int_t n = iv.i;
         value_free(iv);
         if (n < 0) n = 0;
         if (n > 255) n = 255;
@@ -439,12 +439,12 @@ static int value_to_byte(Value v, unsigned char *out) {
     return 0;
 }
 
-static Value blob_index(Value b, int idx) {
+static Value blob_index(Value b, lx_int_t idx) {
     if (b.type != VAL_BLOB || !b.blob || !b.blob->data)
         return value_undefined();
     if (idx < 0 || (size_t)idx >= b.blob->len)
         return value_undefined();
-    return value_byte(b.blob->data[idx]);
+    return value_byte(b.blob->data[(size_t)idx]);
 }
 
 static Value eval_index(Value target, Value index, Env *env, int *ok_flag) {
@@ -1051,7 +1051,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
                         src_len = 1;
                     } else if (val.type == VAL_INT || val.type == VAL_BOOL) {
                         Value iv = value_to_int(val);
-                        int ivv = iv.i;
+                        lx_int_t ivv = iv.i;
                         value_free(iv);
                         memcpy(tmp, &ivv, sizeof(ivv));
                         src = tmp;
@@ -1097,7 +1097,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 Value val = eval_expr(n->index_assign.value, env, &ok2);
                 if (!ok2) { value_free(arrv); free(dyn_name); return ok(value_null()); }
 
-                int idx = array_next_index(arrv.a);
+                lx_int_t idx = array_next_index(arrv.a);
                 array_set(arrv.a, key_int(idx), value_copy(val));
                 value_free(val);
                 value_free(arrv);
@@ -1154,7 +1154,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 if (!ok2) { value_free(arrv); value_free(last_idx); free(indices); free(dyn_name); return ok(value_null()); }
 
                 Value ii = value_to_int(last_idx);
-                int idx = ii.i;
+                lx_int_t idx = ii.i;
                 value_free(ii);
                 value_free(last_idx);
 

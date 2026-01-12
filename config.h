@@ -9,3 +9,6 @@
 #define LX_ENABLE_UTF8 1
 #define LX_ENABLE_SQLITE 1
 #define LX_ENABLE_INCLUDE 1
+
+/* 32 = int (assuming 32-bit int), 64 = long long */
+#define LX_INT_BITS 32

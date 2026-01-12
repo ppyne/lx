@@ -222,7 +222,7 @@ static void dump_array(Value v, int indent, DumpState *st, DumpWriter *w) {
         if (e->key.type == KEY_STRING) {
             writer_printf(w, "[\"%s\"]=>\n", e->key.s ? e->key.s : "");
         } else {
-            writer_printf(w, "[%d]=>\n", e->key.i);
+            writer_printf(w, "[%" LX_INT_FMT "]=>\n", e->key.i);
         }
         dump_value(e->value, indent + 1, st, w);
         writer_putc(w, '\n');
@@ -252,7 +252,7 @@ static void dump_value(Value v, int indent, DumpState *st, DumpWriter *w) {
             break;
         case VAL_INT:
             dump_indent(w, indent);
-            writer_printf(w, "int(%d)", v.i);
+            writer_printf(w, "int(%" LX_INT_FMT ")", v.i);
             break;
         case VAL_FLOAT:
             dump_indent(w, indent);
@@ -337,7 +337,7 @@ static void print_r_array(Value v, int indent, DumpState *st, DumpWriter *w) {
         if (e->key.type == KEY_STRING) {
             writer_printf(w, "[%s] => ", e->key.s ? e->key.s : "");
         } else {
-            writer_printf(w, "[%d] => ", e->key.i);
+            writer_printf(w, "[%" LX_INT_FMT "] => ", e->key.i);
         }
         if (e->value.type == VAL_ARRAY) {
             print_r_array(e->value, indent + 1, st, w);
@@ -811,8 +811,8 @@ static Key key_copy_local(Key k) {
     return out;
 }
 
-int array_next_index(Array *a) {
-    int next = 0;
+lx_int_t array_next_index(Array *a) {
+    lx_int_t next = 0;
     if (!a) return 0;
     for (int i = 0; i < a->size; i++) {
         if (a->entries[i].key.type == KEY_INT && a->entries[i].key.i >= next) {
@@ -824,7 +824,7 @@ int array_next_index(Array *a) {
 
 static void reindex_numeric_keys(Array *a) {
     if (!a) return;
-    int next = 0;
+    lx_int_t next = 0;
     for (int i = 0; i < a->size; i++) {
         if (a->entries[i].key.type == KEY_INT) {
             a->entries[i].key.i = next++;
@@ -1088,23 +1088,23 @@ static Value n_atan2(Env *env, int argc, Value *argv){
 
 static Value n_rand(Env *env, int argc, Value *argv){
     (void)env;
-    if (argc == 0) return value_int(rand());
+    if (argc == 0) return value_int((lx_int_t)rand());
     if (argc == 1) {
-        int max = value_to_int(argv[0]).i;
+        lx_int_t max = value_to_int(argv[0]).i;
         if (max <= 0) return value_int(0);
-        return value_int(rand() % (max + 1));
+        return value_int((lx_int_t)(rand() % (max + 1)));
     }
     if (argc >= 2) {
-        int min = value_to_int(argv[0]).i;
-        int max = value_to_int(argv[1]).i;
+        lx_int_t min = value_to_int(argv[0]).i;
+        lx_int_t max = value_to_int(argv[1]).i;
         if (min > max) {
-            int tmp = min;
+            lx_int_t tmp = min;
             min = max;
             max = tmp;
         }
-        int span = max - min;
+        lx_int_t span = max - min;
         if (span <= 0) return value_int(min);
-        return value_int(min + (rand() % (span + 1)));
+        return value_int(min + (lx_int_t)(rand() % (span + 1)));
     }
     return value_int(0);
 }
@@ -1226,7 +1226,7 @@ static Value n_push(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2 || argv[0].type != VAL_ARRAY || !argv[0].a) return value_int(0);
     Array *a = argv[0].a;
-    int idx = array_next_index(a);
+    lx_int_t idx = array_next_index(a);
     array_set(a, key_int(idx), value_copy(argv[1]));
     return value_int(a->size);
 }
@@ -1442,13 +1442,13 @@ static int key_compare_native(Key a, Key b) {
     if (a.type == KEY_STRING) {
         sa = a.s ? a.s : "";
     } else {
-        snprintf(bufa, sizeof(bufa), "%d", a.i);
+        snprintf(bufa, sizeof(bufa), "%" LX_INT_FMT, a.i);
         sa = bufa;
     }
     if (b.type == KEY_STRING) {
         sb = b.s ? b.s : "";
     } else {
-        snprintf(bufb, sizeof(bufb), "%d", b.i);
+        snprintf(bufb, sizeof(bufb), "%" LX_INT_FMT, b.i);
         sb = bufb;
     }
     int cmp = strcmp(sa, sb);
@@ -1882,8 +1882,8 @@ static Value n_join(Env *env, int argc, Value *argv){
     return out;
 }
 
-static int parse_binary_int(const char *s, int *out) {
-    int v = 0;
+static int parse_binary_int(const char *s, lx_int_t *out) {
+    lx_int_t v = 0;
     if (!s || !*s) return 0;
     for (const char *p = s; *p; p++) {
         if (*p != '0' && *p != '1') return 0;
@@ -1893,9 +1893,9 @@ static int parse_binary_int(const char *s, int *out) {
     return 1;
 }
 
-static int parse_int_string(const char *s, int *out) {
+static int parse_int_string(const char *s, lx_int_t *out) {
     if (!s || !*s) return 0;
-    int sign = 1;
+    lx_int_t sign = 1;
     if (*s == '+' || *s == '-') {
         if (*s == '-') sign = -1;
         s++;
@@ -1904,12 +1904,12 @@ static int parse_int_string(const char *s, int *out) {
 
     if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
         char *end = NULL;
-        long v = strtol(s, &end, 16);
-        if (end && *end == '\0') { *out = (int)v * sign; return 1; }
+        long long v = strtoll(s, &end, 16);
+        if (end && *end == '\0') { *out = (lx_int_t)v * sign; return 1; }
         return 0;
     }
     if (s[0] == '0' && (s[1] == 'b' || s[1] == 'B')) {
-        int v = 0;
+        lx_int_t v = 0;
         if (parse_binary_int(s + 2, &v)) { *out = v * sign; return 1; }
         return 0;
     }
@@ -1920,15 +1920,15 @@ static int parse_int_string(const char *s, int *out) {
         }
         if (octal_ok) {
             char *end = NULL;
-            long v = strtol(s, &end, 8);
-            if (end && *end == '\0') { *out = (int)v * sign; return 1; }
+            long long v = strtoll(s, &end, 8);
+            if (end && *end == '\0') { *out = (lx_int_t)v * sign; return 1; }
             return 0;
         }
     }
     {
         char *end = NULL;
-        long v = strtol(s, &end, 10);
-        if (end && *end == '\0') { *out = (int)v * sign; return 1; }
+        long long v = strtoll(s, &end, 10);
+        if (end && end != s) { *out = (lx_int_t)v * sign; return 1; }
     }
     return 0;
 }
@@ -1940,7 +1940,7 @@ static int parse_float_string(const char *s, double *out) {
     if (!*s) return 0;
 
     if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
-        int v = 0;
+        lx_int_t v = 0;
         if (parse_int_string(orig, &v)) {
             *out = (double)v;
             return 1;
@@ -1948,7 +1948,7 @@ static int parse_float_string(const char *s, double *out) {
         return 0;
     }
     if (s[0] == '0' && (s[1] == 'b' || s[1] == 'B')) {
-        int v = 0;
+        lx_int_t v = 0;
         if (parse_int_string(orig, &v)) {
             *out = (double)v;
             return 1;
@@ -1956,7 +1956,7 @@ static int parse_float_string(const char *s, double *out) {
         return 0;
     }
     if (s[0] == '0' && isdigit((unsigned char)s[1])) {
-        int v = 0;
+        lx_int_t v = 0;
         if (parse_int_string(orig, &v)) {
             *out = (double)v;
             return 1;
@@ -1975,7 +1975,7 @@ static Value n_int(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_int(0);
     if (argv[0].type == VAL_STRING) {
-        int v = 0;
+        lx_int_t v = 0;
         if (parse_int_string(argv[0].s ? argv[0].s : "", &v)) {
             return value_int(v);
         }
@@ -1999,7 +1999,7 @@ static Value n_byte(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_byte(0);
     Value iv = value_to_int(argv[0]);
-    int n = iv.i;
+    lx_int_t n = iv.i;
     value_free(iv);
     if (n < 0) n = 0;
     if (n > 255) n = 255;
@@ -2022,7 +2022,7 @@ static Value n_blob(Env *env, int argc, Value *argv){
         return value_blob_n((const unsigned char *)&f, sizeof(f));
     }
     if (v.type == VAL_INT || v.type == VAL_BOOL) {
-        int i = value_to_int(v).i;
+        lx_int_t i = value_to_int(v).i;
         return value_blob_n((const unsigned char *)&i, sizeof(i));
     }
     return value_blob_n(NULL, 0);

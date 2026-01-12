@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "lx_int.h"
 
 typedef struct Array Array;
 typedef struct Blob Blob;
@@ -29,7 +30,7 @@ typedef enum {
 typedef struct {
     ValueType type;
     union {
-        int     i; /**< Integer payload. */
+        lx_int_t i; /**< Integer payload. */
         double  f; /**< Floating-point payload. */
         int     b; /**< Boolean payload (0/1). */
         uint8_t byte; /**< Byte payload (0..255). */
@@ -54,7 +55,7 @@ Value value_void(void);
 /** @return A VAL_NULL value. */
 Value value_null(void);
 /** @return A VAL_INT value for @p x. */
-Value value_int(int x);
+Value value_int(lx_int_t x);
 /** @return A VAL_FLOAT value for @p x. */
 Value value_float(double x);
 /** @return A VAL_BOOL value for @p b. */

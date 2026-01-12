@@ -70,7 +70,7 @@ static int serialize_array(StrBuf *b, Array *a) {
             if (!serialize_string(b, e->key.s ? e->key.s : "")) return 0;
         } else {
             char kbuf[64];
-            snprintf(kbuf, sizeof(kbuf), "i:%d;", e->key.i);
+            snprintf(kbuf, sizeof(kbuf), "i:%" LX_INT_FMT ";", e->key.i);
             if (!buf_append_str(b, kbuf)) return 0;
         }
         if (!serialize_value(b, e->value)) return 0;
@@ -88,7 +88,7 @@ static int serialize_value(StrBuf *b, Value v) {
             return buf_append_str(b, v.b ? "b:1;" : "b:0;");
         case VAL_INT: {
             char tmp[64];
-            snprintf(tmp, sizeof(tmp), "i:%d;", v.i);
+            snprintf(tmp, sizeof(tmp), "i:%" LX_INT_FMT ";", v.i);
             return buf_append_str(b, tmp);
         }
         case VAL_FLOAT: {
@@ -119,7 +119,7 @@ static int expect_char(SerParser *p, char c) {
     return 1;
 }
 
-static int parse_int(SerParser *p, int *out) {
+static int parse_int(SerParser *p, lx_int_t *out) {
     const char *start = p->cur;
     if (*p->cur == '-' || *p->cur == '+') p->cur++;
     if (!isdigit((unsigned char)*p->cur)) return 0;
@@ -129,7 +129,7 @@ static int parse_int(SerParser *p, int *out) {
     if (n >= sizeof(tmp)) n = sizeof(tmp) - 1;
     memcpy(tmp, start, n);
     tmp[n] = '\0';
-    *out = (int)strtol(tmp, NULL, 10);
+    *out = (lx_int_t)strtoll(tmp, NULL, 10);
     return 1;
 }
 
@@ -168,7 +168,7 @@ static Value parse_value(SerParser *p, int *ok);
 
 static Value parse_string(SerParser *p, int *ok) {
     if (!expect_char(p, 's') || !expect_char(p, ':')) { *ok = 0; return value_undefined(); }
-    int len = 0;
+    lx_int_t len = 0;
     if (!parse_int(p, &len)) { *ok = 0; return value_undefined(); }
     if (!expect_char(p, ':') || !expect_char(p, '"')) { *ok = 0; return value_undefined(); }
     if (len < 0) { *ok = 0; return value_undefined(); }
@@ -187,11 +187,11 @@ static Value parse_string(SerParser *p, int *ok) {
 
 static Value parse_array(SerParser *p, int *ok) {
     if (!expect_char(p, 'a') || !expect_char(p, ':')) { *ok = 0; return value_undefined(); }
-    int count = 0;
+    lx_int_t count = 0;
     if (!parse_int(p, &count)) { *ok = 0; return value_undefined(); }
     if (!expect_char(p, ':') || !expect_char(p, '{')) { *ok = 0; return value_undefined(); }
     Value out = value_array();
-    for (int i = 0; i < count; i++) {
+    for (lx_int_t i = 0; i < count; i++) {
         Value key = parse_value(p, ok);
         if (!*ok) { value_free(out); return value_undefined(); }
         Value val = parse_value(p, ok);
@@ -232,7 +232,7 @@ static Value parse_value(SerParser *p, int *ok) {
     if (*p->cur == 'i') {
         p->cur++;
         if (!expect_char(p, ':')) { *ok = 0; return value_undefined(); }
-        int v = 0;
+        lx_int_t v = 0;
         if (!parse_int(p, &v)) { *ok = 0; return value_undefined(); }
         if (!expect_char(p, ';')) { *ok = 0; return value_undefined(); }
         return value_int(v);

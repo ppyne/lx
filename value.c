@@ -12,7 +12,7 @@
 Value value_undefined(void){ Value v; v.type=VAL_UNDEFINED; return v; }
 Value value_void(void){ Value v; v.type=VAL_VOID; return v; }
 Value value_null(void){ Value v; v.type=VAL_NULL; return v; }
-Value value_int(int x){ Value v; v.type=VAL_INT; v.i=x; return v; }
+Value value_int(lx_int_t x){ Value v; v.type=VAL_INT; v.i=x; return v; }
 Value value_float(double x){ Value v; v.type=VAL_FLOAT; v.f=x; return v; }
 Value value_bool(int b){ Value v; v.type=VAL_BOOL; v.b=!!b; return v; }
 Value value_byte(unsigned char b){ Value v; v.type=VAL_BYTE; v.byte=b; return v; }
@@ -173,7 +173,7 @@ Value value_to_string(Value v){
         case VAL_VOID:      return value_string("");
         case VAL_NULL:      return value_string("null");
         case VAL_BOOL:      return value_string(v.b ? "true" : "false");
-        case VAL_INT:       snprintf(tmp,sizeof(tmp),"%d",v.i); return value_string(tmp);
+        case VAL_INT:       snprintf(tmp,sizeof(tmp),"%" LX_INT_FMT, v.i); return value_string(tmp);
         case VAL_FLOAT:     return float_to_string(v.f);
         case VAL_BYTE:      snprintf(tmp,sizeof(tmp),"%u",(unsigned)v.byte); return value_string(tmp);
         case VAL_STRING:    return value_string(v.s);
@@ -194,9 +194,15 @@ Value value_to_int(Value v){
     switch (v.type){
         case VAL_INT: return v;
         case VAL_BOOL: return value_int(v.b ? 1 : 0);
-        case VAL_FLOAT: return value_int((int)v.f);
+        case VAL_FLOAT: return value_int((lx_int_t)v.f);
         case VAL_BYTE: return value_int((int)v.byte);
-        case VAL_STRING: return value_int(v.s ? atoi(v.s) : 0);
+        case VAL_STRING: {
+            if (!v.s) return value_int(0);
+            char *end = NULL;
+            long long n = strtoll(v.s, &end, 10);
+            if (end && end != v.s) return value_int((lx_int_t)n);
+            return value_int(0);
+        }
         case VAL_NULL:
         case VAL_VOID:
         case VAL_UNDEFINED: return value_int(0);

@@ -88,7 +88,7 @@ static int json_encode_array(StrBuf *b, Array *a) {
                 if (!json_escape_str(b, a->entries[i].key.s ? a->entries[i].key.s : "")) return 0;
             } else {
                 char tmp[32];
-                snprintf(tmp, sizeof(tmp), "%d", a->entries[i].key.i);
+                snprintf(tmp, sizeof(tmp), "%" LX_INT_FMT, a->entries[i].key.i);
                 if (!json_escape_str(b, tmp)) return 0;
             }
             if (!buf_append_char(b, ':')) return 0;
@@ -108,7 +108,7 @@ static int json_encode_value(StrBuf *b, Value v) {
             return buf_append_str(b, v.b ? "true" : "false");
         case VAL_INT: {
             char tmp[32];
-            snprintf(tmp, sizeof(tmp), "%d", v.i);
+            snprintf(tmp, sizeof(tmp), "%" LX_INT_FMT, v.i);
             return buf_append_str(b, tmp);
         }
         case VAL_FLOAT: {
@@ -217,7 +217,7 @@ static Value json_parse_number(JsonParser *p, int *ok) {
     memcpy(tmp, start, n);
     tmp[n] = '\0';
     if (is_float) return value_float(strtod(tmp, NULL));
-    return value_int((int)strtol(tmp, NULL, 10));
+    return value_int((lx_int_t)strtoll(tmp, NULL, 10));
 }
 
 static Value json_parse_array(JsonParser *p, int *ok) {

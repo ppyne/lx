@@ -32,7 +32,7 @@ The constants below are always available globally as part of the Lx core and can
   The smallest integer value supported by this version of Lx.
 
 - **`LX_INT_SIZE`** (`int`)  
-  The size of an integer, in bytes, in this version of Lx.
+  The size of an integer, in bytes, in this version of Lx (controlled by `LX_INT_BITS` in `config.h`).
 
 These values reflect the integer representation used internally by the interpreter.
 

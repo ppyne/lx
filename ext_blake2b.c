@@ -56,7 +56,7 @@ static Value n_blake2b(Env *env, int argc, Value *argv){
     size_t in_len = strlen((const char *)in);
 
     int out_len = 4;
-    if (argc >= 2) out_len = value_to_int(argv[1]).i;
+    if (argc >= 2) out_len = (int)value_to_int(argv[1]).i;
     if (out_len < 1) out_len = 1;
     if (out_len > 64) out_len = 64;
 
