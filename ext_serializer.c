@@ -59,12 +59,12 @@ static int serialize_string(StrBuf *b, const char *s) {
 }
 
 static int serialize_array(StrBuf *b, Array *a) {
-    int count = a ? a->size : 0;
+    size_t count = a ? a->size : 0;
     char tmp[64];
-    snprintf(tmp, sizeof(tmp), "a:%d:{", count);
+    snprintf(tmp, sizeof(tmp), "a:%zu:{", count);
     if (!buf_append_str(b, tmp)) return 0;
     if (!a) return buf_append_char(b, '}');
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         ArrayEntry *e = &a->entries[i];
         if (e->key.type == KEY_STRING) {
             if (!serialize_string(b, e->key.s ? e->key.s : "")) return 0;

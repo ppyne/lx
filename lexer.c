@@ -288,6 +288,15 @@ static Token identifier(Lexer *l, int is_var) {
             tok.int_val = (lx_int_t)LX_INT_SIZE;
             return tok;
         }
+        if (len == 12 && !strncmp(s, "LX_INDEX_MAX", len)) {
+            size_t max = SIZE_MAX;
+            lx_int_t idx_max = (max > (size_t)LX_INT_MAX)
+                ? (lx_int_t)LX_INT_MAX
+                : (lx_int_t)max;
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = idx_max;
+            return tok;
+        }
         if (len == 13 && !strncmp(s, "LX_ENDIANNESS", len)) {
             Token tok = make_token(l, TOK_INT);
             tok.int_val = lx_endianness();

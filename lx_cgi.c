@@ -300,7 +300,7 @@ static void env_set_array(Env *env, const char *name, Value arr) {
 static Value merge_request(Value get, Value post) {
     Value out = value_array();
     if (get.type == VAL_ARRAY && get.a) {
-        for (int i = 0; i < get.a->size; i++) {
+        for (size_t i = 0; i < get.a->size; i++) {
             Key key = get.a->entries[i].key;
             Value v = value_copy(get.a->entries[i].value);
             if (key.type == KEY_STRING) array_set(out.a, key_string(key.s), v);
@@ -308,7 +308,7 @@ static Value merge_request(Value get, Value post) {
         }
     }
     if (post.type == VAL_ARRAY && post.a) {
-        for (int i = 0; i < post.a->size; i++) {
+        for (size_t i = 0; i < post.a->size; i++) {
             Key key = post.a->entries[i].key;
             Value v = value_copy(post.a->entries[i].value);
             if (key.type == KEY_STRING) array_set(out.a, key_string(key.s), v);

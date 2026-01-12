@@ -34,6 +34,10 @@ The constants below are always available globally as part of the Lx core and can
 - **`LX_INT_SIZE`** (`int`)  
   The size of an integer, in bytes, in this version of Lx (controlled by `LX_INT_BITS` in `config.h`).
 
+- **`LX_INDEX_MAX`** (`int`)  
+  The maximum usable index for arrays, strings, and blobs.  
+  This is the minimum of `LX_INT_MAX` and the host `size_t` limit.
+
 These values reflect the integer representation used internally by the interpreter.
 
 ---

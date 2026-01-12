@@ -36,7 +36,7 @@ static int array_contains_inner(Array *hay, Array *needle, Array ***visited, int
         *cap = ncap;
     }
     (*visited)[(*count)++] = hay;
-    for (int i = 0; i < hay->size; i++) {
+    for (size_t i = 0; i < hay->size; i++) {
         Value v = hay->entries[i].value;
         if (v.type == VAL_ARRAY && v.a) {
             if (array_contains_inner(v.a, needle, visited, count, cap)) return 1;
@@ -70,9 +70,9 @@ void array_retain(Array *a) {
     if (a) a->refcount++;
 }
 
-static void ensure(Array *a, int need) {
+static void ensure(Array *a, size_t need) {
     if (a->capacity >= need) return;
-    int cap = a->capacity ? a->capacity : 8;
+    size_t cap = a->capacity ? a->capacity : 8;
     while (cap < need) cap *= 2;
     ArrayEntry *ne = (ArrayEntry*)realloc(a->entries, cap * sizeof(ArrayEntry));
     if (!ne) return;
@@ -80,11 +80,11 @@ static void ensure(Array *a, int need) {
     a->capacity = cap;
 }
 
-int array_len(Array *a) { return a ? a->size : 0; }
+size_t array_len(Array *a) { return a ? a->size : 0; }
 
 Value array_get(Array *a, Key k) {
     if (!a) { key_free(k); return value_undefined(); }
-    for (int i=0;i<a->size;i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (key_eq(a->entries[i].key, k)) {
             key_free(k);
             return value_copy(a->entries[i].value);
@@ -104,7 +104,7 @@ void array_set(Array *a, Key k, Value v) {
             return;
         }
     }
-    for (int i=0;i<a->size;i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (key_eq(a->entries[i].key, k)) {
             key_free(k);
             value_free(a->entries[i].value);
@@ -123,7 +123,7 @@ Array *array_copy(Array *a) {
     if (!a) return NULL;
     Array *b = array_new();
     ensure(b, a->size);
-    for (int i=0;i<a->size;i++) {
+    for (size_t i = 0; i < a->size; i++) {
         b->entries[i].key = key_copy(a->entries[i].key);
         b->entries[i].value = value_copy(a->entries[i].value);
     }
@@ -135,7 +135,7 @@ void array_free(Array *a) {
     if (!a) return;
     if (--a->refcount > 0) return;
     gc_unregister_array(a);
-    for (int i=0;i<a->size;i++) {
+    for (size_t i = 0; i < a->size; i++) {
         key_free(a->entries[i].key);
         value_free(a->entries[i].value);
     }
@@ -149,7 +149,7 @@ void array_unset(Array *a, Key k) {
         return;
     }
 
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (key_eq(a->entries[i].key, k)) {
 
             /* Free key and value. */
@@ -157,7 +157,7 @@ void array_unset(Array *a, Key k) {
             value_free(a->entries[i].value);
 
             /* Shift remaining entries down. */
-            for (int j = i + 1; j < a->size; j++) {
+            for (size_t j = i + 1; j < a->size; j++) {
                 a->entries[j - 1] = a->entries[j];
             }
 
@@ -174,7 +174,7 @@ void array_unset(Array *a, Key k) {
 Value *array_get_ref(Array *a, Key k) {
     if (!a) { key_free(k); return NULL; }
 
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (key_eq(a->entries[i].key, k)) {
             key_free(k);
             return &a->entries[i].value;

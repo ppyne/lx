@@ -27,8 +27,8 @@ typedef struct {
 
 /** Dynamic array backing store. */
 struct Array {
-    int size;            /**< Number of live entries. */
-    int capacity;        /**< Allocated entry capacity. */
+    size_t size;         /**< Number of live entries. */
+    size_t capacity;     /**< Allocated entry capacity. */
     ArrayEntry *entries; /**< Entry storage. */
     int refcount;        /**< Reference count for shared arrays. */
     int gc_mark;         /**< Mark bit used by GC. */
@@ -57,7 +57,7 @@ Value *array_get_ref(Array *a, Key k);
 void   array_set(Array *a, Key k, Value v);
 
 /** @return Number of entries in @p a. */
-int    array_len(Array *a);
+size_t array_len(Array *a);
 /** @return Next numeric index after the largest integer key. */
 lx_int_t array_next_index(Array *a);
 

@@ -69,7 +69,7 @@ static int json_escape_str(StrBuf *b, const char *s) {
 
 static int json_has_string_keys(Array *a) {
     if (!a) return 0;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (a->entries[i].key.type == KEY_STRING) return 1;
     }
     return 0;
@@ -81,7 +81,7 @@ static int json_encode_array(StrBuf *b, Array *a) {
     if (!a) return buf_append_str(b, "[]");
     int as_object = json_has_string_keys(a);
     if (!buf_append_char(b, as_object ? '{' : '[')) return 0;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (i > 0 && !buf_append_char(b, ',')) return 0;
         if (as_object) {
             if (a->entries[i].key.type == KEY_STRING) {

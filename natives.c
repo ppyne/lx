@@ -215,8 +215,8 @@ static void dump_array(Value v, int indent, DumpState *st, DumpWriter *w) {
     }
     dump_push(st, a);
     dump_indent(w, indent);
-    writer_printf(w, "array(%d) {\n", a->size);
-    for (int i = 0; i < a->size; i++) {
+    writer_printf(w, "array(%zu) {\n", a->size);
+    for (size_t i = 0; i < a->size; i++) {
         ArrayEntry *e = &a->entries[i];
         dump_indent(w, indent + 1);
         if (e->key.type == KEY_STRING) {
@@ -331,7 +331,7 @@ static void print_r_array(Value v, int indent, DumpState *st, DumpWriter *w) {
     writer_puts(w, "Array\n");
     print_r_indent(w, indent);
     writer_puts(w, "(\n");
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         ArrayEntry *e = &a->entries[i];
         print_r_indent(w, indent + 1);
         if (e->key.type == KEY_STRING) {
@@ -720,7 +720,7 @@ static Value n_count(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_int(0);
     if (argv[0].type != VAL_ARRAY) return value_int(0);
-    return value_int(argv[0].a ? argv[0].a->size : 0);
+    return value_int(argv[0].a ? (lx_int_t)argv[0].a->size : 0);
 }
 
 static Value n_substr(Env *env, int argc, Value *argv){
@@ -728,16 +728,16 @@ static Value n_substr(Env *env, int argc, Value *argv){
     if (argc < 2) return value_string("");
     Value sv = value_to_string(argv[0]);
     const char *s = sv.s ? sv.s : "";
-    int len = (int)strlen(s);
+    size_t len = strlen(s);
 
-    int start = (value_to_int(argv[1])).i;
-    int count = (argc >= 3) ? (value_to_int(argv[2])).i : (len - start);
+    lx_int_t start = (value_to_int(argv[1])).i;
+    lx_int_t count = (argc >= 3) ? (value_to_int(argv[2])).i : ((lx_int_t)len - start);
 
-    if (start < 0 || start >= len) { value_free(sv); return value_string(""); }
+    if (start < 0 || (size_t)start >= len) { value_free(sv); return value_string(""); }
     if (count <= 0) { value_free(sv); return value_string(""); }
-    if (start + count > len) count = len - start;
+    if (count > (lx_int_t)len - start) count = (lx_int_t)len - start;
 
-    Value out = value_string_n(s + start, (size_t)count);
+    Value out = value_string_n(s + (size_t)start, (size_t)count);
     value_free(sv);
     return out;
 }
@@ -745,14 +745,15 @@ static Value n_substr(Env *env, int argc, Value *argv){
 static Value n_blob_slice(Env *env, int argc, Value *argv){
     (void)env;
     if (argc < 2 || argv[0].type != VAL_BLOB || !argv[0].blob) return value_undefined();
-    int start = (value_to_int(argv[1])).i;
-    int count = (argc >= 3) ? (value_to_int(argv[2])).i : ((int)argv[0].blob->len - start);
+    size_t len = argv[0].blob->len;
+    lx_int_t start = (value_to_int(argv[1])).i;
+    lx_int_t count = (argc >= 3) ? (value_to_int(argv[2])).i : ((lx_int_t)len - start);
 
-    if (start < 0 || start >= (int)argv[0].blob->len) return value_blob_n(NULL, 0);
+    if (start < 0 || (size_t)start >= len) return value_blob_n(NULL, 0);
     if (count <= 0) return value_blob_n(NULL, 0);
-    if (start + count > (int)argv[0].blob->len) count = (int)argv[0].blob->len - start;
+    if (count > (lx_int_t)len - start) count = (lx_int_t)len - start;
 
-    return value_blob_n(argv[0].blob->data + start, (size_t)count);
+    return value_blob_n(argv[0].blob->data + (size_t)start, (size_t)count);
 }
 
 static Value n_blob_concat(Env *env, int argc, Value *argv){
@@ -814,7 +815,7 @@ static Key key_copy_local(Key k) {
 lx_int_t array_next_index(Array *a) {
     lx_int_t next = 0;
     if (!a) return 0;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (a->entries[i].key.type == KEY_INT && a->entries[i].key.i >= next) {
             next = a->entries[i].key.i + 1;
         }
@@ -825,7 +826,7 @@ lx_int_t array_next_index(Array *a) {
 static void reindex_numeric_keys(Array *a) {
     if (!a) return;
     lx_int_t next = 0;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         if (a->entries[i].key.type == KEY_INT) {
             a->entries[i].key.i = next++;
         }
@@ -1174,7 +1175,7 @@ static Value n_key_exists(Env *env, int argc, Value *argv){
     Array *a = argv[1].a;
     if (argv[0].type == VAL_STRING) {
         const char *ks = argv[0].s ? argv[0].s : "";
-        for (int i = 0; i < a->size; i++) {
+        for (size_t i = 0; i < a->size; i++) {
             if (a->entries[i].key.type == KEY_STRING &&
                 strcmp(a->entries[i].key.s ? a->entries[i].key.s : "", ks) == 0) {
                 return value_bool(1);
@@ -1182,8 +1183,8 @@ static Value n_key_exists(Env *env, int argc, Value *argv){
         }
         return value_bool(0);
     }
-    int ki = value_to_int(argv[0]).i;
-    for (int i = 0; i < a->size; i++) {
+    lx_int_t ki = value_to_int(argv[0]).i;
+    for (size_t i = 0; i < a->size; i++) {
         if (a->entries[i].key.type == KEY_INT && a->entries[i].key.i == ki) {
             return value_bool(1);
         }
@@ -1196,8 +1197,8 @@ static Value n_values(Env *env, int argc, Value *argv){
     Value out = value_array();
     if (argc != 1 || argv[0].type != VAL_ARRAY || !argv[0].a) return out;
     Array *a = argv[0].a;
-    for (int i = 0; i < a->size; i++) {
-        array_set(out.a, key_int(i), value_copy(a->entries[i].value));
+    for (size_t i = 0; i < a->size; i++) {
+        array_set(out.a, key_int((lx_int_t)i), value_copy(a->entries[i].value));
     }
     return out;
 }
@@ -1212,7 +1213,7 @@ static Value n_in_array(Env *env, int argc, Value *argv){
     if (argc != 2 && argc != 3) return value_bool(0);
     if (argv[1].type != VAL_ARRAY || !argv[1].a) return value_bool(0);
     Array *a = argv[1].a;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         int eq = strict ? strict_equal_native(argv[0], a->entries[i].value)
                         : weak_equal_native(argv[0], a->entries[i].value);
         if (eq) {
@@ -1228,7 +1229,7 @@ static Value n_push(Env *env, int argc, Value *argv){
     Array *a = argv[0].a;
     lx_int_t idx = array_next_index(a);
     array_set(a, key_int(idx), value_copy(argv[1]));
-    return value_int(a->size);
+    return value_int((lx_int_t)a->size);
 }
 
 static Value n_pop(Env *env, int argc, Value *argv){
@@ -1250,7 +1251,7 @@ static Value n_shift(Env *env, int argc, Value *argv){
     Value out = a->entries[0].value;
     key_free_local(a->entries[0].key);
     if (a->size > 1) {
-        memmove(&a->entries[0], &a->entries[1], (size_t)(a->size - 1) * sizeof(ArrayEntry));
+        memmove(&a->entries[0], &a->entries[1], (a->size - 1) * sizeof(ArrayEntry));
     }
     a->size--;
     reindex_numeric_keys(a);
@@ -1262,21 +1263,21 @@ static Value n_unshift(Env *env, int argc, Value *argv){
     if (argc != 2 || argv[0].type != VAL_ARRAY || !argv[0].a) return value_int(0);
     Array *a = argv[0].a;
     if (a->capacity < a->size + 1) {
-        int cap = a->capacity ? a->capacity : 8;
+        size_t cap = a->capacity ? a->capacity : 8;
         while (cap < a->size + 1) cap *= 2;
-        ArrayEntry *ne = (ArrayEntry*)realloc(a->entries, (size_t)cap * sizeof(ArrayEntry));
-        if (!ne) return value_int(a->size);
+        ArrayEntry *ne = (ArrayEntry*)realloc(a->entries, cap * sizeof(ArrayEntry));
+        if (!ne) return value_int((lx_int_t)a->size);
         a->entries = ne;
         a->capacity = cap;
     }
     if (a->size > 0) {
-        memmove(&a->entries[1], &a->entries[0], (size_t)a->size * sizeof(ArrayEntry));
+        memmove(&a->entries[1], &a->entries[0], a->size * sizeof(ArrayEntry));
     }
     a->entries[0].key = key_int(0);
     a->entries[0].value = value_copy(argv[1]);
     a->size++;
     reindex_numeric_keys(a);
-    return value_int(a->size);
+    return value_int((lx_int_t)a->size);
 }
 
 static Value n_merge(Env *env, int argc, Value *argv){
@@ -1285,9 +1286,9 @@ static Value n_merge(Env *env, int argc, Value *argv){
     if (argc != 2 || argv[0].type != VAL_ARRAY || argv[1].type != VAL_ARRAY) return out;
     Array *a = argv[0].a;
     Array *b = argv[1].a;
-    int next = 0;
+    lx_int_t next = 0;
     if (a) {
-        for (int i = 0; i < a->size; i++) {
+        for (size_t i = 0; i < a->size; i++) {
             if (a->entries[i].key.type == KEY_STRING) {
                 array_set(out.a, key_string(a->entries[i].key.s), value_copy(a->entries[i].value));
             } else {
@@ -1296,7 +1297,7 @@ static Value n_merge(Env *env, int argc, Value *argv){
         }
     }
     if (b) {
-        for (int i = 0; i < b->size; i++) {
+        for (size_t i = 0; i < b->size; i++) {
             if (b->entries[i].key.type == KEY_STRING) {
                 array_set(out.a, key_string(b->entries[i].key.s), value_copy(b->entries[i].value));
             } else {
@@ -1312,15 +1313,17 @@ static Value n_slice(Env *env, int argc, Value *argv){
     Value out = value_array();
     if (argc < 2 || argv[0].type != VAL_ARRAY || !argv[0].a) return out;
     Array *a = argv[0].a;
-    int count = a->size;
-    int start = value_to_int(argv[1]).i;
-    int len = (argc >= 3) ? value_to_int(argv[2]).i : (count - start);
+    size_t count = a->size;
+    lx_int_t start = value_to_int(argv[1]).i;
+    lx_int_t len = (argc >= 3) ? value_to_int(argv[2]).i : ((lx_int_t)count - start);
     if (start < 0) start = 0;
-    if (start > count) start = count;
+    if ((size_t)start > count) start = (lx_int_t)count;
     if (len < 0) len = 0;
-    if (start + len > count) len = count - start;
-    int next = 0;
-    for (int i = start; i < start + len; i++) {
+    size_t ustart = (size_t)start;
+    size_t ulen = (size_t)len;
+    if (ustart + ulen > count) ulen = count - ustart;
+    lx_int_t next = 0;
+    for (size_t i = ustart; i < ustart + ulen; i++) {
         if (a->entries[i].key.type == KEY_STRING) {
             array_set(out.a, key_string(a->entries[i].key.s), value_copy(a->entries[i].value));
         } else {
@@ -1335,22 +1338,24 @@ static Value n_splice(Env *env, int argc, Value *argv){
     Value removed = value_array();
     if (argc < 2 || argv[0].type != VAL_ARRAY || !argv[0].a) return removed;
     Array *a = argv[0].a;
-    int count = a->size;
-    int start = value_to_int(argv[1]).i;
-    int len = (argc >= 3) ? value_to_int(argv[2]).i : (count - start);
+    size_t count = a->size;
+    lx_int_t start = value_to_int(argv[1]).i;
+    lx_int_t len = (argc >= 3) ? value_to_int(argv[2]).i : ((lx_int_t)count - start);
     if (start < 0) start = 0;
-    if (start > count) start = count;
+    if ((size_t)start > count) start = (lx_int_t)count;
     if (len < 0) len = 0;
-    if (start + len > count) len = count - start;
+    size_t ustart = (size_t)start;
+    size_t ulen = (size_t)len;
+    if (ustart + ulen > count) ulen = count - ustart;
 
-    int ridx = 0;
-    for (int i = start; i < start + len; i++) {
+    lx_int_t ridx = 0;
+    for (size_t i = ustart; i < ustart + ulen; i++) {
         array_set(removed.a, key_int(ridx++), value_copy(a->entries[i].value));
     }
 
     Value temp = value_array();
-    int next = 0;
-    for (int i = 0; i < start; i++) {
+    lx_int_t next = 0;
+    for (size_t i = 0; i < ustart; i++) {
         if (a->entries[i].key.type == KEY_STRING) {
             array_set(temp.a, key_string(a->entries[i].key.s), value_copy(a->entries[i].value));
         } else {
@@ -1359,14 +1364,14 @@ static Value n_splice(Env *env, int argc, Value *argv){
     }
     if (argc >= 4) {
         if (argv[3].type == VAL_ARRAY && argv[3].a) {
-            for (int i = 0; i < argv[3].a->size; i++) {
+            for (size_t i = 0; i < argv[3].a->size; i++) {
                 array_set(temp.a, key_int(next++), value_copy(argv[3].a->entries[i].value));
             }
         } else {
             array_set(temp.a, key_int(next++), value_copy(argv[3]));
         }
     }
-    for (int i = start + len; i < count; i++) {
+    for (size_t i = ustart + ulen; i < count; i++) {
         if (a->entries[i].key.type == KEY_STRING) {
             array_set(temp.a, key_string(a->entries[i].key.s), value_copy(a->entries[i].value));
         } else {
@@ -1374,7 +1379,7 @@ static Value n_splice(Env *env, int argc, Value *argv){
         }
     }
 
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         key_free_local(a->entries[i].key);
         value_free(a->entries[i].value);
     }
@@ -1392,8 +1397,8 @@ static Value n_reverse(Env *env, int argc, Value *argv){
     Value out = value_array();
     if (argc != 1 || argv[0].type != VAL_ARRAY || !argv[0].a) return out;
     Array *a = argv[0].a;
-    int next = 0;
-    for (int i = a->size - 1; i >= 0; i--) {
+    lx_int_t next = 0;
+    for (size_t i = a->size; i-- > 0;) {
         if (a->entries[i].key.type == KEY_STRING) {
             array_set(out.a, key_string(a->entries[i].key.s), value_copy(a->entries[i].value));
         } else {
@@ -1470,21 +1475,21 @@ static Value n_sort_common(Env *env, int argc, Value *argv, int by_key, int desc
     (void)env;
     if (argc != 1 || argv[0].type != VAL_ARRAY || !argv[0].a) return value_bool(0);
     Array *a = argv[0].a;
-    int count = a->size;
+    size_t count = a->size;
     if (count <= 1) return value_bool(1);
 
-    SortEntry *entries = (SortEntry *)calloc((size_t)count, sizeof(SortEntry));
+    SortEntry *entries = (SortEntry *)calloc(count, sizeof(SortEntry));
     if (!entries) return value_bool(0);
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         entries[i].key = key_copy_local(a->entries[i].key);
         entries[i].value = value_copy(a->entries[i].value);
     }
 
     g_sort_by_key = by_key;
     g_sort_desc = desc;
-    qsort(entries, (size_t)count, sizeof(SortEntry), qsort_entry_cmp);
+    qsort(entries, count, sizeof(SortEntry), qsort_entry_cmp);
 
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         key_free_local(a->entries[i].key);
         value_free(a->entries[i].value);
     }
@@ -1493,14 +1498,14 @@ static Value n_sort_common(Env *env, int argc, Value *argv, int by_key, int desc
     a->size = 0;
     a->capacity = 0;
 
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         Key k;
         if (preserve_keys) {
             k = (entries[i].key.type == KEY_STRING)
                 ? key_string(entries[i].key.s ? entries[i].key.s : "")
                 : key_int(entries[i].key.i);
         } else {
-            k = key_int(i);
+            k = key_int((lx_int_t)i);
         }
         array_set(a, k, entries[i].value);
         key_free_local(entries[i].key);
@@ -1824,7 +1829,7 @@ static Value n_split(Env *env, int argc, Value *argv){
     size_t dlen = strlen(delim);
 
     Value out = value_array();
-    int idx = 0;
+    lx_int_t idx = 0;
 
     if (dlen == 0) {
         array_set(out.a, key_int(idx++), value_string(s));
@@ -1865,7 +1870,7 @@ static Value n_join(Env *env, int argc, Value *argv){
     char *buf = NULL;
     size_t cap = 0;
     size_t len = 0;
-    for (int i = 0; i < arr->size; i++) {
+    for (size_t i = 0; i < arr->size; i++) {
         if (i > 0 && *sep) {
             buf_append(&buf, &cap, &len, sep, strlen(sep));
         } else if (i > 0 && !*sep) {
@@ -2250,8 +2255,8 @@ static Value n_array_keys(Env *env, int argc, Value *argv){
         return value_array();
     }
     Value out = value_array();
-    int idx = 0;
-    for (int i = 0; i < argv[0].a->size; i++) {
+    lx_int_t idx = 0;
+    for (size_t i = 0; i < argv[0].a->size; i++) {
         ArrayEntry *e = &argv[0].a->entries[i];
         Value keyv = (e->key.type == KEY_STRING) ? value_string(e->key.s) : value_int(e->key.i);
         array_set(out.a, key_int(idx++), keyv);

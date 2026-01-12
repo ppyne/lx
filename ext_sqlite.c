@@ -6,6 +6,7 @@
 #include "array.h"
 #include "value.h"
 #include <sqlite3.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -177,7 +178,7 @@ static int bind_value(sqlite3_stmt *stmt, int idx, Value v) {
 static int bind_params(sqlite3_stmt *stmt, Value params) {
     if (params.type != VAL_ARRAY || !params.a) return 0;
     Array *a = params.a;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         Key key = a->entries[i].key;
         Value v = a->entries[i].value;
         int idx = 0;
@@ -194,7 +195,8 @@ static int bind_params(sqlite3_stmt *stmt, Value params) {
                 free(tmp);
             }
         } else {
-            idx = key.i + 1;
+            if (key.i < 0 || key.i > INT_MAX - 1) return 0;
+            idx = (int)key.i + 1;
         }
         if (idx <= 0) return 0;
         if (!bind_value(stmt, idx, v)) return 0;

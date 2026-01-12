@@ -11,4 +11,4 @@
 #define LX_ENABLE_INCLUDE 1
 
 /* 32 = int (assuming 32-bit int), 64 = long long */
-#define LX_INT_BITS 32
+#define LX_INT_BITS 64

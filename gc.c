@@ -39,7 +39,7 @@ void gc_unregister_array(Array *a) {
 static void gc_mark_array(Array *a) {
     if (!a || a->gc_mark) return;
     a->gc_mark = 1;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         Value v = a->entries[i].value;
         if (v.type == VAL_ARRAY && v.a) gc_mark_array(v.a);
     }
@@ -70,7 +70,7 @@ static void gc_release_value(Value v) {
 
 static void gc_free_array(Array *a) {
     if (!a) return;
-    for (int i = 0; i < a->size; i++) {
+    for (size_t i = 0; i < a->size; i++) {
         gc_key_free(a->entries[i].key);
         gc_release_value(a->entries[i].value);
     }

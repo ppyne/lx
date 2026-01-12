@@ -65,7 +65,7 @@ static int array_contains_inner(Array *hay, Array *needle, Array ***visited, int
         *cap = ncap;
     }
     (*visited)[(*count)++] = hay;
-    for (int i = 0; i < hay->size; i++) {
+    for (size_t i = 0; i < hay->size; i++) {
         Value v = hay->entries[i].value;
         if (v.type == VAL_ARRAY && v.a) {
             if (array_contains_inner(v.a, needle, visited, count, cap)) return 1;
@@ -790,7 +790,7 @@ static Value eval_expr(AstNode *n, Env *env, int *ok_flag) {
 
         case AST_ARRAY_LITERAL: {
             Value arrv = value_array();
-            int next_index = 0;
+            lx_int_t next_index = 0;
             for (int i = 0; i < n->array.count; i++) {
                 Value val = eval_expr(n->array.values[i], env, ok_flag);
                 if (!*ok_flag) { value_free(arrv); return value_null(); }
@@ -1463,7 +1463,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
             if (!ok_flag) { value_free(it); return ok(value_null()); }
 
             if (it.type == VAL_ARRAY && it.a) {
-                for (int i = 0; i < it.a->size; i++) {
+                for (size_t i = 0; i < it.a->size; i++) {
                     ArrayEntry *e = &it.a->entries[i];
                     if (n->foreach_stmt.key_name) {
                         Value kv = (e->key.type == KEY_STRING)
@@ -1481,10 +1481,10 @@ EvalResult eval_node(AstNode *n, Env *env) {
                     value_free(r.value);
                 }
             } else if (it.type == VAL_STRING && it.s) {
-                int len = (int)strlen(it.s);
-                for (int i = 0; i < len; i++) {
+                size_t len = strlen(it.s);
+                for (size_t i = 0; i < len; i++) {
                     if (n->foreach_stmt.key_name) {
-                        env_set(env, n->foreach_stmt.key_name, value_int(i));
+                        env_set(env, n->foreach_stmt.key_name, value_int((lx_int_t)i));
                     }
                     Value vv = value_string_n(&it.s[i], 1);
                     env_set(env, n->foreach_stmt.value_name, vv);
@@ -1498,7 +1498,7 @@ EvalResult eval_node(AstNode *n, Env *env) {
             } else if (it.type == VAL_BLOB && it.blob) {
                 for (size_t i = 0; i < it.blob->len; i++) {
                     if (n->foreach_stmt.key_name) {
-                        env_set(env, n->foreach_stmt.key_name, value_int((int)i));
+                        env_set(env, n->foreach_stmt.key_name, value_int((lx_int_t)i));
                     }
                     Value vv = value_byte(it.blob->data[i]);
                     env_set(env, n->foreach_stmt.value_name, vv);
