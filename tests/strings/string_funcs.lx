@@ -9,6 +9,7 @@ print(strrpos("banana", "na") . "\n");
 print(strpos("banana", "zz") . "\n");
 print(strcmp("abc", "abc") . "\n");
 print(str_replace("na", "NA", "banana") . "\n");
+print(str_replace(["&", "<", ">"], ["&amp;", "&lt;", "&gt;"], "<b>&</b>") . "\n");
 print(str_contains("banana", "na") . "\n");
 print(str_contains("banana", "zz") . "\n");
 print(starts_with("banana", "ba") . "\n");

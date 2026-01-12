@@ -1801,40 +1801,75 @@ static Value n_strcmp(Env *env, int argc, Value *argv){
     return value_int(strcmp(a, b));
 }
 
-static Value n_str_replace(Env *env, int argc, Value *argv){
-    (void)env;
-    if (argc != 3) {
-        return value_string("");
-    }
-    Value nv = value_to_string(argv[0]);
-    Value rv = value_to_string(argv[1]);
-    Value hv = value_to_string(argv[2]);
-    const char *needle = nv.s ? nv.s : "";
-    const char *repl = rv.s ? rv.s : "";
-    const char *hay = hv.s ? hv.s : "";
-
-    if (*needle == '\0') {
-        Value out = value_string(hay);
-        value_free(nv);
-        value_free(rv);
-        value_free(hv);
-        return out;
-    }
-
+static char *str_replace_one(const char *hay, const char *needle, const char *repl) {
+    if (!hay) hay = "";
+    if (!needle) needle = "";
+    if (*needle == '\0') return strdup(hay);
+    if (!repl) repl = "";
     char *buf = NULL;
     size_t cap = 0;
     size_t len = 0;
     const char *cur = hay;
+    size_t needle_len = strlen(needle);
+    size_t repl_len = strlen(repl);
     while (1) {
         const char *pos = strstr(cur, needle);
         if (!pos) break;
         size_t seg_len = (size_t)(pos - cur);
         buf_append(&buf, &cap, &len, cur, seg_len);
-        buf_append(&buf, &cap, &len, repl, strlen(repl));
-        cur = pos + strlen(needle);
+        buf_append(&buf, &cap, &len, repl, repl_len);
+        cur = pos + needle_len;
     }
     buf_append(&buf, &cap, &len, cur, strlen(cur));
+    return buf ? buf : strdup("");
+}
 
+static Value n_str_replace(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 3) {
+        return value_string("");
+    }
+    Value hv = value_to_string(argv[2]);
+    const char *hay = hv.s ? hv.s : "";
+
+    if (argv[0].type == VAL_ARRAY && argv[0].a) {
+        Array *needles = argv[0].a;
+        Array *repls = (argv[1].type == VAL_ARRAY && argv[1].a) ? argv[1].a : NULL;
+        size_t repl_count = repls ? repls->size : 0;
+        char *current = strdup(hay);
+        if (!current) { value_free(hv); return value_string(""); }
+
+        size_t idx = 0;
+        for (size_t i = 0; i < needles->size; i++, idx++) {
+            Value nv = value_to_string(needles->entries[i].value);
+            const char *needle = nv.s ? nv.s : "";
+
+            Value rv = value_string("");
+            if (repls && idx < repl_count) {
+                rv = value_to_string(repls->entries[idx].value);
+            } else if (!repls) {
+                rv = value_to_string(argv[1]);
+            }
+            const char *repl = rv.s ? rv.s : "";
+
+            char *next = str_replace_one(current, needle, repl);
+            free(current);
+            current = next ? next : strdup("");
+            value_free(nv);
+            value_free(rv);
+        }
+
+        Value out = value_string(current ? current : "");
+        free(current);
+        value_free(hv);
+        return out;
+    }
+
+    Value nv = value_to_string(argv[0]);
+    Value rv = value_to_string(argv[1]);
+    const char *needle = nv.s ? nv.s : "";
+    const char *repl = rv.s ? rv.s : "";
+    char *buf = str_replace_one(hay, needle, repl);
     Value out = value_string(buf ? buf : "");
     free(buf);
     value_free(nv);
