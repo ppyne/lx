@@ -18,6 +18,17 @@
 #define UPLOAD_MAX_FILESIZE (2 * 1024 * 1024)
 #define POST_MAX_SIZE (8 * 1024 * 1024)
 
+/* CGI error display (lx_cgi only). */
+#define LX_CGI_DISPLAY_ERRORS 1
+
+/* CGI session settings (lx_cgi only). */
+#define SESSION_NAME "LXSESSID"
+#define SESSION_FILE_PATH "/tmp"
+#define SESSION_FILE_PERMISSIONS 0600
+#define SESSION_TTL 3600
+#define SESSION_GC_PROB 1
+#define SESSION_GC_DIV 100
+
 /* 32 = int (assuming 32-bit int), 64 = long long */
 #define LX_INT_BITS 64
 

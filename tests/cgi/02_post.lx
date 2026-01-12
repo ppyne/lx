@@ -1,0 +1,17 @@
+<?lx
+header("Content-Type: text/html; charset=utf-8");
+
+$script = is_defined($_SERVER["SCRIPT_NAME"]) ? $_SERVER["SCRIPT_NAME"] : "";
+$a = is_defined($_POST["a"]) ? $_POST["a"] : "";
+$b = is_defined($_POST["b"]) ? $_POST["b"] : "";
+?>
+<h1>POST Test</h1>
+<form method="post" action="<?lx print(html_attr_escape($script)); ?>">
+  <label>A: <input name="a" value="<?lx print(html_attr_escape($a)); ?>"></label><br>
+  <label>B: <input name="b" value="<?lx print(html_attr_escape($b)); ?>"></label><br>
+  <button type="submit">Send</button>
+</form>
+<pre>
+post=<?lx print_r($_POST); ?>
+request=<?lx print_r($_REQUEST); ?>
+</pre>

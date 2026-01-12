@@ -918,6 +918,7 @@ available in the CGI context.
 - **`$_REQUEST`**: Merged view of `$_GET` and `$_POST`.
 - **`$_FILES`**: Uploaded files metadata (multipart only).
 - **`$_COOKIE`**: Parsed cookies from the `Cookie` header.
+- **`$_SESSION`**: Session data after calling `session_start()`.
 
 See [Lx CGI wrapper](lx_cgi.md) for Apache/CGI usage.
 

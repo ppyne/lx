@@ -9,6 +9,10 @@
 #include <unistd.h>
 #include <limits.h>
 #include <time.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <fcntl.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -19,6 +23,8 @@
 #include "lx_ext.h"
 #include "lx_error.h"
 #include "config.h"
+#include "blake2.h"
+#include "ext_serializer.h"
 
 #if LX_ENABLE_FS
 void register_fs_module(void);
@@ -76,6 +82,19 @@ static UploadList g_uploads = {0};
 
 static int append_str(char **buf, size_t *len, size_t *cap, const char *s);
 static int append_char(char **buf, size_t *len, size_t *cap, char c);
+static Value parse_cookies(const char *hdr);
+
+#if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER
+typedef struct {
+    int started;
+    int destroyed;
+    char *id;
+    char *name;
+    Value data;
+} SessionState;
+
+static SessionState g_session = {0};
+#endif
 
 static void headers_reset(void) {
     for (int i = 0; i < g_headers.count; i++) {
@@ -350,6 +369,345 @@ static int append_char(char **buf, size_t *len, size_t *cap, char c) {
     return 1;
 }
 
+#if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER
+static int read_random(uint8_t *out, size_t len) {
+    if (!out || len == 0) return 0;
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd < 0) return 0;
+    size_t off = 0;
+    while (off < len) {
+        ssize_t n = read(fd, out + off, len - off);
+        if (n <= 0) { close(fd); return 0; }
+        off += (size_t)n;
+    }
+    close(fd);
+    return 1;
+}
+
+static char *base64url_encode(const uint8_t *data, size_t len) {
+    static const char table[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    size_t out_len = (len / 3) * 4 + ((len % 3) ? (len % 3) + 1 : 0);
+    char *out = (char *)malloc(out_len + 1);
+    if (!out) return NULL;
+    size_t i = 0;
+    size_t j = 0;
+    while (i + 3 <= len) {
+        uint32_t v = (uint32_t)data[i] << 16 | (uint32_t)data[i + 1] << 8 | data[i + 2];
+        out[j++] = table[(v >> 18) & 0x3F];
+        out[j++] = table[(v >> 12) & 0x3F];
+        out[j++] = table[(v >> 6) & 0x3F];
+        out[j++] = table[v & 0x3F];
+        i += 3;
+    }
+    if (i < len) {
+        uint32_t v = (uint32_t)data[i] << 16;
+        out[j++] = table[(v >> 18) & 0x3F];
+        if (i + 1 < len) {
+            v |= (uint32_t)data[i + 1] << 8;
+            out[j++] = table[(v >> 12) & 0x3F];
+            out[j++] = table[(v >> 6) & 0x3F];
+        } else {
+            out[j++] = table[(v >> 12) & 0x3F];
+        }
+    }
+    out[j] = '\0';
+    return out;
+}
+
+static void blake2b_hash(const uint8_t *data, size_t len, uint8_t out[32]) {
+    blake2b_state st;
+    blake2b_init(&st, 32);
+    blake2b_update(&st, data, len);
+    blake2b_final(&st, out, 32);
+}
+
+static char *hex_encode(const uint8_t *data, size_t len) {
+    static const char *hex = "0123456789abcdef";
+    char *out = (char *)malloc(len * 2 + 1);
+    if (!out) return NULL;
+    for (size_t i = 0; i < len; i++) {
+        out[i * 2] = hex[data[i] >> 4];
+        out[i * 2 + 1] = hex[data[i] & 0x0F];
+    }
+    out[len * 2] = '\0';
+    return out;
+}
+
+static char *session_file_path(const char *id) {
+    if (!id || !*id) return NULL;
+    uint8_t hash[32];
+    blake2b_hash((const uint8_t *)id, strlen(id), hash);
+    char *hex = hex_encode(hash, sizeof(hash));
+    if (!hex) return NULL;
+    const char *dir = SESSION_FILE_PATH;
+    if (!dir || !*dir) dir = "/tmp";
+    size_t dlen = strlen(dir);
+    size_t hlen = strlen(hex);
+    const char *prefix = "lxsession_";
+    size_t plen = strlen(prefix);
+    char *out = (char *)malloc(dlen + 1 + plen + hlen + 1);
+    if (!out) { free(hex); return NULL; }
+    memcpy(out, dir, dlen);
+    out[dlen] = '/';
+    memcpy(out + dlen + 1, prefix, plen);
+    memcpy(out + dlen + 1 + plen, hex, hlen + 1);
+    free(hex);
+    return out;
+}
+
+static int session_gc_should_run(void) {
+    uint32_t v = 0;
+    if (!read_random((uint8_t *)&v, sizeof(v))) return 0;
+    if (SESSION_GC_DIV <= 0) return 0;
+    return (int)(v % SESSION_GC_DIV) < SESSION_GC_PROB;
+}
+
+static void session_gc(void) {
+    const char *dir = SESSION_FILE_PATH;
+    if (!dir || !*dir) dir = "/tmp";
+    DIR *d = opendir(dir);
+    if (!d) return;
+    time_t now = time(NULL);
+    struct dirent *ent;
+    while ((ent = readdir(d)) != NULL) {
+        if (strncmp(ent->d_name, "lxsession_", 10) != 0) continue;
+        size_t dlen = strlen(dir);
+        size_t nlen = strlen(ent->d_name);
+        char *path = (char *)malloc(dlen + 1 + nlen + 1);
+        if (!path) continue;
+        memcpy(path, dir, dlen);
+        path[dlen] = '/';
+        memcpy(path + dlen + 1, ent->d_name, nlen + 1);
+        struct stat st;
+        if (stat(path, &st) == 0) {
+            if (now - st.st_mtime > SESSION_TTL) {
+                unlink(path);
+            }
+        }
+        free(path);
+    }
+    closedir(d);
+}
+
+static int session_load(const char *id, Value *out) {
+    if (!out) return 0;
+    char *path = session_file_path(id);
+    if (!path) return 0;
+    struct stat st;
+    if (stat(path, &st) == 0) {
+        time_t now = time(NULL);
+        if (now - st.st_mtime > SESSION_TTL) {
+            unlink(path);
+            free(path);
+            return 0;
+        }
+    }
+    FILE *f = fopen(path, "rb");
+    if (!f) { free(path); return 0; }
+    if (fseek(f, 0, SEEK_END) != 0) { fclose(f); free(path); return 0; }
+    long size = ftell(f);
+    if (size < 0) { fclose(f); free(path); return 0; }
+    rewind(f);
+    char *buf = (char *)malloc((size_t)size + 1);
+    if (!buf) { fclose(f); free(path); return 0; }
+    size_t n = fread(buf, 1, (size_t)size, f);
+    fclose(f);
+    buf[n] = '\0';
+    int ok = 0;
+    Value v = lx_unserialize_string(buf, &ok);
+    free(buf);
+    free(path);
+    if (!ok || v.type != VAL_ARRAY || !v.a) {
+        value_free(v);
+        return 0;
+    }
+    *out = v;
+    return 1;
+}
+
+static int session_save(const char *id, Value data) {
+    char *path = session_file_path(id);
+    if (!path) return 0;
+    char *payload = NULL;
+    size_t payload_len = 0;
+    if (!lx_serialize(data, &payload, &payload_len)) { free(path); return 0; }
+    const char *dir = SESSION_FILE_PATH;
+    if (!dir || !*dir) dir = "/tmp";
+    char tmp_path[PATH_MAX];
+    snprintf(tmp_path, sizeof(tmp_path), "%s/lxsession_tmp_XXXXXX", dir);
+    int fd = mkstemp(tmp_path);
+    if (fd < 0) { free(path); free(payload); return 0; }
+    FILE *f = fdopen(fd, "wb");
+    if (!f) { close(fd); unlink(tmp_path); free(path); free(payload); return 0; }
+    size_t n = fwrite(payload, 1, payload_len, f);
+    fclose(f);
+    free(payload);
+    if (n != payload_len) { unlink(tmp_path); free(path); return 0; }
+    chmod(tmp_path, SESSION_FILE_PERMISSIONS);
+    int rc = rename(tmp_path, path);
+    free(path);
+    if (rc != 0) { unlink(tmp_path); return 0; }
+    return 1;
+}
+
+static char *session_generate_id(void) {
+    uint8_t seed[32];
+    if (!read_random(seed, sizeof(seed))) return NULL;
+    uint8_t hash[32];
+    blake2b_hash(seed, sizeof(seed), hash);
+    return base64url_encode(hash, sizeof(hash));
+}
+
+static const char *session_name_value(void) {
+    if (g_session.name) return g_session.name;
+    return SESSION_NAME;
+}
+
+static void session_set_cookie(const char *id, time_t expires) {
+    const char *name = session_name_value();
+    if (!name || !*name || !id) return;
+    char *buf = NULL;
+    size_t len = 0;
+    size_t cap = 0;
+    append_str(&buf, &len, &cap, "Set-Cookie: ");
+    append_str(&buf, &len, &cap, name);
+    append_char(&buf, &len, &cap, '=');
+    append_str(&buf, &len, &cap, id);
+    append_str(&buf, &len, &cap, "; Path=/");
+    append_str(&buf, &len, &cap, "; HttpOnly");
+    if (expires > 0) {
+        char date[64];
+        if (format_http_date((lx_int_t)expires, date, sizeof(date))) {
+            append_str(&buf, &len, &cap, "; Expires=");
+            append_str(&buf, &len, &cap, date);
+        }
+    }
+    headers_add(buf ? buf : "");
+    free(buf);
+}
+
+static Value n_session_name(Env *env, int argc, Value *argv) {
+    (void)env;
+    const char *cur = session_name_value();
+    if (argc >= 1) {
+        Value nv = value_to_string(argv[0]);
+        if (nv.s && *nv.s) {
+            free(g_session.name);
+            g_session.name = strdup(nv.s);
+        }
+        value_free(nv);
+    }
+    return value_string(cur);
+}
+
+static Value n_session_id(Env *env, int argc, Value *argv) {
+    (void)env;
+    const char *cur = g_session.id ? g_session.id : "";
+    if (argc >= 1) {
+        Value iv = value_to_string(argv[0]);
+        if (iv.s && *iv.s) {
+            free(g_session.id);
+            g_session.id = strdup(iv.s);
+        }
+        value_free(iv);
+    }
+    return value_string(cur);
+}
+
+static Value n_session_start(Env *env, int argc, Value *argv) {
+    if (g_session.started) return value_bool(1);
+    if (argc >= 1 && argv[0].type != VAL_UNDEFINED && argv[0].type != VAL_NULL) {
+        Value nv = value_to_string(argv[0]);
+        if (nv.s && *nv.s) {
+            free(g_session.name);
+            g_session.name = strdup(nv.s);
+        }
+        value_free(nv);
+    }
+    if (session_gc_should_run()) session_gc();
+
+    Value cookies = parse_cookies(getenv("HTTP_COOKIE"));
+    const char *name = session_name_value();
+    char *id = NULL;
+    if (cookies.a && name) {
+        Value cv = array_get(cookies.a, key_string(name));
+        if (cv.type == VAL_STRING && cv.s && *cv.s) {
+            id = strdup(cv.s);
+        }
+        value_free(cv);
+    }
+    value_free(cookies);
+
+    if (!id) id = session_generate_id();
+    if (!id) return value_bool(0);
+
+    Value data = value_array();
+    if (session_load(id, &data) == 0) {
+        value_free(data);
+        data = value_array();
+    }
+
+    g_session.started = 1;
+    g_session.destroyed = 0;
+    free(g_session.id);
+    g_session.id = id;
+    value_free(g_session.data);
+    g_session.data = data;
+    env_set(env, "_SESSION", value_copy(data));
+    return value_bool(1);
+}
+
+static Value n_session_destroy(Env *env, int argc, Value *argv) {
+    (void)argc;
+    (void)argv;
+    if (!g_session.started) return value_bool(0);
+    if (g_session.id) {
+        char *path = session_file_path(g_session.id);
+        if (path) {
+            unlink(path);
+            free(path);
+        }
+    }
+    g_session.destroyed = 1;
+    g_session.started = 0;
+    if (env) env_set(env, "_SESSION", value_array());
+    session_set_cookie("", 1);
+    return value_bool(1);
+}
+
+static Value n_session_regenerate_id(Env *env, int argc, Value *argv) {
+    (void)env;
+    if (!g_session.started) return value_bool(0);
+    int del = 0;
+    if (argc >= 1) del = value_is_true(argv[0]);
+    char *old_id = g_session.id ? strdup(g_session.id) : NULL;
+    char *new_id = session_generate_id();
+    if (!new_id) { free(old_id); return value_bool(0); }
+    free(g_session.id);
+    g_session.id = new_id;
+    if (del && old_id) {
+        char *path = session_file_path(old_id);
+        if (path) {
+            unlink(path);
+            free(path);
+        }
+    }
+    free(old_id);
+    return value_bool(1);
+}
+
+static void session_reset(void) {
+    g_session.started = 0;
+    g_session.destroyed = 0;
+    free(g_session.id);
+    free(g_session.name);
+    g_session.id = NULL;
+    g_session.name = NULL;
+    value_free(g_session.data);
+    g_session.data = value_undefined();
+}
+#endif
 static int append_text_print(char **out, size_t *len, size_t *cap, const char *s, size_t n) {
     if (!append_str(out, len, cap, "print(\"")) return 0;
     for (size_t i = 0; i < n; i++) {
@@ -890,7 +1248,8 @@ static int run_script(const char *source, const char *filename) {
 
     AstNode *program = parse_program(&parser);
     if (lx_has_error() || !program) {
-        lx_print_error(stderr);
+        FILE *out = LX_CGI_DISPLAY_ERRORS ? lx_get_output() : stderr;
+        lx_print_error(out);
         return 1;
     }
 
@@ -899,6 +1258,13 @@ static int run_script(const char *source, const char *filename) {
     register_function("header", n_header);
     register_function("move_uploaded_file", n_move_uploaded_file);
     register_function("setcookie", n_setcookie);
+#if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER
+    register_function("session_start", n_session_start);
+    register_function("session_destroy", n_session_destroy);
+    register_function("session_regenerate_id", n_session_regenerate_id);
+    register_function("session_id", n_session_id);
+    register_function("session_name", n_session_name);
+#endif
 #if LX_ENABLE_FS
     register_fs_module();
 #endif
@@ -937,11 +1303,29 @@ static int run_script(const char *source, const char *filename) {
 
     EvalResult r = eval_program(program, global);
     if (lx_has_error()) {
-        lx_print_error(stderr);
+        FILE *out = LX_CGI_DISPLAY_ERRORS ? lx_get_output() : stderr;
+        lx_print_error(out);
         value_free(r.value);
         env_free(global);
         return 1;
     }
+#if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER
+    if (g_session.started && !g_session.destroyed && g_session.id) {
+        Value sess = env_get(global, "_SESSION");
+        if (sess.type == VAL_ARRAY) {
+            value_free(g_session.data);
+            g_session.data = value_copy(sess);
+        }
+        value_free(sess);
+        session_save(g_session.id, g_session.data);
+        if (SESSION_TTL > 0) {
+            time_t exp = time(NULL) + SESSION_TTL;
+            session_set_cookie(g_session.id, exp);
+        } else {
+            session_set_cookie(g_session.id, 0);
+        }
+    }
+#endif
     value_free(r.value);
     env_free(global);
     return 0;
@@ -1088,5 +1472,8 @@ int main(void) {
     fclose(body);
     headers_reset();
     uploads_reset();
+#if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER
+    session_reset();
+#endif
     return rc;
 }

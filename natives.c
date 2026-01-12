@@ -69,6 +69,10 @@ void lx_set_output(FILE *f) {
     g_output = f;
 }
 
+FILE *lx_get_output(void) {
+    return g_output ? g_output : stdout;
+}
+
 void register_function(const char *name, NativeFn fn){
     for (int i=0;i<g_count;i++){
         if (strcmp(g_fns[i].name, name)==0){

@@ -1,0 +1,13 @@
+<?lx
+header("Content-Type: text/html; charset=utf-8");
+
+$script = is_defined($_SERVER["SCRIPT_NAME"]) ? $_SERVER["SCRIPT_NAME"] : "";
+?>
+<h1>Upload Test</h1>
+<form method="post" enctype="multipart/form-data" action="<?lx print(html_attr_escape($script)); ?>">
+  <input type="file" name="file"><br>
+  <button type="submit">Upload</button>
+</form>
+<pre>
+files=<?lx print_r($_FILES); ?>
+</pre>

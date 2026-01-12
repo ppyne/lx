@@ -1,0 +1,10 @@
+<?lx
+header("Content-Type: text/plain; charset=utf-8");
+
+session_start();
+$count = is_defined($_SESSION["count"]) ? $_SESSION["count"] : 0;
+$_SESSION["count"] = $count + 1;
+
+print("id=" . session_id() . "\n");
+print("count=" . $_SESSION["count"] . "\n");
+?>

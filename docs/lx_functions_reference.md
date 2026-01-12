@@ -131,6 +131,11 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [rsort](functions/rsort.md)(array) : bool <span style="color:#888">[Arrays]</span>
 - [rtrim](functions/rtrim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [setcookie](functions/setcookie.md)(name, value[, expires[, path[, domain[, secure[, httponly]]]]]) : bool <span style="color:#888">[HTTP]</span>
+- [session_destroy](functions/session_destroy.md)() : bool <span style="color:#888">[HTTP]</span>
+- [session_id](functions/session_id.md)([id]) : string <span style="color:#888">[HTTP]</span>
+- [session_name](functions/session_name.md)([name]) : string <span style="color:#888">[HTTP]</span>
+- [session_regenerate_id](functions/session_regenerate_id.md)([delete_old]) : bool <span style="color:#888">[HTTP]</span>
+- [session_start](functions/session_start.md)([name]) : bool <span style="color:#888">[HTTP]</span>
 - [serialize](functions/serialize.md)(value) : string <span style="color:#888">[Extensions: serializer]</span>
 - [shift](functions/shift.md)(array) : mixed|undefined <span style="color:#888">[Arrays]</span>
 - [sign](functions/sign.md)(value) : int <span style="color:#888">[Numeric and math]</span>

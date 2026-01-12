@@ -1,0 +1,17 @@
+<?lx
+header("Content-Type: text/html; charset=utf-8");
+
+$script = is_defined($_SERVER["SCRIPT_NAME"]) ? $_SERVER["SCRIPT_NAME"] : "";
+$name = is_defined($_GET["name"]) ? $_GET["name"] : "";
+?>
+<h1>Basic CGI Test</h1>
+<form method="get" action="<?lx print(html_attr_escape($script)); ?>">
+  <label>Name: <input name="name" value="<?lx print(html_attr_escape($name)); ?>"></label>
+  <button type="submit">Send</button>
+</form>
+<pre>
+method=<?lx print(is_defined($_SERVER["REQUEST_METHOD"]) ? html_text_escape($_SERVER["REQUEST_METHOD"]) : ""); ?>
+query=<?lx print(is_defined($_SERVER["QUERY_STRING"]) ? html_text_escape($_SERVER["QUERY_STRING"]) : ""); ?>
+get=<?lx print_r($_GET); ?>
+cookie=<?lx print_r($_COOKIE); ?>
+</pre>

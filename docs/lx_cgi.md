@@ -36,6 +36,7 @@ The wrapper exposes PHP-like globals:
 - `$_SERVER` — all environment variables
 - `$_FILES` — uploaded files metadata (multipart only)
 - `$_COOKIE` — parsed cookies from the `Cookie` header
+- `$_SESSION` — session data (available after `session_start()`)
 
 Example:
 
@@ -118,3 +119,38 @@ Upload behavior is controlled by `config.h`:
 - `POST_MAX_SIZE`: max total POST body size in bytes
 
 If `POST_MAX_SIZE` is exceeded, `$_POST` and `$_FILES` are empty.
+
+## Sessions
+
+Sessions are file-based and only available in `lx_cgi`. To enable them, call:
+
+```
+session_start();
+```
+
+Session data lives in `$_SESSION` and is serialized using the serializer
+extension. Session IDs are base64 and session file names are derived from
+Blake2b. Sessions require the `blake2b` and `serializer` extensions to be
+enabled.
+
+Configuration options in `config.h`:
+
+- `SESSION_NAME` (default `LXSESSID`)
+- `SESSION_FILE_PATH` (default `/tmp`)
+- `SESSION_FILE_PERMISSIONS` (default `0600`)
+- `SESSION_TTL` (seconds)
+- `SESSION_GC_PROB` / `SESSION_GC_DIV` (GC probability)
+
+Available functions (CGI only):
+
+- `session_start([name])`
+- `session_destroy()`
+- `session_regenerate_id([delete_old])`
+- `session_id([id])`
+- `session_name([name])`
+
+## Error display
+
+Set `LX_CGI_DISPLAY_ERRORS` to `1` in `config.h` to print Lx errors directly
+in the response body (useful during development). When disabled, errors are
+only written to the server error log.

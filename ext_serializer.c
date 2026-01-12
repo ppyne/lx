@@ -4,6 +4,7 @@
  */
 #include "lx_ext.h"
 #include "array.h"
+#include "ext_serializer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -287,4 +288,31 @@ static void serializer_module_init(Env *global){
 void register_serializer_module(void) {
     lx_register_extension("serializer");
     lx_register_module(serializer_module_init);
+}
+
+int lx_serialize(Value v, char **out, size_t *len) {
+    if (!out) return 0;
+    StrBuf b = {0};
+    if (!serialize_value(&b, v)) {
+        free(b.buf);
+        return 0;
+    }
+    *out = b.buf ? b.buf : strdup("");
+    if (len) *len = b.len;
+    if (!*out) return 0;
+    return 1;
+}
+
+Value lx_unserialize_string(const char *s, int *ok) {
+    SerParser p = { s ? s : "" };
+    int good = 1;
+    Value out = parse_value(&p, &good);
+    skip_ws(&p);
+    if (!good || *p.cur != '\0') {
+        value_free(out);
+        out = value_undefined();
+        good = 0;
+    }
+    if (ok) *ok = good;
+    return out;
 }
