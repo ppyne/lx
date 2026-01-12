@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <float.h>
+#include <stdint.h>
 
 #include "lx_version.h"
 #include "lexer.h"
@@ -38,6 +39,11 @@ static int match(Lexer *l, char c) {
     if (*l->cur != c) return 0;
     l->cur++;
     return 1;
+}
+
+static int lx_endianness(void) {
+    union { uint16_t u; unsigned char b[2]; } u = {1};
+    return (u.b[0] == 1) ? 0 : 1;
 }
 
 static Token make_token(Lexer *l, TokenType t) {
@@ -282,9 +288,19 @@ static Token identifier(Lexer *l, int is_var) {
             tok.int_val = (int)sizeof(int);
             return tok;
         }
+        if (len == 13 && !strncmp(s, "LX_ENDIANNESS", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = lx_endianness();
+            return tok;
+        }
         if (len == 12 && !strncmp(s, "LX_FLOAT_DIG", len)) {
             Token tok = make_token(l, TOK_INT);
             tok.int_val = DBL_DIG;
+            return tok;
+        }
+        if (len == 13 && !strncmp(s, "LX_FLOAT_SIZE", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = (int)sizeof(double);
             return tok;
         }
         if (len == 16 && !strncmp(s, "LX_FLOAT_EPSILON", len)) {

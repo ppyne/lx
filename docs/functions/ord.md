@@ -8,7 +8,7 @@ Domain: Strings
 
 ### Description
 
-`ord(string) : int`
+`ord(string) : byte`
 
 Returns the character code of the first byte in `string`.
 If `string` is empty, the result is 0.
@@ -19,7 +19,7 @@ If `string` is empty, the result is 0.
 
 ### Return Values
 
-Returns an integer.
+Returns a byte.
 
 ### Examples
 

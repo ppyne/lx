@@ -11,7 +11,7 @@ Domain: Types and inspection
 `type(value) : string`
 
 Returns the runtime type name of `value`.
-Possible results: undefined, void, null, bool, int, float, string, array.
+Possible results: undefined, void, null, bool, int, float, byte, string, blob, array.
 
 ### Parameters
 

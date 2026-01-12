@@ -22,7 +22,11 @@ static char *dup_range(const char *s, size_t n) {
 
 static Value n_file_get_contents(Env *env, int argc, Value *argv){
     (void)env;
-    if (argc != 1 || argv[0].type != VAL_STRING) return value_undefined();
+    int want_blob = 0;
+    if (argc == 2 && argv[1].type == VAL_BOOL) {
+        want_blob = argv[1].b;
+    }
+    if ((argc != 1 && argc != 2) || argv[0].type != VAL_STRING) return value_undefined();
     const char *path = argv[0].s ? argv[0].s : "";
     FILE *f = fopen(path, "rb");
     if (!f) return value_undefined();
@@ -35,7 +39,15 @@ static Value n_file_get_contents(Env *env, int argc, Value *argv){
     size_t readn = fread(buf, 1, (size_t)size, f);
     fclose(f);
     buf[readn] = '\0';
-    Value out = value_string_n(buf, readn);
+    if (want_blob) {
+        Value out = value_blob_n((const unsigned char *)buf, readn);
+        free(buf);
+        return out;
+    }
+    size_t out_len = readn;
+    char *nul = memchr(buf, 0, readn);
+    if (nul) out_len = (size_t)(nul - buf);
+    Value out = value_string_n(buf, out_len);
     free(buf);
     return out;
 }
@@ -44,13 +56,18 @@ static Value n_file_put_contents(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 2 || argv[0].type != VAL_STRING) return value_int(0);
     const char *path = argv[0].s ? argv[0].s : "";
-    Value sv = value_to_string(argv[1]);
-    const char *s = sv.s ? sv.s : "";
     FILE *f = fopen(path, "wb");
-    if (!f) { value_free(sv); return value_int(0); }
-    size_t n = fwrite(s, 1, strlen(s), f);
+    if (!f) return value_int(0);
+    size_t n = 0;
+    if (argv[1].type == VAL_BLOB && argv[1].blob) {
+        n = fwrite(argv[1].blob->data, 1, argv[1].blob->len, f);
+    } else {
+        Value sv = value_to_string(argv[1]);
+        const char *s = sv.s ? sv.s : "";
+        n = fwrite(s, 1, strlen(s), f);
+        value_free(sv);
+    }
     fclose(f);
-    value_free(sv);
     return value_int((int)n);
 }
 

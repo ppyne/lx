@@ -18,7 +18,8 @@ Returns the length of `string`.
 
 ### Return Values
 
-Returns the string length, or `0` if the value is not a string.
+Returns the string length after converting the value to a string. Use
+`blob_len` to get the full length of a blob.
 
 ### Examples
 

@@ -22,7 +22,8 @@ If `length` is 0 or negative, the result is an empty string.
 
 ### Return Values
 
-Returns a string.
+Returns a string. The input value is converted to a string; use `blob_slice`
+to slice blobs.
 
 ### Examples
 

@@ -1,0 +1,36 @@
+$s = "abc";
+$s[1] = "Z";
+print($s . "\n");
+$s2 = "ab";
+$s2[] = "c";
+$s2[] = 123;
+print($s2 . "\n");
+
+$b = blob("A");
+$b[1] = "B";
+$b[2] = byte(67);
+print(blob_len($b) . "\n");
+print(blob_to_base64($b) . "\n");
+print($b[0] . "," . $b[1] . "," . $b[2] . "\n");
+
+$b3 = blob("A");
+$b3[] = "BC";
+$b3[] = byte(0);
+$b3[] = byte(68);
+print(blob_len($b3) . "\n");
+print($b3[0] . "," . $b3[1] . "," . $b3[2] . "," . $b3[3] . "," . $b3[4] . "\n");
+
+foreach ($b as $k => $v) {
+    print($k . ":" . $v . "\n");
+}
+
+print(byte(300) . "\n");
+print(byte(-5) . "\n");
+print(blob_len(blob(1)) . "\n");
+
+$b2 = blob("A");
+$b2[1] = byte(0);
+$b2[2] = "B";
+print(str($b2) . "\n");
+print(is_blob($b2) . "\n");
+print(is_blob("abc") . "\n");

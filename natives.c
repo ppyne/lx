@@ -93,6 +93,10 @@ static Value n_print(Env *env, int argc, Value *argv){
     (void)env;
     FILE *out = g_output ? g_output : stdout;
     for (int i=0;i<argc;i++){
+        if (argv[i].type == VAL_BLOB) {
+            fputs("blob", out);
+            continue;
+        }
         Value s = value_to_string(argv[i]);
         fputs(s.s, out);
         value_free(s);
@@ -254,10 +258,43 @@ static void dump_value(Value v, int indent, DumpState *st, DumpWriter *w) {
             dump_indent(w, indent);
             writer_printf(w, "float(%g)", v.f);
             break;
+        case VAL_BYTE:
+            dump_indent(w, indent);
+            writer_printf(w, "byte(%u)", (unsigned)v.byte);
+            break;
         case VAL_STRING: {
             const char *s = v.s ? v.s : "";
             dump_indent(w, indent);
             dump_string(s, strlen(s), w);
+            break;
+        }
+        case VAL_BLOB: {
+            static const char *hex = "0123456789abcdef";
+            size_t len = v.blob ? v.blob->len : 0;
+            dump_indent(w, indent);
+            writer_printf(w, "blob(%zu bytes)", len);
+            if (v.blob && v.blob->data && len > 0) {
+                writer_putc(w, ' ');
+                if (len <= 8) {
+                    for (size_t i = 0; i < len; i++) {
+                        unsigned char c = v.blob->data[i];
+                        writer_putc(w, hex[c >> 4]);
+                        writer_putc(w, hex[c & 0x0F]);
+                    }
+                } else {
+                    for (size_t i = 0; i < 4; i++) {
+                        unsigned char c = v.blob->data[i];
+                        writer_putc(w, hex[c >> 4]);
+                        writer_putc(w, hex[c & 0x0F]);
+                    }
+                    writer_puts(w, "...");
+                    for (size_t i = len - 4; i < len; i++) {
+                        unsigned char c = v.blob->data[i];
+                        writer_putc(w, hex[c >> 4]);
+                        writer_putc(w, hex[c & 0x0F]);
+                    }
+                }
+            }
             break;
         }
         case VAL_ARRAY:
@@ -326,12 +363,46 @@ static void print_r_value(Value v, int indent, DumpState *st, DumpWriter *w) {
         case VAL_BOOL:
             if (v.b) writer_puts(w, "1");
             break;
+        case VAL_BYTE: {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%u", (unsigned)v.byte);
+            writer_puts(w, buf);
+            break;
+        }
         case VAL_INT:
         case VAL_FLOAT:
         case VAL_STRING: {
             Value s = value_to_string(v);
             writer_puts(w, s.s ? s.s : "");
             value_free(s);
+            break;
+        }
+        case VAL_BLOB: {
+            static const char *hex = "0123456789abcdef";
+            size_t len = v.blob ? v.blob->len : 0;
+            writer_printf(w, "blob(%zu bytes)", len);
+            if (v.blob && v.blob->data && len > 0) {
+                writer_putc(w, ' ');
+                if (len <= 8) {
+                    for (size_t i = 0; i < len; i++) {
+                        unsigned char c = v.blob->data[i];
+                        writer_putc(w, hex[c >> 4]);
+                        writer_putc(w, hex[c & 0x0F]);
+                    }
+                } else {
+                    for (size_t i = 0; i < 4; i++) {
+                        unsigned char c = v.blob->data[i];
+                        writer_putc(w, hex[c >> 4]);
+                        writer_putc(w, hex[c & 0x0F]);
+                    }
+                    writer_puts(w, "...");
+                    for (size_t i = len - 4; i < len; i++) {
+                        unsigned char c = v.blob->data[i];
+                        writer_putc(w, hex[c >> 4]);
+                        writer_putc(w, hex[c & 0x0F]);
+                    }
+                }
+            }
             break;
         }
         case VAL_ARRAY:
@@ -391,8 +462,16 @@ static Value n_print_r(Env *env, int argc, Value *argv){
 static Value n_strlen(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_int(0);
-    if (argv[0].type != VAL_STRING) return value_int(0);
-    return value_int(argv[0].s ? (int)strlen(argv[0].s) : 0);
+    Value sv = value_to_string(argv[0]);
+    int len = sv.s ? (int)strlen(sv.s) : 0;
+    value_free(sv);
+    return value_int(len);
+}
+
+static Value n_blob_len(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_BLOB || !argv[0].blob) return value_undefined();
+    return value_int((int)argv[0].blob->len);
 }
 
 static uint32_t crc32_table[256];
@@ -535,6 +614,87 @@ static Value n_base64_decode(Env *env, int argc, Value *argv){
     return v;
 }
 
+static Value n_blob_to_base64(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_BLOB || !argv[0].blob) return value_string("");
+    const unsigned char *in = argv[0].blob->data;
+    size_t len = argv[0].blob->len;
+    size_t out_len = ((len + 2) / 3) * 4;
+    char *out = (char *)malloc(out_len + 1);
+    if (!out) return value_string("");
+
+    size_t i = 0;
+    size_t j = 0;
+    while (i < len) {
+        size_t rem = len - i;
+        uint32_t a = in[i++];
+        uint32_t b = (rem > 1) ? in[i++] : 0;
+        uint32_t c = (rem > 2) ? in[i++] : 0;
+
+        out[j++] = base64_table[(a >> 2) & 0x3F];
+        out[j++] = base64_table[((a & 0x03) << 4) | ((b >> 4) & 0x0F)];
+        out[j++] = (rem > 1) ? base64_table[((b & 0x0F) << 2) | ((c >> 6) & 0x03)] : '=';
+        out[j++] = (rem > 2) ? base64_table[c & 0x3F] : '=';
+    }
+    out[out_len] = '\0';
+    Value v = value_string(out);
+    free(out);
+    return v;
+}
+
+static Value n_blob_from_base64(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1 || argv[0].type != VAL_STRING) return value_undefined();
+    const unsigned char *in = (const unsigned char *)(argv[0].s ? argv[0].s : "");
+    size_t len = strlen((const char *)in);
+    if (len == 0) return value_blob_n(NULL, 0);
+    if (len % 4 != 0) return value_undefined();
+
+    base64_init();
+
+    size_t pad = 0;
+    if (len >= 1 && in[len - 1] == '=') pad++;
+    if (len >= 2 && in[len - 2] == '=') pad++;
+    size_t out_len = (len / 4) * 3 - pad;
+    Blob *out = blob_new(out_len);
+    if (!out) return value_undefined();
+
+    size_t i = 0;
+    size_t j = 0;
+    while (i < len) {
+        int c0 = in[i++];
+        int c1 = in[i++];
+        int c2 = in[i++];
+        int c3 = in[i++];
+
+        int v0 = base64_rev[c0];
+        int v1 = base64_rev[c1];
+        int v2 = (c2 == '=') ? -2 : base64_rev[c2];
+        int v3 = (c3 == '=') ? -2 : base64_rev[c3];
+
+        if (v0 < 0 || v1 < 0 || v2 == -1 || v3 == -1) {
+            blob_free(out);
+            return value_undefined();
+        }
+
+        if (v2 == -2 && v3 != -2) {
+            blob_free(out);
+            return value_undefined();
+        }
+
+        uint32_t triple = ((uint32_t)v0 << 18) | ((uint32_t)v1 << 12);
+        if (v2 >= 0) triple |= (uint32_t)v2 << 6;
+        if (v3 >= 0) triple |= (uint32_t)v3;
+
+        if (j < out_len) out->data[j++] = (triple >> 16) & 0xFF;
+        if (v2 >= 0 && j < out_len) out->data[j++] = (triple >> 8) & 0xFF;
+        if (v3 >= 0 && j < out_len) out->data[j++] = triple & 0xFF;
+    }
+
+    Value v; v.type = VAL_BLOB; v.blob = out;
+    return v;
+}
+
 #if LX_ENABLE_INCLUDE
 static Value n_include(Env *env, int argc, Value *argv){
     (void)env;
@@ -565,18 +725,71 @@ static Value n_count(Env *env, int argc, Value *argv){
 
 static Value n_substr(Env *env, int argc, Value *argv){
     (void)env;
-    if (argc < 2 || argv[0].type != VAL_STRING) return value_string("");
-    const char *s = argv[0].s ? argv[0].s : "";
+    if (argc < 2) return value_string("");
+    Value sv = value_to_string(argv[0]);
+    const char *s = sv.s ? sv.s : "";
     int len = (int)strlen(s);
 
     int start = (value_to_int(argv[1])).i;
     int count = (argc >= 3) ? (value_to_int(argv[2])).i : (len - start);
 
-    if (start < 0 || start >= len) return value_string("");
-    if (count <= 0) return value_string("");
+    if (start < 0 || start >= len) { value_free(sv); return value_string(""); }
+    if (count <= 0) { value_free(sv); return value_string(""); }
     if (start + count > len) count = len - start;
 
-    return value_string_n(s + start, (size_t)count);
+    Value out = value_string_n(s + start, (size_t)count);
+    value_free(sv);
+    return out;
+}
+
+static Value n_blob_slice(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc < 2 || argv[0].type != VAL_BLOB || !argv[0].blob) return value_undefined();
+    int start = (value_to_int(argv[1])).i;
+    int count = (argc >= 3) ? (value_to_int(argv[2])).i : ((int)argv[0].blob->len - start);
+
+    if (start < 0 || start >= (int)argv[0].blob->len) return value_blob_n(NULL, 0);
+    if (count <= 0) return value_blob_n(NULL, 0);
+    if (start + count > (int)argv[0].blob->len) count = (int)argv[0].blob->len - start;
+
+    return value_blob_n(argv[0].blob->data + start, (size_t)count);
+}
+
+static Value n_blob_concat(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 2) return value_blob_n(NULL, 0);
+    const unsigned char *a = NULL;
+    const unsigned char *b = NULL;
+    size_t alen = 0;
+    size_t blen = 0;
+
+    if (argv[0].type == VAL_BLOB && argv[0].blob) {
+        a = argv[0].blob->data;
+        alen = argv[0].blob->len;
+    } else if (argv[0].type == VAL_STRING) {
+        a = (const unsigned char *)(argv[0].s ? argv[0].s : "");
+        alen = argv[0].s ? strlen(argv[0].s) : 0;
+    } else {
+        return value_undefined();
+    }
+
+    if (argv[1].type == VAL_BLOB && argv[1].blob) {
+        b = argv[1].blob->data;
+        blen = argv[1].blob->len;
+    } else if (argv[1].type == VAL_STRING) {
+        b = (const unsigned char *)(argv[1].s ? argv[1].s : "");
+        blen = argv[1].s ? strlen(argv[1].s) : 0;
+    } else {
+        return value_undefined();
+    }
+
+    Blob *out = blob_new(alen + blen);
+    if (!out) return value_undefined();
+    if (alen) memcpy(out->data, a, alen);
+    if (blen) memcpy(out->data + alen, b, blen);
+    out->len = alen + blen;
+    Value v; v.type = VAL_BLOB; v.blob = out;
+    return v;
 }
 
 static int is_trim_space(int c) {
@@ -1436,15 +1649,23 @@ static Value n_strcmp(Env *env, int argc, Value *argv){
 
 static Value n_str_replace(Env *env, int argc, Value *argv){
     (void)env;
-    if (argc != 3 || argv[0].type != VAL_STRING || argv[1].type != VAL_STRING ||
-        argv[2].type != VAL_STRING) {
+    if (argc != 3) {
         return value_string("");
     }
-    const char *needle = argv[0].s ? argv[0].s : "";
-    const char *repl = argv[1].s ? argv[1].s : "";
-    const char *hay = argv[2].s ? argv[2].s : "";
+    Value nv = value_to_string(argv[0]);
+    Value rv = value_to_string(argv[1]);
+    Value hv = value_to_string(argv[2]);
+    const char *needle = nv.s ? nv.s : "";
+    const char *repl = rv.s ? rv.s : "";
+    const char *hay = hv.s ? hv.s : "";
 
-    if (*needle == '\0') return value_string(hay);
+    if (*needle == '\0') {
+        Value out = value_string(hay);
+        value_free(nv);
+        value_free(rv);
+        value_free(hv);
+        return out;
+    }
 
     char *buf = NULL;
     size_t cap = 0;
@@ -1462,6 +1683,9 @@ static Value n_str_replace(Env *env, int argc, Value *argv){
 
     Value out = value_string(buf ? buf : "");
     free(buf);
+    value_free(nv);
+    value_free(rv);
+    value_free(hv);
     return out;
 }
 
@@ -1544,7 +1768,9 @@ static Value n_get_type(Env *env, int argc, Value *argv){
         case VAL_BOOL:      return value_string("bool");
         case VAL_INT:       return value_string("int");
         case VAL_FLOAT:     return value_string("float");
+        case VAL_BYTE:      return value_string("byte");
         case VAL_STRING:    return value_string("string");
+        case VAL_BLOB:      return value_string("blob");
         case VAL_ARRAY:     return value_string("array");
         default:            return value_string("undefined");
     }
@@ -1560,6 +1786,7 @@ static Value n_is_bool(Env *env,int a,Value *v){ (void)env; return make_is(VAL_B
 static Value n_is_int(Env *env,int a,Value *v){ (void)env; return make_is(VAL_INT,a,v); }
 static Value n_is_float(Env *env,int a,Value *v){ (void)env; return make_is(VAL_FLOAT,a,v); }
 static Value n_is_string(Env *env,int a,Value *v){ (void)env; return make_is(VAL_STRING,a,v); }
+static Value n_is_blob(Env *env,int a,Value *v){ (void)env; return make_is(VAL_BLOB,a,v); }
 static Value n_is_array(Env *env,int a,Value *v){ (void)env; return make_is(VAL_ARRAY,a,v); }
 static Value n_is_defined(Env *env,int a,Value *v){
     (void)env;
@@ -1582,9 +1809,9 @@ static Value n_ord(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_int(0);
     if (argv[0].type != VAL_STRING || !argv[0].s || argv[0].s[0] == '\0') {
-        return value_int(0);
+        return value_byte(0);
     }
-    return value_int((unsigned char)argv[0].s[0]);
+    return value_byte((unsigned char)argv[0].s[0]);
 }
 
 static Value n_split(Env *env, int argc, Value *argv){
@@ -1768,6 +1995,39 @@ static Value n_float(Env *env, int argc, Value *argv){
     return value_to_float(argv[0]);
 }
 
+static Value n_byte(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_byte(0);
+    Value iv = value_to_int(argv[0]);
+    int n = iv.i;
+    value_free(iv);
+    if (n < 0) n = 0;
+    if (n > 255) n = 255;
+    return value_byte((unsigned char)n);
+}
+
+static Value n_blob(Env *env, int argc, Value *argv){
+    (void)env;
+    if (argc != 1) return value_blob_n(NULL, 0);
+    Value v = argv[0];
+    if (v.type == VAL_BLOB) return value_copy(v);
+    if (v.type == VAL_BYTE) return value_blob_n(&v.byte, 1);
+    if (v.type == VAL_STRING) {
+        const unsigned char *s = (const unsigned char *)(v.s ? v.s : "");
+        size_t len = v.s ? strlen(v.s) : 0;
+        return value_blob_n(s, len);
+    }
+    if (v.type == VAL_FLOAT) {
+        double f = v.f;
+        return value_blob_n((const unsigned char *)&f, sizeof(f));
+    }
+    if (v.type == VAL_INT || v.type == VAL_BOOL) {
+        int i = value_to_int(v).i;
+        return value_blob_n((const unsigned char *)&i, sizeof(i));
+    }
+    return value_blob_n(NULL, 0);
+}
+
 static Value n_str(Env *env, int argc, Value *argv){
     (void)env;
     if (argc != 1) return value_string("");
@@ -1863,6 +2123,12 @@ static Value n_sprintf(Env *env, int argc, Value *argv){
 
         if (argi >= argc) {
             buf_append(&out, &cap, &len, frag, frag_len);
+            continue;
+        }
+
+        if (argv[argi].type == VAL_BYTE &&
+            !(spec == 'c' || spec == 'd' || spec == 'u' || spec == 'x' || spec == 'X')) {
+            argi++;
             continue;
         }
 
@@ -2008,12 +2274,16 @@ void install_stdlib(void){
     register_function("floor",   n_floor);
     register_function("ceil",    n_ceil);
     register_function("strlen",  n_strlen);
+    register_function("blob_len",  n_blob_len);
     register_function("base64_encode", n_base64_encode);
     register_function("base64_decode", n_base64_decode);
+    register_function("blob_to_base64", n_blob_to_base64);
+    register_function("blob_from_base64", n_blob_from_base64);
     register_function("crc32",   n_crc32);
     register_function("crc32u",  n_crc32u);
     register_function("count",   n_count);
     register_function("substr",  n_substr);
+    register_function("blob_slice",  n_blob_slice);
     register_function("trim",    n_trim);
     register_function("ltrim",   n_ltrim);
     register_function("rtrim",   n_rtrim);
@@ -2026,6 +2296,7 @@ void install_stdlib(void){
     register_function("strrpos", n_strrpos);
     register_function("strcmp",  n_strcmp);
     register_function("str_replace", n_str_replace);
+    register_function("blob_concat", n_blob_concat);
     register_function("str_contains", n_str_contains);
     register_function("starts_with", n_starts_with);
     register_function("ends_with", n_ends_with);
@@ -2037,6 +2308,7 @@ void install_stdlib(void){
     register_function("is_int",    n_is_int);
     register_function("is_float",  n_is_float);
     register_function("is_string", n_is_string);
+    register_function("is_blob",   n_is_blob);
     register_function("is_array",  n_is_array);
     register_function("is_defined",   n_is_defined);
     register_function("is_undefined", n_is_undefined);
@@ -2084,6 +2356,8 @@ void install_stdlib(void){
     register_function("krsort", n_krsort);
     register_function("int", n_int);
     register_function("float", n_float);
+    register_function("byte", n_byte);
+    register_function("blob", n_blob);
     register_function("str", n_str);
     register_function("split", n_split);
     register_function("join", n_join);

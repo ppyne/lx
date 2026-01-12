@@ -2,8 +2,10 @@
 print("INT_MAX=" . LX_INT_MAX); print(LX_EOL);
 print("INT_MIN=" . LX_INT_MIN); print(LX_EOL);
 print("INT_SIZE=" . LX_INT_SIZE); print(LX_EOL);
+print("ENDIANNESS=" . LX_ENDIANNESS); print(LX_EOL);
 
 # float constants
+print("FLOAT_SIZE=" . LX_FLOAT_SIZE); print(LX_EOL);
 print("FLOAT_DIG=" . LX_FLOAT_DIG); print(LX_EOL);
 print("FLOAT_EPSILON=" . sprintf("%.6e", LX_FLOAT_EPSILON)); print(LX_EOL);
 print("FLOAT_MIN=" . sprintf("%.6e", LX_FLOAT_MIN)); print(LX_EOL);

@@ -118,6 +118,8 @@ sprintf("%.4s", "abcdef"); // "abcd"
 | `%G`      | Shortest representation (`%F` or `%E`)                                                                                                 |
 | `%%`      | Literal percent sign. No argument required.                                                                                            |
 
+Note: `byte` arguments are only supported with `%c`, `%d`, `%u`, `%x`, and `%X`.
+
 ---
 
 #### Combined examples

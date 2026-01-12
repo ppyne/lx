@@ -12,7 +12,9 @@ pad=00007
 left=7    !
 100%
 char=A
+bytec=B
 P:ok 3
 A
 A
 A
+C

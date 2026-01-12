@@ -21,6 +21,7 @@ print(sprintf("100%%")); print("\n");
 
 # char
 print(sprintf("char=%c", 65)); print("\n");
+print(sprintf("bytec=%c", byte(66))); print("\n");
 
 # printf uses sprinf and prints directly
 printf("P:%s %d\n", "ok", 3);
@@ -28,3 +29,4 @@ printf("P:%s %d\n", "ok", 3);
 printf("%c\n", "A");
 printf("%c\n", "AB");
 printf("%c\n", 65);
+printf("%c\n", byte(67));

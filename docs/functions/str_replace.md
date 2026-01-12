@@ -20,7 +20,7 @@ Replaces all occurrences of `needle` in `haystack`.
 
 ### Return Values
 
-Returns a string.
+Returns a string. All arguments are converted to strings.
 
 ### Examples
 

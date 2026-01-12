@@ -144,7 +144,9 @@ static int strict_equal(Value a, Value b) {
         case VAL_BOOL: return a.b == b.b;
         case VAL_INT: return a.i == b.i;
         case VAL_FLOAT: return a.f == b.f;
+        case VAL_BYTE: return a.byte == b.byte;
         case VAL_STRING: return strcmp(a.s?a.s:"", b.s?b.s:"")==0;
+        case VAL_BLOB: return a.blob == b.blob;
         case VAL_ARRAY: return a.a == b.a; /* identity only in V1 */
         default: return 0;
     }
@@ -417,6 +419,34 @@ static Value string_index(Value s, int idx) {
     return value_string_n(&s.s[idx], 1);
 }
 
+static int value_to_byte(Value v, unsigned char *out) {
+    if (!out) return 0;
+    if (v.type == VAL_BYTE) { *out = v.byte; return 1; }
+    if (v.type == VAL_INT || v.type == VAL_BOOL || v.type == VAL_FLOAT) {
+        Value iv = value_to_int(v);
+        int n = iv.i;
+        value_free(iv);
+        if (n < 0) n = 0;
+        if (n > 255) n = 255;
+        *out = (unsigned char)n;
+        return 1;
+    }
+    if (v.type == VAL_STRING) {
+        if (!v.s || v.s[0] == '\0') { *out = 0; return 1; }
+        *out = (unsigned char)v.s[0];
+        return 1;
+    }
+    return 0;
+}
+
+static Value blob_index(Value b, int idx) {
+    if (b.type != VAL_BLOB || !b.blob || !b.blob->data)
+        return value_undefined();
+    if (idx < 0 || (size_t)idx >= b.blob->len)
+        return value_undefined();
+    return value_byte(b.blob->data[idx]);
+}
+
 static Value eval_index(Value target, Value index, Env *env, int *ok_flag) {
     (void)env;
     if (target.type == VAL_ARRAY) {
@@ -432,6 +462,11 @@ static Value eval_index(Value target, Value index, Env *env, int *ok_flag) {
     if (target.type == VAL_STRING) {
         Value ii = value_to_int(index);
         Value v = string_index(target, ii.i);
+        return v;
+    }
+    if (target.type == VAL_BLOB) {
+        Value ii = value_to_int(index);
+        Value v = blob_index(target, ii.i);
         return v;
     }
     *ok_flag = 1;
@@ -964,6 +999,94 @@ EvalResult eval_node(AstNode *n, Env *env) {
                     arrv = value_array();
                     env_set(env, varname, value_copy(arrv));
                 }
+
+                if (arrv.type == VAL_STRING) {
+                    Value val = eval_expr(n->index_assign.value, env, &ok2);
+                    if (!ok2) { value_free(arrv); free(dyn_name); return ok(value_null()); }
+                    Value sv = value_to_string(val);
+                    size_t base_len = arrv.s ? strlen(arrv.s) : 0;
+                    size_t add_len = sv.s ? strlen(sv.s) : 0;
+                    char *buf = (char *)malloc(base_len + add_len + 1);
+                    if (!buf) {
+                        value_free(val);
+                        value_free(sv);
+                        value_free(arrv);
+                        free(dyn_name);
+                        runtime_error(n, LX_ERR_INTERNAL, "string append allocation failed");
+                        return ok(value_null());
+                    }
+                    if (base_len) memcpy(buf, arrv.s, base_len);
+                    if (add_len) memcpy(buf + base_len, sv.s, add_len);
+                    buf[base_len + add_len] = '\0';
+                    Value out = value_string(buf);
+                    free(buf);
+                    env_set(env, varname, out);
+                    value_free(val);
+                    value_free(sv);
+                    value_free(arrv);
+                    free(dyn_name);
+                    return ok(value_null());
+                }
+
+                if (arrv.type == VAL_BLOB) {
+                    if (!arrv.blob) {
+                        arrv = value_blob_n(NULL, 0);
+                    }
+                    Value val = eval_expr(n->index_assign.value, env, &ok2);
+                    if (!ok2) { value_free(arrv); free(dyn_name); return ok(value_null()); }
+
+                    const unsigned char *src = NULL;
+                    size_t src_len = 0;
+                    unsigned char tmp[sizeof(double)];
+
+                    if (val.type == VAL_BLOB && val.blob) {
+                        src = val.blob->data;
+                        src_len = val.blob->len;
+                    } else if (val.type == VAL_STRING) {
+                        src = (const unsigned char *)(val.s ? val.s : "");
+                        src_len = val.s ? strlen(val.s) : 0;
+                    } else if (val.type == VAL_BYTE) {
+                        tmp[0] = val.byte;
+                        src = tmp;
+                        src_len = 1;
+                    } else if (val.type == VAL_INT || val.type == VAL_BOOL) {
+                        Value iv = value_to_int(val);
+                        int ivv = iv.i;
+                        value_free(iv);
+                        memcpy(tmp, &ivv, sizeof(ivv));
+                        src = tmp;
+                        src_len = sizeof(ivv);
+                    } else if (val.type == VAL_FLOAT) {
+                        double fv = val.f;
+                        memcpy(tmp, &fv, sizeof(fv));
+                        src = tmp;
+                        src_len = sizeof(fv);
+                    } else {
+                        Value sv = value_to_string(val);
+                        src = (const unsigned char *)(sv.s ? sv.s : "");
+                        src_len = sv.s ? strlen(sv.s) : 0;
+                        value_free(sv);
+                    }
+
+                    if (src_len > 0) {
+                        size_t new_len = arrv.blob->len + src_len;
+                        if (!blob_reserve(arrv.blob, new_len)) {
+                            value_free(val);
+                            value_free(arrv);
+                            free(dyn_name);
+                            runtime_error(n, LX_ERR_INTERNAL, "blob append allocation failed");
+                            return ok(value_null());
+                        }
+                        memcpy(arrv.blob->data + arrv.blob->len, src, src_len);
+                        arrv.blob->len = new_len;
+                    }
+
+                    env_set(env, varname, arrv);
+                    value_free(val);
+                    free(dyn_name);
+                    return ok(value_null());
+                }
+
                 if (arrv.type != VAL_ARRAY) {
                     value_free(arrv);
                     free(dyn_name);
@@ -1014,6 +1137,101 @@ EvalResult eval_node(AstNode *n, Env *env) {
             if (arrv.type == VAL_UNDEFINED || arrv.type == VAL_NULL) {
                 arrv = value_array();
                 env_set(env, varname, value_copy(arrv));
+            }
+
+            if ((arrv.type == VAL_STRING || arrv.type == VAL_BLOB) && index_count == 1) {
+                if (n->index_assign.is_compound) {
+                    value_free(arrv);
+                    free(indices);
+                    free(dyn_name);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "compound index assignment on non-array");
+                    return ok(value_null());
+                }
+
+                Value last_idx = eval_expr(indices[0], env, &ok2);
+                if (!ok2) { value_free(arrv); free(indices); free(dyn_name); return ok(value_null()); }
+                Value val = eval_expr(n->index_assign.value, env, &ok2);
+                if (!ok2) { value_free(arrv); value_free(last_idx); free(indices); free(dyn_name); return ok(value_null()); }
+
+                Value ii = value_to_int(last_idx);
+                int idx = ii.i;
+                value_free(ii);
+                value_free(last_idx);
+
+                if (idx < 0) {
+                    value_free(val);
+                    value_free(arrv);
+                    free(indices);
+                    free(dyn_name);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment requires non-negative index");
+                    return ok(value_null());
+                }
+
+                unsigned char byte = 0;
+                if (!value_to_byte(val, &byte)) {
+                    value_free(val);
+                    value_free(arrv);
+                    free(indices);
+                    free(dyn_name);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment requires byte-compatible value");
+                    return ok(value_null());
+                }
+                value_free(val);
+
+                if (arrv.type == VAL_STRING) {
+                    if (!arrv.s) {
+                        value_free(arrv);
+                        free(indices);
+                        free(dyn_name);
+                        runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment on empty string");
+                        return ok(value_null());
+                    }
+                    int len = (int)strlen(arrv.s);
+                    if (idx >= len) {
+                        value_free(arrv);
+                        free(indices);
+                        free(dyn_name);
+                        runtime_error(n, LX_ERR_INDEX_ASSIGN, "string index out of range");
+                        return ok(value_null());
+                    }
+                    arrv.s[idx] = (char)byte;
+                    env_set(env, varname, arrv);
+                    free(indices);
+                    free(dyn_name);
+                    return ok(value_null());
+                }
+
+                if (!arrv.blob) {
+                    value_free(arrv);
+                    free(indices);
+                    free(dyn_name);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "index assignment on invalid blob");
+                    return ok(value_null());
+                }
+                if ((size_t)idx > arrv.blob->len) {
+                    value_free(arrv);
+                    free(indices);
+                    free(dyn_name);
+                    runtime_error(n, LX_ERR_INDEX_ASSIGN, "blob index out of range");
+                    return ok(value_null());
+                }
+                if ((size_t)idx == arrv.blob->len) {
+                    if (!blob_reserve(arrv.blob, arrv.blob->len + 1)) {
+                        value_free(arrv);
+                        free(indices);
+                        free(dyn_name);
+                        runtime_error(n, LX_ERR_INTERNAL, "blob allocation failed");
+                        return ok(value_null());
+                    }
+                    arrv.blob->data[arrv.blob->len] = byte;
+                    arrv.blob->len += 1;
+                } else {
+                    arrv.blob->data[idx] = byte;
+                }
+                env_set(env, varname, arrv);
+                free(indices);
+                free(dyn_name);
+                return ok(value_null());
             }
 
             if (arrv.type != VAL_ARRAY) {
@@ -1269,6 +1487,20 @@ EvalResult eval_node(AstNode *n, Env *env) {
                         env_set(env, n->foreach_stmt.key_name, value_int(i));
                     }
                     Value vv = value_string_n(&it.s[i], 1);
+                    env_set(env, n->foreach_stmt.value_name, vv);
+
+                    EvalResult r = eval_node(n->foreach_stmt.body, env);
+                    if (r.flow == FLOW_RETURN) { value_free(it); return r; }
+                    if (r.flow == FLOW_BREAK) { value_free(r.value); break; }
+                    if (r.flow == FLOW_CONTINUE) { value_free(r.value); continue; }
+                    value_free(r.value);
+                }
+            } else if (it.type == VAL_BLOB && it.blob) {
+                for (size_t i = 0; i < it.blob->len; i++) {
+                    if (n->foreach_stmt.key_name) {
+                        env_set(env, n->foreach_stmt.key_name, value_int((int)i));
+                    }
+                    Value vv = value_byte(it.blob->data[i]);
                     env_set(env, n->foreach_stmt.value_name, vv);
 
                     EvalResult r = eval_node(n->foreach_stmt.body, env);

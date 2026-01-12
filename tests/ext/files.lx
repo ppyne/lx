@@ -25,6 +25,15 @@ print(chmod("tmp_file.txt", 0644) . "\n");
 print(is_file("tmp_file.txt") . "\n");
 print(is_dir("tmp_file.txt") . "\n");
 
+$b = blob("A");
+$b[1] = byte(0);
+$b[2] = "B";
+file_put_contents("tmp_blob.bin", $b);
+print(file_get_contents("tmp_blob.bin") . "\n");
+$bb = file_get_contents("tmp_blob.bin", true);
+print(blob_len($bb) . "\n");
+print($bb[0] . "," . $bb[1] . "," . $bb[2] . "\n");
+
 mkdir("tmp_dir");
 file_put_contents("tmp_dir/a.txt", "A");
 file_put_contents("tmp_dir/b.txt", "B");
@@ -51,3 +60,4 @@ unlink("tmp_copy.txt");
 unlink("tmp_copy2.txt");
 unlink("tmp_moved.txt");
 unlink("tmp_moved2.txt");
+unlink("tmp_blob.bin");

@@ -12,7 +12,16 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [base64_decode](functions/base64_decode.md)(string) : string|undefined <span style="color:#888">[Strings]</span>
 - [base64_encode](functions/base64_encode.md)(string) : string <span style="color:#888">[Strings]</span>
 - [blake2b](functions/blake2b.md)(string[, out_len[, base64]]) : string|undefined <span style="color:#888">[Extensions: blake2b]</span>
+- [blob](functions/blob.md)(value) : blob <span style="color:#888">[Types and casting]</span>
+- [blob_concat](functions/blob_concat.md)(a, b) : blob <span style="color:#888">[Binary]</span>
+- [blob_from_base64](functions/blob_from_base64.md)(string) : blob <span style="color:#888">[Binary]</span>
+- [blob_from_hex](functions/blob_from_hex.md)(string) : blob <span style="color:#888">[Extensions: hex]</span>
+- [blob_len](functions/blob_len.md)(blob) : int <span style="color:#888">[Binary]</span>
+- [blob_slice](functions/blob_slice.md)(blob, start[, length]) : blob <span style="color:#888">[Binary]</span>
+- [blob_to_base64](functions/blob_to_base64.md)(blob) : string <span style="color:#888">[Binary]</span>
+- [blob_to_hex](functions/blob_to_hex.md)(blob) : string <span style="color:#888">[Extensions: hex]</span>
 - [bin2hex](functions/bin2hex.md)(string) : string <span style="color:#888">[Extensions: hex]</span>
+- [byte](functions/byte.md)(value) : byte <span style="color:#888">[Types and casting]</span>
 - [ceil](functions/ceil.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [chr](functions/chr.md)(code) : string <span style="color:#888">[Strings]</span>
 - [clamp](functions/clamp.md)(value, min, max) : int|float <span style="color:#888">[Numeric and math]</span>
@@ -33,7 +42,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [exp](functions/exp.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [explode](functions/explode.md)(delim, string) : array <span style="color:#888">[Strings]</span>
 - [file_exists](functions/file_exists.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
-- [file_get_contents](functions/file_get_contents.md)(path) : string|undefined <span style="color:#888">[Extensions: fs]</span>
+- [file_get_contents](functions/file_get_contents.md)(path[, is_blob]) : string|blob|undefined <span style="color:#888">[Extensions: fs]</span>
 - [file_put_contents](functions/file_put_contents.md)(path, data) : int <span style="color:#888">[Extensions: fs]</span>
 - [file_size](functions/file_size.md)(path) : int|undefined <span style="color:#888">[Extensions: fs]</span>
 - [float](functions/float.md)(value) : float <span style="color:#888">[Casting helpers]</span>
@@ -50,6 +59,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [include_once](functions/include_once.md)(path) : bool <span style="color:#888">[Includes]</span>
 - [int](functions/int.md)(value) : int <span style="color:#888">[Casting helpers]</span>
 - [is_array](functions/is_array.md)(value) : bool <span style="color:#888">[Types and inspection]</span>
+- [is_blob](functions/is_blob.md)(value) : bool <span style="color:#888">[Types and inspection]</span>
 - [is_bool](functions/is_bool.md)(value) : bool <span style="color:#888">[Types and inspection]</span>
 - [is_defined](functions/is_defined.md)(value) : bool <span style="color:#888">[Types and inspection]</span>
 - [is_dir](functions/is_dir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
@@ -80,7 +90,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [mktime](functions/mktime.md)(hour, min, sec, month, day, year) : int <span style="color:#888">[Extensions: time]</span>
 - [mkdir](functions/mkdir.md)(path) : bool <span style="color:#888">[Extensions: fs]</span>
 - [mv](functions/mv.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
-- [ord](functions/ord.md)(string) : int <span style="color:#888">[Strings]</span>
+- [ord](functions/ord.md)(string) : byte <span style="color:#888">[Strings]</span>
 - [pathinfo](functions/pathinfo.md)(path) : array <span style="color:#888">[Extensions: fs]</span>
 - [pdo_close](functions/pdo_close.md)(db) : bool <span style="color:#888">[Extensions: sqlite]</span>
 - [pdo_execute](functions/pdo_execute.md)(stmt[, params]) : bool <span style="color:#888">[Extensions: sqlite]</span>

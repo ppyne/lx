@@ -16,6 +16,8 @@ Outputs a formatted string using printf-style formatting.
 
 For a detailed description of the formatting syntax and supported specifiers, see [**`sprintf`**](sprintf.md).
 
+Note: `byte` arguments are only supported with `%c`, `%d`, `%u`, `%x`, and `%X`.
+
 ### Parameters
 
 - **`format`**: The format string.

@@ -16,6 +16,11 @@ The constants below are always available globally as part of the Lx core and can
   The end-of-line sequence used by Lx.  
   Currently defined as a newline character (`"\n"`).
 
+- **`LX_ENDIANNESS`** (`int`)  
+  Host byte order for `blob()` numeric conversions.  
+  `0` for little-endian (x86, x86_64, most ARM), `1` for big-endian (some legacy PowerPC, SPARC).  
+  This indicates the byte order used when `blob()` copies raw numeric memory; the resulting byte sequence is platform-dependent.
+
 ---
 
 ## Integer Limits
@@ -34,6 +39,9 @@ These values reflect the integer representation used internally by the interpret
 ---
 
 ## Floating-Point Limits
+
+- **`LX_FLOAT_SIZE`** (`int`)  
+  The size of a floating-point value, in bytes, in this version of Lx.
 
 - **`LX_FLOAT_DIG`** (`int`)  
   The number of decimal digits that can be rounded and returned for a floating-point number without loss of precision.

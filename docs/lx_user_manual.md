@@ -141,13 +141,18 @@ Lx supports the following runtime types:
 - `int`: signed integer
 - `float`: double-precision floating-point number
 - `bool`: boolean value (true or false)
+- `byte`: unsigned byte (0..255)
 - `string`: character string
+- `blob`: binary data buffer (bytes with explicit length)
 - `array`: associative array with integer or string keys
 - `null`: explicit absence of value
 - `undefined`: value of an uninitialized or missing variable
 - `void`: default silent function return value
 
 Type inspection is available via `type()` and `is_*()` functions.
+
+Internally, booleans are stored as integers (0 or 1), but they remain a distinct
+runtime type.
 
 ```php
 $i = 42;
@@ -181,7 +186,9 @@ Falsy values:
 - `false`
 - `0`
 - `0.0`
+- `byte(0)`
 - `""` empty string
+- empty `blob`
 - `[]` empty arrays
 
 All other values are truthy.
@@ -221,6 +228,35 @@ Lx compared to PHP
 | "10abc" == 10    | false | true    | false   |
 | null == 0        | false | true    | true    |
 | "0e12345" == "0" | false | true    | true    |
+
+---
+
+### 3.2 Blob values
+
+`blob` values store raw bytes with an explicit length. They are useful for
+binary data, file I/O, and encoding/decoding helpers.
+
+Key behaviors:
+
+- Indexing (`$blob[$i]`) returns a `byte`, or `undefined` if out of range.
+- `foreach` over a blob yields byte values with the index as the key.
+- `str($blob)` converts to a string up to the first `0x00`, or the full length
+  if no `0x00` exists.
+- `blob($value)` converts strings to raw bytes and numeric values to their
+  in-memory representation (see `LX_ENDIANNESS`).
+- `$blob[] = value` appends bytes. Strings become bytes, and int/float values
+  are appended as raw memory bytes.
+
+Common helpers:
+
+- `blob_len`, `blob_slice`, `blob_concat`
+- `blob_to_base64`, `blob_from_base64`
+- `blob_to_hex`, `blob_from_hex`
+
+Binary I/O:
+
+- `file_get_contents(path, true)` returns a blob.
+- `file_put_contents(path, blob)` writes binary data.
 
 ---
 
@@ -717,10 +753,15 @@ print($a["nested"][keys($a["nested"])[0]] . "\n"); // 30 😄
 Rules:
 
 - Reading a missing key, or an out of range index, returns `undefined`.
-- Indexing a non-array (except string) returns `undefined`.
+- Indexing a non-array (except string/blob) returns `undefined`.
 - String indexing returns a one-character string or `undefined`.
+- Blob indexing returns a `byte` or `undefined`.
 - Appending with `$array[] = value` adds to the next numeric index.
-- Index assignment on a non-array raises a runtime error.
+- Appending with `$string[] = value` appends the string representation of `value`.
+- Appending with `$blob[] = value` appends bytes (strings become bytes, integers/floats are copied as raw memory).
+- Index assignment on a non-array (except string/blob) raises a runtime error.
+- String index assignment replaces an existing character.
+- Blob index assignment updates a byte, or appends when the index is exactly the blob length.
 - Cyclic array reference assignment raises a runtime error.
 
 ---
@@ -989,7 +1030,7 @@ See [Adding extensions to Lx](lx_adding_extensions.md) for more details.
 - **env**: [`env_get`](functions/env_get.md), [`env_set`](functions/env_set.md), [`env_unset`](functions/env_unset.md), [`env_list`](functions/env_list.md)
 - **json**: [`json_encode`](functions/json_encode.md), [`is_json`](functions/is_json.md), [`json_decode`](functions/json_decode.md)
 - **serializer**: [`serialize`](functions/serialize.md), [`unserialize`](functions/unserialize.md)
-- **hex**: [`bin2hex`](functions/bin2hex.md), [`hex2bin`](functions/hex2bin.md)
+- **hex**: [`bin2hex`](functions/bin2hex.md), [`hex2bin`](functions/hex2bin.md), [`blob_to_hex`](functions/blob_to_hex.md), [`blob_from_hex`](functions/blob_from_hex.md)
 - **blake2b**: [`blake2b`](functions/blake2b.md)
 - **time**: [`time`](functions/time.md), [`date`](functions/date.md), [`gmdate`](functions/gmdate.md), [`mktime`](functions/mktime.md), [`sleep`](functions/sleep.md), [`usleep`](functions/usleep.md)
 - **utf8**: [`glyph_count`](functions/glyph_count.md), [`glyph_at`](functions/glyph_at.md)

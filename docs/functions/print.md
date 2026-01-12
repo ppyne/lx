@@ -10,7 +10,7 @@ Domain: Output and formatting
 
 `print(...values)`
 
-Outputs the string representation of each value.
+Outputs the string representation of each value. `array` values print as `array`. `blob` values print as `blob`. `void` prints nothing. `null`, `undefined`, `true`, and `false` print as their literal names.
 
 ### Parameters
 

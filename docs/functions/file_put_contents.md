@@ -10,7 +10,8 @@ Domain: Extensions: fs
 
 `file_put_contents(path, data) : int`
 
-Writes `data` to a file and returns the number of bytes written.
+Writes `data` to a file and returns the number of bytes written. If `data` is a
+blob, it is written in binary form.
 
 ### Parameters
 
