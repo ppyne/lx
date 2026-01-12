@@ -12,6 +12,8 @@ Domain: Extensions: time
 
 Formats a UTC date/time according to `format`.
 
+This function is not affected by the local timezone.
+
 Supported format characters: `Y`, `y`, `m`, `n`, `d`, `j`, `S`, `H`, `h`, `G`, `i`, `s`, `a`, `A`, `M`, `F`, `D`, `l`, `w`, `z`, `W`, `L`, `t`, `U`, `c`, `r`. Use `\` to escape a character.
 
 ### Parameters

@@ -12,6 +12,8 @@ Domain: Extensions: time
 
 Returns a Unix timestamp for a local date/time.
 
+The local timezone (set with `tz_set()` or `LX_DEFAULT_TIMEZONE` in `config.h`) affects the result.
+
 ### Parameters
 
 - **`hour`**: Hours.
