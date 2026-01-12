@@ -35,6 +35,11 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [copy](functions/copy.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [cp](functions/cp.md)(source, destination) : bool <span style="color:#888">[Extensions: fs]</span>
 - [date](functions/date.md)(format[, timestamp]) : string <span style="color:#888">[Extensions: time]</span>
+- [ed25519_keypair](functions/ed25519_keypair.md)() : array <span style="color:#888">[Extensions: ed25519]</span>
+- [ed25519_seed_keypair](functions/ed25519_seed_keypair.md)(seed) : array <span style="color:#888">[Extensions: ed25519]</span>
+- [ed25519_public_key](functions/ed25519_public_key.md)(secret) : blob|undefined <span style="color:#888">[Extensions: ed25519]</span>
+- [ed25519_sign](functions/ed25519_sign.md)(secret, message) : blob|undefined <span style="color:#888">[Extensions: ed25519]</span>
+- [ed25519_verify](functions/ed25519_verify.md)(public, message, signature) : bool <span style="color:#888">[Extensions: ed25519]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
 - [env_get](functions/env_get.md)(name[, default]) : string|undefined <span style="color:#888">[Extensions: env]</span>

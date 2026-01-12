@@ -1,0 +1,8 @@
+$seed = "0123456789abcdef0123456789abcdef";
+$kp = ed25519_seed_keypair($seed);
+$sig = ed25519_sign($kp["secret"], "hello");
+$pub = ed25519_public_key($kp["secret"]);
+print(ed25519_verify($pub, "hello", $sig) . "\n");
+$bad = $sig;
+$bad[0] = byte(0);
+print(ed25519_verify($kp["public"], "hello", $bad) . "\n");

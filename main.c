@@ -49,6 +49,9 @@ void register_sqlite_module(void);
 #if LX_ENABLE_AEAD
 void register_aead_module(void);
 #endif
+#if LX_ENABLE_ED25519
+void register_ed25519_module(void);
+#endif
 
 /* Stream reading utility. */
 static char *read_stream(FILE *f) {
@@ -189,6 +192,9 @@ int main(int argc, char **argv) {
 #endif
 #if LX_ENABLE_AEAD
     register_aead_module();
+#endif
+#if LX_ENABLE_ED25519
+    register_ed25519_module();
 #endif
     /* Run extension initializers. */
     lx_init_modules(global);
