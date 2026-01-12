@@ -1,0 +1,6 @@
+$out = [];
+$status = exec("printf 'out\\n'; printf 'err\\n' 1>&2", $out);
+print($status . "\n");
+print(count($out) . "\n");
+print($out[0][0] . ":" . $out[0][1] . "\n");
+print($out[1][0] . ":" . $out[1][1] . "\n");

@@ -30,6 +30,7 @@ for t in $(find . -name "*.lx"); do
         ./ext/sqlite.lx) ext_key="LX_ENABLE_SQLITE" ;;
         ./ext/aead.lx) ext_key="LX_ENABLE_AEAD" ;;
         ./ext/ed25519.lx) ext_key="LX_ENABLE_ED25519" ;;
+        ./ext/exec.lx) ext_key="LX_ENABLE_EXEC" ;;
         *) ext_key="" ;;
     esac
 

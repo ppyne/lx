@@ -42,6 +42,7 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [ed25519_verify](functions/ed25519_verify.md)(public, message, signature) : bool <span style="color:#888">[Extensions: ed25519]</span>
 - [deg2rad](functions/deg2rad.md)(value) : float <span style="color:#888">[Numeric and math]</span>
 - [ends_with](functions/ends_with.md)(haystack, needle) : bool <span style="color:#888">[Strings]</span>
+- [exec](functions/exec.md)(command[, output]) : int <span style="color:#888">[Extensions: exec]</span>
 - [env_get](functions/env_get.md)(name[, default]) : string|undefined <span style="color:#888">[Extensions: env]</span>
 - [env_list](functions/env_list.md)() : array <span style="color:#888">[Extensions: env]</span>
 - [env_set](functions/env_set.md)(name, value) : bool <span style="color:#888">[Extensions: env]</span>

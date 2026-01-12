@@ -59,6 +59,9 @@ void register_aead_module(void);
 #if LX_ENABLE_ED25519
 void register_ed25519_module(void);
 #endif
+#if LX_ENABLE_EXEC
+void register_exec_module(void);
+#endif
 
 extern char **environ;
 
@@ -1297,6 +1300,9 @@ static int run_script(const char *source, const char *filename) {
 #endif
 #if LX_ENABLE_ED25519
     register_ed25519_module();
+#endif
+#if LX_ENABLE_EXEC
+    register_exec_module();
 #endif
     lx_init_modules(global);
     install_std_env(global);

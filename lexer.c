@@ -312,6 +312,21 @@ static Token identifier(Lexer *l, int is_var) {
             tok.int_val = 1;
             return tok;
         }
+        if (len == 8 && !strncmp(s, "LX_STDIN", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 0;
+            return tok;
+        }
+        if (len == 9 && !strncmp(s, "LX_STDOUT", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 1;
+            return tok;
+        }
+        if (len == 9 && !strncmp(s, "LX_STDERR", len)) {
+            Token tok = make_token(l, TOK_INT);
+            tok.int_val = 2;
+            return tok;
+        }
         if (len == 8 && !strncmp(s, "SORT_ASC", len)) {
             Token tok = make_token(l, TOK_INT);
             tok.int_val = 4;

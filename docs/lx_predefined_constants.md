@@ -89,6 +89,19 @@ These constants describe the floating-point characteristics of the current Lx im
 
 ---
 
+## Stream constants
+
+- **`LX_STDIN`** (`int`)  
+  Standard input stream id (`0`).
+
+- **`LX_STDOUT`** (`int`)  
+  Standard output stream id (`1`).
+
+- **`LX_STDERR`** (`int`)  
+  Standard error stream id (`2`).
+
+---
+
 ## Mathematical constants
 
 - **`M_PI`** (`float`)  
