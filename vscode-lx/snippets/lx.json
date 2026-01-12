@@ -1,0 +1,71 @@
+{
+  "if": {
+    "prefix": "if",
+    "body": [
+      "if (${1:condition}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "if statement"
+  },
+  "if_else": {
+    "prefix": "ifelse",
+    "body": [
+      "if (${1:condition}) {",
+      "    ${2}",
+      "} else {",
+      "    $0",
+      "}"
+    ],
+    "description": "if/else statement"
+  },
+  "for": {
+    "prefix": "for",
+    "body": [
+      "for (${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {",
+      "    $0",
+      "}"
+    ],
+    "description": "for loop"
+  },
+  "foreach": {
+    "prefix": "foreach",
+    "body": [
+      "foreach (${1:array} as ${2:value}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "foreach loop"
+  },
+  "foreach_key": {
+    "prefix": "foreachk",
+    "body": [
+      "foreach (${1:array} as ${2:key} => ${3:value}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "foreach with key/value"
+  },
+  "function": {
+    "prefix": "fn",
+    "body": [
+      "function ${1:name}(${2:args}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "function definition"
+  },
+  "switch": {
+    "prefix": "switch",
+    "body": [
+      "switch (${1:expr}) {",
+      "    case ${2:value}:",
+      "        ${3}",
+      "        break;",
+      "    default:",
+      "        $0",
+      "}"
+    ],
+    "description": "switch statement"
+  }
+}

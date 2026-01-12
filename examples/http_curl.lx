@@ -1,0 +1,87 @@
+function _shell_escape($s) {
+    return str_replace("\"", "\\\"", $s);
+}
+
+function _normalize_headers($headers) {
+    $out = [];
+    if ($headers == null) return $out;
+    foreach ($headers as $k => $v) {
+        if (type($k) == "int") {
+            $out[] = str($v);
+        } else {
+            $out[] = str($k) . ": " . str($v);
+        }
+    }
+    return $out;
+}
+
+function _curl_request($method, $url, $headers, $body, $timeout) {
+    $cmd = "curl -sS -D - -o - -X \"" . _shell_escape($method) . "\"";
+    if ($timeout != null) {
+        $cmd = $cmd . " --max-time " . int($timeout);
+    }
+    foreach (_normalize_headers($headers) as $h) {
+        $cmd = $cmd . " -H \"" . _shell_escape($h) . "\"";
+    }
+    if ($body != null) {
+        $cmd = $cmd . " --data \"" . _shell_escape($body) . "\"";
+    }
+    $cmd = $cmd . " -w \"\\n__STATUS__%{http_code}\\n\"";
+    $cmd = $cmd . " \"" . _shell_escape($url) . "\"";
+
+    $out = [];
+    exec($cmd, $out);
+
+    $stdout = [];
+    foreach ($out as $row) {
+        if ($row[1] == LX_STDOUT) $stdout[] = $row[0];
+    }
+
+    $raw = join($stdout, "\n");
+    $parts = split("\n__STATUS__", $raw);
+    $payload = $parts[0];
+    $status_str = "0";
+    if (count($parts) > 1) $status_str = trim($parts[1]);
+    $status_code = int($status_str);
+
+    $headers_str = "";
+    $body_str = $payload;
+    $idx = strrpos($payload, "\n\n");
+    if ($idx != undefined) {
+        $headers_str = substr($payload, 0, $idx);
+        $body_str = substr($payload, $idx + 2);
+    }
+
+    $headers_arr = [];
+    if ($headers_str != "") {
+        $headers_arr = split("\n", $headers_str);
+    }
+
+    return [$status_code, $headers_arr, $body_str];
+}
+
+function http_get($url, $headers = null, $timeout = null) {
+    return _curl_request("GET", $url, $headers, null, $timeout);
+}
+
+function http_post($url, $data, $headers = null, $timeout = null) {
+    return _curl_request("POST", $url, $headers, $data, $timeout);
+}
+
+function http_request($method, $url, $headers = null, $body = null, $timeout = null) {
+    return _curl_request($method, $url, $headers, $body, $timeout);
+}
+
+/*
+Example:
+
+$headers = [
+    "Accept" => "application/json",
+    "User-Agent" => "lx-http/1.0"
+];
+
+$res = http_get("https://example.com", $headers, 5);
+print($res[0] . "\n");
+print(join($res[1], "\n") . "\n");
+print($res[2] . "\n");
+*/

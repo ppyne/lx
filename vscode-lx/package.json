@@ -1,0 +1,45 @@
+{
+  "name": "lx",
+  "displayName": "Lx",
+  "description": "Syntax highlighting and basic completions for Lx.",
+  "version": "0.1.0",
+  "publisher": "lx-lang",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:lx"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "lx",
+        "aliases": [
+          "Lx",
+          "lx"
+        ],
+        "extensions": [
+          ".lx"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lx",
+        "scopeName": "source.lx",
+        "path": "./syntaxes/lx.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "lx",
+        "path": "./snippets/lx.json"
+      }
+    ]
+  }
+}
