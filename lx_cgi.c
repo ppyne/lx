@@ -8,6 +8,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <limits.h>
+#include <time.h>
 
 #include "lexer.h"
 #include "parser.h"
@@ -207,6 +208,78 @@ static Value n_move_uploaded_file(Env *env, int argc, Value *argv) {
     value_free(srcv);
     value_free(dstv);
     return value_bool(ok);
+}
+
+static int format_http_date(lx_int_t ts, char *out, size_t out_len) {
+    if (!out || out_len == 0) return 0;
+    if (ts <= 0) return 0;
+    time_t t = (time_t)ts;
+    struct tm *gt = gmtime(&t);
+    if (!gt) return 0;
+    return strftime(out, out_len, "%a, %d %b %Y %H:%M:%S GMT", gt) > 0;
+}
+
+static Value n_setcookie(Env *env, int argc, Value *argv) {
+    (void)env;
+    if (argc < 2) return value_bool(0);
+    Value namev = value_to_string(argv[0]);
+    Value valv = value_to_string(argv[1]);
+    const char *name = namev.s ? namev.s : "";
+    const char *val = valv.s ? valv.s : "";
+    if (!*name) {
+        value_free(namev);
+        value_free(valv);
+        return value_bool(0);
+    }
+
+    char *buf = NULL;
+    size_t len = 0;
+    size_t cap = 0;
+    append_str(&buf, &len, &cap, "Set-Cookie: ");
+    append_str(&buf, &len, &cap, name);
+    append_char(&buf, &len, &cap, '=');
+    append_str(&buf, &len, &cap, val);
+
+    if (argc >= 3 && argv[2].type != VAL_NULL && argv[2].type != VAL_UNDEFINED) {
+        lx_int_t exp = value_to_int(argv[2]).i;
+        char date[64];
+        if (format_http_date(exp, date, sizeof(date))) {
+            append_str(&buf, &len, &cap, "; Expires=");
+            append_str(&buf, &len, &cap, date);
+        }
+    }
+
+    if (argc >= 4 && argv[3].type != VAL_NULL && argv[3].type != VAL_UNDEFINED) {
+        Value pv = value_to_string(argv[3]);
+        if (pv.s && *pv.s) {
+            append_str(&buf, &len, &cap, "; Path=");
+            append_str(&buf, &len, &cap, pv.s);
+        }
+        value_free(pv);
+    }
+
+    if (argc >= 5 && argv[4].type != VAL_NULL && argv[4].type != VAL_UNDEFINED) {
+        Value dv = value_to_string(argv[4]);
+        if (dv.s && *dv.s) {
+            append_str(&buf, &len, &cap, "; Domain=");
+            append_str(&buf, &len, &cap, dv.s);
+        }
+        value_free(dv);
+    }
+
+    if (argc >= 6 && value_is_true(argv[5])) {
+        append_str(&buf, &len, &cap, "; Secure");
+    }
+
+    if (argc >= 7 && value_is_true(argv[6])) {
+        append_str(&buf, &len, &cap, "; HttpOnly");
+    }
+
+    headers_add(buf ? buf : "");
+    free(buf);
+    value_free(namev);
+    value_free(valv);
+    return value_bool(1);
 }
 
 static char *read_file_all(const char *path) {
@@ -816,6 +889,7 @@ static int run_script(const char *source, const char *filename) {
     install_stdlib();
     register_function("header", n_header);
     register_function("move_uploaded_file", n_move_uploaded_file);
+    register_function("setcookie", n_setcookie);
 #if LX_ENABLE_FS
     register_fs_module();
 #endif

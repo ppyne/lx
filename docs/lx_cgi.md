@@ -74,6 +74,7 @@ derives the path from that pattern.
 ## Custom headers
 
 `lx_cgi` exposes a `header()` function (CGI only) to send custom HTTP headers.
+It also provides `setcookie()` to emit `Set-Cookie` headers.
 The default response header is:
 
 ```
