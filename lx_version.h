@@ -6,7 +6,7 @@
 #define LX_VERSION_H
 
 #define LX_VERSION_MAJOR 1
-#define LX_VERSION_MINOR 1
+#define LX_VERSION_MINOR 2
 
 #include "lx_version_build.h"
 
