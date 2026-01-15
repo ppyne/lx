@@ -373,6 +373,12 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
             value_free(ii);
         }
         value_free(idx);
+        if (!slot) {
+            value_free(arrv);
+            free(indices);
+            free(dyn_name);
+            return NULL;
+        }
 
         if (slot->type == VAL_UNDEFINED || slot->type == VAL_NULL) {
             Value nv = value_array();
@@ -401,6 +407,12 @@ static Value *get_lvalue_ref(AstNode *target, Env *env, int *ok_flag, Value *out
         value_free(ii);
     }
     value_free(last_idx);
+    if (!slot) {
+        value_free(arrv);
+        free(indices);
+        free(dyn_name);
+        return NULL;
+    }
 
     *out_base = arrv;
     free(indices);
@@ -950,7 +962,26 @@ static Value eval_expr(AstNode *n, Env *env, int *ok_flag) {
 }
 
 static EvalResult eval_block_like(AstNode *n, Env *env) {
-    for (int i=0;i<n->block.count;i++) {
+    if (!n || n->block.count <= 0 || !n->block.items) {
+        return ok(value_null());
+    }
+
+    if (n->block.count == 1) {
+        EvalResult r = eval_node(n->block.items[0], env);
+        if (lx_has_error()) {
+            value_free(r.value);
+            return ok(value_null());
+        }
+        if (r.flow != FLOW_NORMAL) return r;
+        value_free(r.value);
+        return ok(value_null());
+    }
+
+    for (int i = 0; i < n->block.count; i++) {
+        if (!n->block.items[i]) {
+            runtime_error(n, LX_ERR_INTERNAL, "null block statement");
+            return ok(value_null());
+        }
         EvalResult r = eval_node(n->block.items[i], env);
         if (lx_has_error()) {
             value_free(r.value);
@@ -958,7 +989,9 @@ static EvalResult eval_block_like(AstNode *n, Env *env) {
         }
         if (r.flow != FLOW_NORMAL) return r;
         value_free(r.value);
+#if !defined(LX_TARGET_LXSH) || !LX_TARGET_LXSH
         gc_maybe_collect(env);
+#endif
     }
     return ok(value_null());
 }
@@ -1266,6 +1299,12 @@ EvalResult eval_node(AstNode *n, Env *env) {
                     value_free(ii);
                 }
                 value_free(idx);
+                if (!slot) {
+                    value_free(arrv);
+                    free(indices);
+                    free(dyn_name);
+                    return ok(value_null());
+                }
 
                 if (slot->type == VAL_UNDEFINED || slot->type == VAL_NULL) {
                     Value nv = value_array();
@@ -1309,6 +1348,14 @@ EvalResult eval_node(AstNode *n, Env *env) {
                 Value ii = value_to_int(last_idx);
                 slot = array_get_ref(current, key_int(ii.i));
                 value_free(ii);
+            }
+            if (!slot) {
+                value_free(val);
+                value_free(last_idx);
+                value_free(arrv);
+                free(indices);
+                free(dyn_name);
+                return ok(value_null());
             }
 
             if (n->index_assign.is_compound) {

@@ -1,0 +1,20 @@
+{
+  "name": "lx_core",
+  "version": "0.0.0",
+  "build": {
+    "srcFilter": [
+      "+<lexer.c>",
+      "+<parser.c>",
+      "+<value.c>",
+      "+<array.c>",
+      "+<env.c>",
+      "+<natives.c>",
+      "+<eval.c>",
+      "+<gc.c>",
+      "+<lx_ext.c>",
+      "+<lx_error.c>",
+      "+<lxsh_fs.c>",
+      "+<ext_lxshfs.c>"
+    ]
+  }
+}

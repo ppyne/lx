@@ -4,6 +4,8 @@
  */
 #include "value.h"
 #include "array.h"
+#include "memguard.h"
+#include "lx_error.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -18,11 +20,13 @@ Value value_bool(int b){ Value v; v.type=VAL_BOOL; v.b=!!b; return v; }
 Value value_byte(unsigned char b){ Value v; v.type=VAL_BYTE; v.byte=b; return v; }
 
 Value value_string(const char *s){
-    Value v; v.type=VAL_STRING;
-    v.s = strdup(s ? s : "");
-    return v;
+    const char *src = s ? s : "";
+    return value_string_n(src, strlen(src));
 }
 Value value_string_n(const char *s, size_t n){
+    if (!lx_memguard_check(n + 1)) {
+        Value v; v.type = VAL_NULL; return v;
+    }
     Value v; v.type=VAL_STRING;
     v.s = (char*)malloc(n+1);
     if (!v.s) { v.type=VAL_NULL; return v; }
@@ -43,6 +47,9 @@ Value value_array(void){
 }
 
 Blob *blob_new(size_t n){
+    if (n > 0 && !lx_memguard_check(n)) {
+        return NULL;
+    }
     Blob *b = (Blob *)malloc(sizeof(Blob));
     if (!b) return NULL;
     b->len = n;
@@ -81,10 +88,39 @@ int blob_reserve(Blob *b, size_t cap){
     if (b->cap >= cap) return 1;
     size_t ncap = b->cap ? b->cap : 8;
     while (ncap < cap) ncap *= 2;
+    if (!lx_memguard_check(ncap)) {
+        return 0;
+    }
     unsigned char *ndata = (unsigned char *)realloc(b->data, ncap);
     if (!ndata) return 0;
     b->data = ndata;
     b->cap = ncap;
+    return 1;
+}
+
+static size_t g_mem_reserve = 0;
+
+__attribute__((weak)) size_t lx_platform_free_heap(void) {
+    return (size_t)-1;
+}
+
+void lx_set_mem_reserve(size_t bytes) {
+    g_mem_reserve = bytes;
+}
+
+size_t lx_get_mem_reserve(void) {
+    return g_mem_reserve;
+}
+
+int lx_memguard_check(size_t want_bytes) {
+    size_t free = lx_platform_free_heap();
+    if (free == (size_t)-1) {
+        return 1;
+    }
+    if (free <= g_mem_reserve + want_bytes) {
+        lx_set_error(LX_ERR_INTERNAL, 0, 0, "out of memory");
+        return 0;
+    }
     return 1;
 }
 

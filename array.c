@@ -5,6 +5,8 @@
 #include "array.h"
 #include "lx_error.h"
 #include "gc.h"
+#include "memguard.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -70,14 +72,21 @@ void array_retain(Array *a) {
     if (a) a->refcount++;
 }
 
-static void ensure(Array *a, size_t need) {
-    if (a->capacity >= need) return;
+static bool ensure(Array *a, size_t need) {
+    if (a->capacity >= need) return true;
     size_t cap = a->capacity ? a->capacity : 8;
     while (cap < need) cap *= 2;
+    if (!lx_memguard_check(cap * sizeof(ArrayEntry))) {
+        return false;
+    }
     ArrayEntry *ne = (ArrayEntry*)realloc(a->entries, cap * sizeof(ArrayEntry));
-    if (!ne) return;
+    if (!ne) {
+        lx_set_error(LX_ERR_INTERNAL, 0, 0, "out of memory");
+        return false;
+    }
     a->entries = ne;
     a->capacity = cap;
+    return true;
 }
 
 size_t array_len(Array *a) { return a ? a->size : 0; }
@@ -112,7 +121,11 @@ void array_set(Array *a, Key k, Value v) {
             return;
         }
     }
-    ensure(a, a->size+1);
+    if (!ensure(a, a->size + 1)) {
+        key_free(k);
+        value_free(v);
+        return;
+    }
     a->entries[a->size].key = key_copy(k);
     a->entries[a->size].value = v;
     a->size++;
@@ -122,7 +135,11 @@ void array_set(Array *a, Key k, Value v) {
 Array *array_copy(Array *a) {
     if (!a) return NULL;
     Array *b = array_new();
-    ensure(b, a->size);
+    if (!b) return NULL;
+    if (!ensure(b, a->size)) {
+        array_free(b);
+        return NULL;
+    }
     for (size_t i = 0; i < a->size; i++) {
         b->entries[i].key = key_copy(a->entries[i].key);
         b->entries[i].value = value_copy(a->entries[i].value);
@@ -182,7 +199,10 @@ Value *array_get_ref(Array *a, Key k) {
     }
 
     /* Missing key: create slot. */
-    ensure(a, a->size + 1);
+    if (!ensure(a, a->size + 1)) {
+        key_free(k);
+        return NULL;
+    }
     a->entries[a->size].key = key_copy(k);
     a->entries[a->size].value = value_undefined();
     key_free(k);

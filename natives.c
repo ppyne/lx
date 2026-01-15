@@ -12,6 +12,9 @@
 #include "eval.h"
 #include "lx_version.h"
 #include "config.h"
+#if defined(LX_TARGET_LXSH) && LX_TARGET_LXSH
+#include "lxsh_fs.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -30,6 +33,7 @@ static NativeEntry *g_fns = NULL;
 static int g_count = 0;
 static int g_cap = 0;
 static FILE *g_output = NULL;
+static LxOutputFn g_output_cb = NULL;
 
 static void buf_append(char **buf, size_t *cap, size_t *len, const char *s, size_t n);
 #if LX_ENABLE_INCLUDE
@@ -73,6 +77,10 @@ FILE *lx_get_output(void) {
     return g_output ? g_output : stdout;
 }
 
+void lx_set_output_cb(LxOutputFn fn) {
+    g_output_cb = fn;
+}
+
 void register_function(const char *name, NativeFn fn){
     for (int i=0;i<g_count;i++){
         if (strcmp(g_fns[i].name, name)==0){
@@ -98,11 +106,21 @@ static Value n_print(Env *env, int argc, Value *argv){
     FILE *out = g_output ? g_output : stdout;
     for (int i=0;i<argc;i++){
         if (argv[i].type == VAL_BLOB) {
-            fputs("blob", out);
+            if (g_output_cb) {
+                g_output_cb("blob", 4);
+            } else {
+                fputs("blob", out);
+            }
             continue;
         }
         Value s = value_to_string(argv[i]);
-        fputs(s.s, out);
+        if (s.type == VAL_STRING && s.s) {
+            if (g_output_cb) {
+                g_output_cb(s.s, strlen(s.s));
+            } else {
+                fputs(s.s, out);
+            }
+        }
         value_free(s);
     }
     return value_void();
@@ -134,7 +152,13 @@ static void writer_write(DumpWriter *w, const char *s, size_t n) {
     if (!w) return;
     if (!w->to_string) {
         FILE *out = w->f ? w->f : (g_output ? g_output : stdout);
-        if (n > 0) fwrite(s, 1, n, out);
+        if (n > 0) {
+            if (g_output_cb) {
+                g_output_cb(s, n);
+            } else {
+                fwrite(s, 1, n, out);
+            }
+        }
         return;
     }
     if (w->len + n + 1 > w->cap) {
@@ -157,7 +181,11 @@ static void writer_puts(DumpWriter *w, const char *s) {
 static void writer_putc(DumpWriter *w, char c) {
     if (!w->to_string) {
         FILE *out = w->f ? w->f : (g_output ? g_output : stdout);
-        fputc(c, out);
+        if (g_output_cb) {
+            g_output_cb(&c, 1);
+        } else {
+            fputc(c, out);
+        }
         return;
     }
     if (w->len + 2 > w->cap) {
@@ -891,13 +919,31 @@ static void include_mark(const char *path) {
 static Value run_include(Env *env, const char *path) {
     if (!path || !*path) return value_bool(0);
     if (lx_has_error()) return value_bool(0);
-    char *source = read_file_all(path);
+    char *source = NULL;
+    char *resolved = NULL;
+#if defined(LX_TARGET_LXSH) && LX_TARGET_LXSH
+    const LxShFsOps *ops = lxsh_get_fs_ops();
+    if (ops && ops->read_file) {
+        size_t len = 0;
+        if (!ops->read_file(path, &source, &len, &resolved)) {
+            source = NULL;
+        }
+        if (source && !resolved) {
+            resolved = strdup(path);
+        }
+    }
+#endif
+    if (!source) {
+        source = read_file_all(path);
+    }
     if (!source) {
         lx_set_error(LX_ERR_RUNTIME, 0, 0, "include: cannot read '%s'", path);
         return value_bool(0);
     }
 
-    char *resolved = resolve_path(path);
+    if (!resolved) {
+        resolved = resolve_path(path);
+    }
     Parser parser;
     lexer_init(&parser.lexer, source, resolved);
     parser.current.type = TOK_ERROR;

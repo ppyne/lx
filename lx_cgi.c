@@ -896,6 +896,7 @@ static void add_post_value(Value post, const char *name, Value v) {
         char *base = dup_range(name, nlen - 2);
         if (!base) { value_free(v); return; }
         Value *slot = array_get_ref(post.a, key_string(base));
+        if (!slot) { free(base); value_free(v); return; }
         if (slot->type != VAL_ARRAY) {
             Value old = *slot;
             *slot = value_array();
@@ -915,6 +916,7 @@ static void add_post_value(Value post, const char *name, Value v) {
 
 static void file_entry_append(Value entry, const char *key, Value v) {
     Value *slot = array_get_ref(entry.a, key_string(key));
+    if (!slot) { value_free(v); return; }
     if (slot->type != VAL_ARRAY) {
         Value old = *slot;
         *slot = value_array();
@@ -933,6 +935,7 @@ static void add_file_entry(Value files, const char *field, const char *name,
                            size_t size, int error) {
     if (!files.a || !field) return;
     Value *slot = array_get_ref(files.a, key_string(field));
+    if (!slot) return;
     if (slot->type == VAL_UNDEFINED) {
         Value entry = value_array();
         array_set(entry.a, key_string("name"), value_string(name ? name : ""));
