@@ -2536,16 +2536,41 @@ static Value n_sprintf(Env *env, int argc, Value *argv){
             long long v = (long long)iv.i;
             unsigned long long uv = (unsigned long long)iv.i;
             value_free(iv);
-            int n = (spec == 'u' || spec == 'x' || spec == 'X' || spec == 'o')
-                ? snprintf(NULL, 0, frag, uv)
-                : snprintf(NULL, 0, frag, v);
+
+            int is_unsigned = (spec == 'u' || spec == 'x' || spec == 'X' || spec == 'o');
+            int len_long = 0;
+            int len_longlong = 0;
+            for (size_t j = 0; j + 1 < frag_len; j++) {
+                if (frag[j] == 'l') {
+                    if (frag[j + 1] == 'l') {
+                        len_longlong = 1;
+                    } else {
+                        len_long = 1;
+                    }
+                }
+            }
+            int use_long = (len_long || len_longlong);
+
+            int n = 0;
+            if (is_unsigned) {
+                n = use_long
+                    ? snprintf(NULL, 0, frag, uv)
+                    : snprintf(NULL, 0, frag, (unsigned int)uv);
+            } else {
+                n = use_long
+                    ? snprintf(NULL, 0, frag, v)
+                    : snprintf(NULL, 0, frag, (int)v);
+            }
             if (n > 0) {
                 char *tmp = (char *)malloc((size_t)n + 1);
                 if (tmp) {
-                    if (spec == 'u' || spec == 'x' || spec == 'X' || spec == 'o')
-                        snprintf(tmp, (size_t)n + 1, frag, uv);
-                    else
-                        snprintf(tmp, (size_t)n + 1, frag, v);
+                    if (is_unsigned) {
+                        if (use_long) snprintf(tmp, (size_t)n + 1, frag, uv);
+                        else snprintf(tmp, (size_t)n + 1, frag, (unsigned int)uv);
+                    } else {
+                        if (use_long) snprintf(tmp, (size_t)n + 1, frag, v);
+                        else snprintf(tmp, (size_t)n + 1, frag, (int)v);
+                    }
                     buf_append(&out, &cap, &len, tmp, (size_t)n);
                     free(tmp);
                 }
