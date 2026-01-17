@@ -18,3 +18,8 @@ code.
 
 Calls the ImageMagick `convert` CLI to resize an image while preserving
 aspect ratio, fitting within a bounding box.
+
+## calculator.lx
+
+Interactive calculator driven by `read_key`. Supports digits, `.` (and `,`
+mapped to `.`), `+`, `-`, `*`, `/`, and `=`. Use `c` to clear and `q` to quit.

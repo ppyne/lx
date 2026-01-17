@@ -1,0 +1,159 @@
+# Simple interactive calculator for LX shell
+# Keys: digits, '.', '-', '+', '*', '/', '='
+# 'c' clears, 'q' quits.
+
+function read_key($prompt = "") {
+    if ($prompt != "") {
+        print($prompt);
+    }
+    return lxsh_read_key();
+}
+
+function apply_op($op, $a, $b) {
+    if ($op == "+") return $a + $b;
+    if ($op == "-") return $a - $b;
+    if ($op == "*") return $a * $b;
+    if ($op == "/") return $a / $b;
+    return $b;
+}
+
+$last_len = 0;
+function repeat_space($count) {
+    $out = "";
+    for ($i = 0; $i < $count; $i = $i + 1) {
+        $out = $out . " ";
+    }
+    return $out;
+}
+
+function make_prompt($text) {
+    global $last_len;
+    $display = "> " . $text;
+    $len = strlen($display);
+    $pad = "";
+    if ($last_len > $len) {
+        $pad = repeat_space($last_len - $len);
+    }
+    $last_len = $len;
+    return "\r" . $display . $pad . "\r" . $display;
+}
+
+function finalize_line($text) {
+    global $last_len;
+    $display = "> " . $text;
+    $len = strlen($display);
+    $pad = "";
+    if ($last_len > $len) {
+        $pad = repeat_space($last_len - $len);
+    }
+    print("\r" . $display . $pad . "\n");
+    $last_len = 0;
+}
+
+function current_line($acc, $expect_op, $input) {
+    if ($expect_op) return "" . $acc;
+    return $input;
+}
+
+$acc = 0.0;
+$has_acc = false;
+$op = "";
+$input = "";
+$expect_op = false;
+
+print("Calculator: digits, '.', '-', '+', '*', '/', '='. 'c' clear, 'q' quit.\n");
+
+while (true) {
+    $prompt = make_prompt(current_line($acc, $expect_op, $input));
+    $code = read_key($prompt);
+    $ch = chr($code);
+
+    if ($code == 8 || $code == 127) {
+        if ($input != "") {
+            $input = substr($input, 0, strlen($input) - 1);
+        }
+        continue;
+    }
+
+    if ($ch == "q" || $ch == "Q") {
+        print("\n");
+        break;
+    }
+
+    if ($ch == "c" || $ch == "C") {
+        if ($expect_op && $input == "") {
+            finalize_line("" . $acc);
+        }
+        $acc = 0.0;
+        $has_acc = false;
+        $op = "";
+        $input = "";
+        $expect_op = false;
+        continue;
+    }
+
+    if ($ch == "\n" || $ch == "\r") {
+        $ch = "=";
+    }
+
+    if ($ch == ",") {
+        $ch = ".";
+    }
+    if (($ch >= "0" && $ch <= "9") || $ch == "." || ($ch == "-" && $input == "" && !$expect_op)) {
+        if ($expect_op && $input == "") {
+            finalize_line("" . $acc);
+            $acc = 0.0;
+            $has_acc = false;
+            $op = "";
+            $expect_op = false;
+        }
+        $input = $input . $ch;
+        continue;
+    }
+
+    if ($ch == "+" || $ch == "-" || $ch == "*" || $ch == "/" || $ch == "=") {
+        if ($input == "" && $expect_op) {
+            if ($ch == "=") {
+                continue;
+            }
+            $op = $ch;
+            $expect_op = false;
+            $input = "";
+            finalize_line($acc . " " . $op);
+            continue;
+        }
+        if ($input == "") {
+            continue;
+        }
+
+        $value = $input + 0;
+        $input = "";
+
+        if (!$has_acc) {
+            $acc = $value;
+            $has_acc = true;
+        } else if ($op != "") {
+            if ($op == "/" && $value == 0) {
+                print("\nError: divide by zero\n");
+                $acc = 0.0;
+                $has_acc = false;
+                $op = "";
+                continue;
+            }
+            $acc = apply_op($op, $acc, $value);
+        } else {
+            $acc = $value;
+        }
+
+        if ($ch == "=") {
+            $op = "";
+            $expect_op = true;
+            finalize_line($value . " =");
+        } else {
+            $op = $ch;
+            $expect_op = false;
+            finalize_line($value . " " . $op);
+        }
+        continue;
+    }
+}
