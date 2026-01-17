@@ -9,6 +9,9 @@
 #include "natives.h"
 #include "array.h"
 #include "lx_error.h"
+#if defined(LX_TARGET_LXSH) && LX_TARGET_LXSH
+#include "lxsh_runtime.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -998,6 +1001,12 @@ static EvalResult eval_block_like(AstNode *n, Env *env) {
 
 EvalResult eval_node(AstNode *n, Env *env) {
     if (lx_has_error()) return ok(value_null());
+#if defined(LX_TARGET_LXSH) && LX_TARGET_LXSH
+    if (lxsh_cancel_requested()) {
+        runtime_error(n, LX_ERR_RUNTIME, "interrupted");
+        return ok(value_null());
+    }
+#endif
     int ok_flag = 1;
 
     switch (n->type) {

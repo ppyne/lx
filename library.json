@@ -14,7 +14,15 @@
       "+<lx_ext.c>",
       "+<lx_error.c>",
       "+<lxsh_fs.c>",
-      "+<ext_lxshfs.c>"
+      "+<ext_lxshfs.c>",
+      "+<lxsh_exec.c>",
+      "+<ext_lxshexec.c>",
+      "+<ext_lxshcli.c>",
+      "+<ext_json.c>",
+      "+<ext_serializer.c>",
+      "+<ext_hex.c>",
+      "+<ext_time.c>",
+      "+<ext_utf8.c>"
     ]
   }
 }

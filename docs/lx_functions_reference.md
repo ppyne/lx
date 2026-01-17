@@ -97,6 +97,8 @@ Alphabetical list with syntax, return value, and domain. Click on the function n
 - [lower](functions/lower.md)(string) : string <span style="color:#888">[Strings]</span>
 - [ltrim](functions/ltrim.md)(string) : string <span style="color:#888">[Strings]</span>
 - [lxinfo](functions/lxinfo.md)() <span style="color:#888">[Output and formatting]</span>
+- [lxsh_read_key](functions/lxsh_read_key.md)([prompt]) : int <span style="color:#888">[Extensions: lxshcli]</span>
+- [lxsh_read_line](functions/lxsh_read_line.md)([prompt]) : string <span style="color:#888">[Extensions: lxshcli]</span>
 - [max](functions/max.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>
 - [merge](functions/merge.md)(array, array) : array <span style="color:#888">[Arrays]</span>
 - [min](functions/min.md)(a, b) : int|float <span style="color:#888">[Numeric and math]</span>

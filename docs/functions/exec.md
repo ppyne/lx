@@ -13,6 +13,7 @@ Domain: Extensions: exec
 Executes `command` via `/bin/sh -c` and returns the exit status. When `output`
 is provided and is an array, it is filled with rows of `[line, stream_id]`.
 `stream_id` is `LX_STDOUT` or `LX_STDERR`.
+On LX shell builds, use `lxsh_exec()` instead.
 
 ### Parameters
 

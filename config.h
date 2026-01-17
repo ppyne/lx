@@ -1,13 +1,13 @@
 /* Build-time extension switches. Set to 1 to enable, 0 to disable. */
 #if defined(LX_TARGET_LXSH) && LX_TARGET_LXSH
 #define LX_ENABLE_FS 0
-#define LX_ENABLE_JSON 0
-#define LX_ENABLE_SERIALIZER 0
-#define LX_ENABLE_HEX 0
+#define LX_ENABLE_JSON 1
+#define LX_ENABLE_SERIALIZER 1
+#define LX_ENABLE_HEX 1
 #define LX_ENABLE_BLAKE2B 0
-#define LX_ENABLE_TIME 0
+#define LX_ENABLE_TIME 1
 #define LX_ENABLE_ENV 0
-#define LX_ENABLE_UTF8 0
+#define LX_ENABLE_UTF8 1
 #define LX_ENABLE_SQLITE 0
 #define LX_ENABLE_AEAD 0
 #define LX_ENABLE_ED25519 0

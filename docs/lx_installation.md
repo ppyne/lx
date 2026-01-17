@@ -20,6 +20,9 @@ will only compile the enabled extensions, and tests for disabled extensions are
 skipped. You can also set `LX_INT_BITS` to `64` or `32` to control the integer
 width used by Lx (default is 64).
 
+On LX shell builds (`LX_TARGET_LXSH`), these extensions are enabled by default:
+`json`, `serializer`, `hex`, `time`, and `utf8`.
+
 ## Build
 
 From the project root:
