@@ -58,6 +58,21 @@ void lx_register_module(LxModuleInit init) {
     g_mods[g_mod_count++] = init;
 }
 
+void lx_reset_extensions(void) {
+    for (int i = 0; i < g_ext_count; i++) {
+        free(g_ext_names[i]);
+    }
+    free(g_ext_names);
+    g_ext_names = NULL;
+    g_ext_count = 0;
+    g_ext_cap = 0;
+
+    free(g_mods);
+    g_mods = NULL;
+    g_mod_count = 0;
+    g_mod_cap = 0;
+}
+
 void lx_init_modules(Env *global) {
     for (int i = 0; i < g_mod_count; i++) {
         g_mods[i](global);

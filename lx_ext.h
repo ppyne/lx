@@ -20,6 +20,8 @@ const char *lx_extension_name(int index);
 
 /** Register an extension module initializer. */
 void lx_register_module(LxModuleInit init);
+/** Reset registered modules and extensions. */
+void lx_reset_extensions(void);
 /** Invoke all registered modules with the global environment. */
 void lx_init_modules(Env *global);
 

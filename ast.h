@@ -272,4 +272,6 @@ struct AstNode {
     };
 };
 
+void ast_free(AstNode *node);
+
 #endif /* AST_H */

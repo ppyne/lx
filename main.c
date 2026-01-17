@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "lexer.h"
+#include "ast.h"
 #include "parser.h"
 #include "eval.h"
 #include "env.h"
@@ -152,6 +153,7 @@ int main(int argc, char **argv) {
     AstNode *program = parse_program(&parser);
     if (lx_has_error()) {
         lx_print_error(stderr);
+        ast_free(program);
         free(source);
         free(filename);
         return 1;
@@ -217,6 +219,7 @@ int main(int argc, char **argv) {
         lx_print_error(stderr);
         value_free(r.value);
         env_free(global);
+        ast_free(program);
         free(source);
         free(filename);
         return 1;
@@ -225,7 +228,7 @@ int main(int argc, char **argv) {
     /* Cleanup. */
     value_free(r.value);
     env_free(global);
-    /* Free the AST if you add an ast_free() helper. */
+    ast_free(program);
 
     free(source);
     free(filename);

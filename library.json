@@ -4,6 +4,7 @@
   "build": {
     "srcFilter": [
       "+<lexer.c>",
+      "+<ast.c>",
       "+<parser.c>",
       "+<value.c>",
       "+<array.c>",

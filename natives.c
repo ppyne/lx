@@ -9,6 +9,7 @@
 #include "lx_ext.h"
 #include "lx_error.h"
 #include "parser.h"
+#include "ast.h"
 #include "eval.h"
 #include "lx_version.h"
 #include "config.h"
@@ -951,6 +952,7 @@ static Value run_include(Env *env, const char *path) {
 
     AstNode *program = parse_program(&parser);
     if (lx_has_error() || !program) {
+        ast_free(program);
         free(source);
         free(resolved);
         return value_bool(0);
@@ -958,6 +960,7 @@ static Value run_include(Env *env, const char *path) {
 
     EvalResult r = eval_program(program, env);
     value_free(r.value);
+    ast_free(program);
     free(source);
     free(resolved);
     if (lx_has_error()) return value_bool(0);

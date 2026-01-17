@@ -16,6 +16,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "ast.h"
 #include "eval.h"
 #include "env.h"
 #include "natives.h"
@@ -1270,6 +1271,7 @@ static int run_script(const char *source, const char *filename) {
     if (lx_has_error() || !program) {
         FILE *out = LX_CGI_DISPLAY_ERRORS ? lx_get_output() : stderr;
         lx_print_error(out);
+        ast_free(program);
         return 1;
     }
 
@@ -1331,6 +1333,7 @@ static int run_script(const char *source, const char *filename) {
         lx_print_error(out);
         value_free(r.value);
         env_free(global);
+        ast_free(program);
         return 1;
     }
 #if LX_ENABLE_BLAKE2B && LX_ENABLE_SERIALIZER
@@ -1352,6 +1355,7 @@ static int run_script(const char *source, const char *filename) {
 #endif
     value_free(r.value);
     env_free(global);
+    ast_free(program);
     return 0;
 }
 

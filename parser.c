@@ -135,6 +135,14 @@ static void parse_error(Parser *p, const char *msg) {
 }
 
 static void advance(Parser *p) {
+    if (p->previous.string_val &&
+        (p->previous.type == TOK_STRING ||
+         p->previous.type == TOK_DSTRING ||
+         p->previous.type == TOK_IDENT ||
+         p->previous.type == TOK_VAR)) {
+        free(p->previous.string_val);
+        p->previous.string_val = NULL;
+    }
     p->previous = p->current;
     p->current = lexer_next(&p->lexer);
 }
@@ -615,11 +623,21 @@ static AstNode *parse_for_clause(Parser *p) {
 static AstNode *parse_primary(Parser *p) {
     RETURN_IF_ERROR(p);
     if (match(p, TOK_DSTRING)) {
-        return parse_dstring(p, p->previous.string_val ? p->previous.string_val : "");
+        AstNode *expr = parse_dstring(p, p->previous.string_val ? p->previous.string_val : "");
+        free(p->previous.string_val);
+        p->previous.string_val = NULL;
+        return expr;
     }
     /* literals */
+    if (match(p, TOK_STRING)) {
+        const char *raw = p->previous.string_val ? p->previous.string_val : "";
+        AstNode *n = make_string_literal(p, raw, strlen(raw));
+        free(p->previous.string_val);
+        p->previous.string_val = NULL;
+        return n;
+    }
     if (match(p, TOK_INT) || match(p, TOK_FLOAT) ||
-        match(p, TOK_STRING) || match(p, TOK_TRUE) ||
+        match(p, TOK_TRUE) ||
         match(p, TOK_FALSE) || match(p, TOK_NULL) ||
         match(p, TOK_UNDEFINED) || match(p, TOK_VOID)) {
         AstNode *n = node(p, AST_LITERAL);
@@ -1539,6 +1557,8 @@ static AstNode *parse_statement(Parser *p) {
 /* ---------- program ---------- */
 
 AstNode *parse_program(Parser *p) {
+    p->current.string_val = NULL;
+    p->previous.string_val = NULL;
     advance(p);
 
     if (lx_has_error()) return NULL;
