@@ -10,6 +10,8 @@ Domain: Extensions: lxshcli
 
 `lxsh_read_key([prompt]) : int`
 
+Alias on LX shell builds: `read_key`.
+
 Prints an optional prompt in the LX shell, reads a single byte from the
 keyboard queue, and returns its numeric code. Input is handled by the
 LX shell runtime while the script is active.

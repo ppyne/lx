@@ -66,6 +66,8 @@ static void lxshcli_module_init(Env* global)
     (void)global;
     lx_register_function("lxsh_read_line", n_lxsh_read_line);
     lx_register_function("lxsh_read_key", n_lxsh_read_key);
+    lx_register_function("read_line", n_lxsh_read_line);
+    lx_register_function("read_key", n_lxsh_read_key);
 }
 
 void register_lxshcli_module(void)

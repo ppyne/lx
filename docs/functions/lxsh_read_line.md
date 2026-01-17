@@ -10,6 +10,8 @@ Domain: Extensions: lxshcli
 
 `lxsh_read_line([prompt]) : string`
 
+Alias on LX shell builds: `read_line`.
+
 Prints an optional prompt in the LX shell, reads a line from the
 keyboard queue, and returns it without the trailing newline.
 

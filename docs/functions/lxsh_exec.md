@@ -10,6 +10,8 @@ Domain: Extensions: lxshexec
 
 `lxsh_exec(command[, output]) : int`
 
+Alias on LX shell builds: `exec`.
+
 Executes `command` via the LX shell and returns `0` on success or `1` on
 failure. When `output` is provided and is an array, it is filled with rows of
 `[line, stream_id]` using `LX_STDOUT` for `stream_id`. Pressing `Ctrl+C` while

@@ -85,6 +85,7 @@ static void lxshexec_module_init(Env* global)
 {
     (void)global;
     lx_register_function("lxsh_exec", n_exec);
+    lx_register_function("exec", n_exec);
 }
 
 void register_lxshexec_module(void)
