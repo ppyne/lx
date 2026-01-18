@@ -1,0 +1,283 @@
+# Budget Tracker - multi-account income/expense ledger
+
+$DATA_FILE = __DIR__ . "/budget_data.json";
+
+function load_data($path) {
+    if (file_exists($path)) {
+        $raw = file_get_contents($path);
+        if (is_json($raw)) {
+            $data = json_decode($raw);
+            if (!is_undefined($data) && key_exists("accounts", $data)) {
+                return $data;
+            }
+        }
+    }
+    return ["accounts" => [], "current" => ""];
+}
+
+function save_data($path, $data) {
+    file_put_contents($path, json_encode($data));
+}
+
+function split_words($line) {
+    $raw = split(" ", $line);
+    $out = [];
+    foreach ($raw as $w) {
+        if ($w != "") $out[] = $w;
+    }
+    return $out;
+}
+
+function join_from($parts, $start) {
+    $out = "";
+    for ($i = $start; $i < count($parts); $i = $i + 1) {
+        if ($out != "") $out = $out . " ";
+        $out = $out . $parts[$i];
+    }
+    return $out;
+}
+
+function new_account($data, $name) {
+    if ($name == "") return $data;
+    if (!key_exists($name, $data["accounts"])) {
+        $data["accounts"][$name] = ["balance" => 0.0, "tx" => []];
+    }
+    if ($data["current"] == "") $data["current"] = $name;
+    return $data;
+}
+
+function add_tx($data, $account, $type, $amount, $category, $note) {
+    $tx = [
+        "date" => date("Y-m-d H:i"),
+        "type" => $type,
+        "amount" => $amount,
+        "category" => $category,
+        "note" => $note
+    ];
+    push($data["accounts"][$account]["tx"], $tx);
+    if ($type == "income") {
+        $data["accounts"][$account]["balance"] = $data["accounts"][$account]["balance"] + $amount;
+    } else {
+        $data["accounts"][$account]["balance"] = $data["accounts"][$account]["balance"] - $amount;
+    }
+    return $data;
+}
+
+function show_help() {
+    print("
+Commands:
+");
+    print("  help                          Show this help
+");
+    print("  accounts                      List accounts and balances
+");
+    print("  use <name>                    Switch current account
+");
+    print("  new <name>                    Create a new account
+");
+    print("  income <amt> [cat] [note]     Add income
+");
+    print("  expense <amt> [cat] [note]    Add expense
+");
+    print("  transfer <to> <amt> [note]    Move funds to another account
+");
+    print("  balance                       Show current account balance
+");
+    print("  list [n]                      List last n transactions
+");
+    print("  save                          Save to disk
+");
+    print("  quit                          Exit
+
+");
+}
+
+$data = load_data($DATA_FILE);
+if (count($data["accounts"]) == 0) {
+    $data = new_account($data, "cash");
+}
+if ($data["current"] == "") {
+    foreach ($data["accounts"] as $name => $acc) {
+        $data["current"] = $name;
+        break;
+    }
+}
+
+print("Budget Tracker - multi-account ledger. Type 'help' for commands.
+
+");
+
+while (true) {
+    $current = $data["current"];
+    $prompt = "[" . $current . "]> ";
+    $line = read_line($prompt);
+    if (is_undefined($line)) break;
+
+    $line = trim($line);
+    if ($line == "") continue;
+
+    $parts = split_words($line);
+    $cmd = strtolower($parts[0]);
+
+    if ($cmd == "help") {
+        show_help();
+        continue;
+    }
+
+    if ($cmd == "accounts") {
+        print("Accounts:
+");
+        foreach ($data["accounts"] as $name => $acc) {
+            $mark = ($name == $current) ? "*" : " ";
+            $bal = sprintf("%.2f", $acc["balance"]);
+            print($mark . " " . $name . ": " . $bal . "
+");
+        }
+        continue;
+    }
+
+    if ($cmd == "use") {
+        $name = $parts[1];
+        if (is_undefined($name) || $name == "") {
+            print("Usage: use <name>
+");
+            continue;
+        }
+        if (!key_exists($name, $data["accounts"])) {
+            print("No such account. Create with: new " . $name . "
+");
+            continue;
+        }
+        $data["current"] = $name;
+        continue;
+    }
+
+    if ($cmd == "new") {
+        $name = $parts[1];
+        if (is_undefined($name) || $name == "") {
+            print("Usage: new <name>
+");
+            continue;
+        }
+        $data = new_account($data, $name);
+        save_data($DATA_FILE, $data);
+        print("Created account: " . $name . "
+");
+        continue;
+    }
+
+    if ($cmd == "income" || $cmd == "expense") {
+        $amount_raw = $parts[1];
+        if (is_undefined($amount_raw) || $amount_raw == "") {
+            print("Usage: " . $cmd . " <amt> [cat] [note]
+");
+            continue;
+        }
+        $amount = float($amount_raw);
+        if ($amount < 0) $amount = -$amount;
+        if ($amount == 0) {
+            print("Amount must be > 0.
+");
+            continue;
+        }
+        $category = "misc";
+        if (!is_undefined($parts[2]) && $parts[2] != "") {
+            $category = strtolower($parts[2]);
+        }
+        $note = "";
+        if (count($parts) > 3) {
+            $note = join_from($parts, 3);
+        }
+        $data = add_tx($data, $current, $cmd, $amount, $category, $note);
+        save_data($DATA_FILE, $data);
+        $sign = ($cmd == "income") ? "+" : "-";
+        print("Saved " . $cmd . ": " . $sign . sprintf("%.2f", $amount) . "
+");
+        continue;
+    }
+
+    if ($cmd == "transfer") {
+        $to = $parts[1];
+        $amount_raw = $parts[2];
+        if (is_undefined($to) || $to == "" || is_undefined($amount_raw) || $amount_raw == "") {
+            print("Usage: transfer <to> <amt> [note]
+");
+            continue;
+        }
+        if (!key_exists($to, $data["accounts"])) {
+            print("No such account: " . $to . "
+");
+            continue;
+        }
+        $amount = float($amount_raw);
+        if ($amount < 0) $amount = -$amount;
+        if ($amount == 0) {
+            print("Amount must be > 0.
+");
+            continue;
+        }
+        $note = "";
+        if (count($parts) > 3) {
+            $note = join_from($parts, 3);
+        }
+        $data = add_tx($data, $current, "expense", $amount, "transfer", "to " . $to . " " . $note);
+        $data = add_tx($data, $to, "income", $amount, "transfer", "from " . $current . " " . $note);
+        save_data($DATA_FILE, $data);
+        print("Transferred " . sprintf("%.2f", $amount) . " to " . $to . "
+");
+        continue;
+    }
+
+    if ($cmd == "balance") {
+        $bal = $data["accounts"][$current]["balance"];
+        print("Balance: " . sprintf("%.2f", $bal) . "
+");
+        continue;
+    }
+
+    if ($cmd == "list") {
+        $n = 10;
+        if (!is_undefined($parts[1]) && $parts[1] != "") {
+            $n = int($parts[1]);
+        }
+        if ($n <= 0) $n = 10;
+        $tx = $data["accounts"][$current]["tx"];
+        $count = count($tx);
+        if ($count == 0) {
+            print("No transactions.
+");
+            continue;
+        }
+        $start = $count - $n;
+        if ($start < 0) $start = 0;
+        for ($i = $start; $i < $count; $i = $i + 1) {
+            $t = $tx[$i];
+            $sign = ($t["type"] == "income") ? "+" : "-";
+            $amt = sprintf("%.2f", $t["amount"]);
+            $note = $t["note"];
+            $cat = $t["category"];
+            $extra = (trim($note) == "") ? "" : " | " . $note;
+            print($t["date"] . " | " . $sign . $amt . " | " . $cat . $extra . "
+");
+        }
+        continue;
+    }
+
+    if ($cmd == "save") {
+        save_data($DATA_FILE, $data);
+        print("Saved.
+");
+        continue;
+    }
+
+    if ($cmd == "quit" || $cmd == "q") {
+        save_data($DATA_FILE, $data);
+        print("
+Goodbye.
+");
+        break;
+    }
+
+    print("Unknown command. Type 'help' for a list.
+");
+}

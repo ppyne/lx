@@ -1,0 +1,292 @@
+# Star Trader - classic prompt-driven trading game
+
+print("Star Trader - a tiny old-school trading game.
+");
+print("Commands: help, status, market, buy, sell, refuel, travel, quit
+
+");
+
+$planets = ["Sol", "Vega", "Orion", "Nova", "Zenith"]; 
+$base_prices = [
+    "ore" => 30,
+    "food" => 18,
+    "tech" => 120,
+    "lux" => 70,
+    "med" => 45
+];
+
+$cargo = ["ore" => 0, "food" => 0, "tech" => 0, "lux" => 0, "med" => 0];
+$credits = 120;
+$fuel_max = 30;
+$fuel = $fuel_max;
+$cargo_cap = 20;
+$planet_index = 0;
+$day = 1;
+
+function cargo_used($cargo) {
+    $sum = 0;
+    foreach ($cargo as $v) {
+        $sum = $sum + $v;
+    }
+    return $sum;
+}
+
+function make_market($base) {
+    $market = [];
+    foreach ($base as $k => $v) {
+        $delta = rand(-12, 12);
+        $price = $v + $delta;
+        if ($price < 1) $price = 1;
+        $market[$k] = $price;
+    }
+    return $market;
+}
+
+function show_market($market) {
+    print("Market prices:
+");
+    foreach ($market as $k => $v) {
+        print("- " . ucfirst($k) . ": " . $v . " cr
+");
+    }
+}
+
+function show_status($planet, $credits, $fuel, $fuel_max, $cargo, $cargo_cap, $day) {
+    $used = cargo_used($cargo);
+    print("Day " . $day . " | Location: " . $planet . "
+");
+    print("Credits: " . $credits . " cr
+");
+    print("Fuel: " . $fuel . "/" . $fuel_max . "
+");
+    print("Cargo: " . $used . "/" . $cargo_cap . "
+");
+}
+
+function show_hold($cargo) {
+    $empty = true;
+    foreach ($cargo as $k => $v) {
+        if ($v > 0) {
+            print("- " . ucfirst($k) . ": " . $v . "
+");
+            $empty = false;
+        }
+    }
+    if ($empty) print("(empty)
+");
+}
+
+function fuel_cost($from, $to) {
+    return 4 + abs($to - $from) * 3;
+}
+
+function show_help() {
+    print("
+Commands:
+");
+    print("  status               Show ship status
+");
+    print("  market               Show local market prices
+");
+    print("  buy <good> [qty]      Buy goods
+");
+    print("  sell <good> [qty]     Sell goods
+");
+    print("  refuel [qty]          Buy fuel for 1 credit each
+");
+    print("  travel <planet>       Travel by name or index
+");
+    print("  quit                  Leave the game
+
+");
+}
+
+$market = make_market($base_prices);
+
+while (true) {
+    $planet = $planets[$planet_index];
+    $line = read_line($planet . "> ");
+    if (is_undefined($line)) break;
+    $line = trim(strtolower($line));
+    if ($line == "") continue;
+
+    $parts = split(" ", $line);
+    $cmd = $parts[0];
+
+    if ($cmd == "help") {
+        show_help();
+        continue;
+    }
+
+    if ($cmd == "status") {
+        show_status($planet, $credits, $fuel, $fuel_max, $cargo, $cargo_cap, $day);
+        print("Hold:
+");
+        show_hold($cargo);
+        continue;
+    }
+
+    if ($cmd == "market") {
+        show_market($market);
+        continue;
+    }
+
+    if ($cmd == "buy" || $cmd == "sell") {
+        $good = $parts[1];
+        if (is_undefined($good) || $good == "") {
+            print("Usage: " . $cmd . " <good> [qty]
+");
+            continue;
+        }
+        if (!key_exists($good, $market)) {
+            print("Unknown good: " . $good . "
+");
+            continue;
+        }
+        $qty = 1;
+        if (!is_undefined($parts[2]) && $parts[2] != "") {
+            $qty = int($parts[2]);
+        }
+        if ($qty <= 0) {
+            print("Quantity must be positive.
+");
+            continue;
+        }
+
+        if ($cmd == "buy") {
+            $free = $cargo_cap - cargo_used($cargo);
+            if ($free <= 0) {
+                print("Hold is full.
+");
+                continue;
+            }
+            if ($qty > $free) $qty = $free;
+            $price = $market[$good];
+            $max_afford = int($credits / $price);
+            if ($max_afford <= 0) {
+                print("Not enough credits.
+");
+                continue;
+            }
+            if ($qty > $max_afford) $qty = $max_afford;
+            $cargo[$good] = $cargo[$good] + $qty;
+            $credits = $credits - ($price * $qty);
+            print("Bought " . $qty . " " . $good . " for " . ($price * $qty) . " cr
+");
+        } else {
+            if ($cargo[$good] <= 0) {
+                print("No " . $good . " in hold.
+");
+                continue;
+            }
+            if ($qty > $cargo[$good]) $qty = $cargo[$good];
+            $price = $market[$good];
+            $cargo[$good] = $cargo[$good] - $qty;
+            $credits = $credits + ($price * $qty);
+            print("Sold " . $qty . " " . $good . " for " . ($price * $qty) . " cr
+");
+        }
+        continue;
+    }
+
+    if ($cmd == "refuel") {
+        $qty = $fuel_max - $fuel;
+        if (!is_undefined($parts[1]) && $parts[1] != "") {
+            $qty = int($parts[1]);
+        }
+        if ($qty <= 0) {
+            print("Usage: refuel [qty]
+");
+            continue;
+        }
+        $space = $fuel_max - $fuel;
+        if ($space <= 0) {
+            print("Tank already full.
+");
+            continue;
+        }
+        if ($qty > $space) $qty = $space;
+        if ($qty > $credits) $qty = $credits;
+        if ($qty <= 0) {
+            print("Not enough credits.
+");
+            continue;
+        }
+        $fuel = $fuel + $qty;
+        $credits = $credits - $qty;
+        print("Refueled " . $qty . " units.
+");
+        continue;
+    }
+
+    if ($cmd == "travel") {
+        $dest = $parts[1];
+        if (is_undefined($dest) || $dest == "") {
+            print("Usage: travel <planet>
+");
+            continue;
+        }
+        $to = -1;
+        if ($dest >= "0" && $dest <= "9") {
+            $idx = int($dest);
+            if ($idx >= 0 && $idx < count($planets)) $to = $idx;
+        } else {
+            for ($i = 0; $i < count($planets); $i = $i + 1) {
+                if (strtolower($planets[$i]) == $dest) {
+                    $to = $i;
+                    break;
+                }
+            }
+        }
+        if ($to < 0) {
+            print("Unknown planet. Options: ");
+            print(join($planets, ", ") . "
+");
+            continue;
+        }
+        if ($to == $planet_index) {
+            print("Already in orbit.
+");
+            continue;
+        }
+        $cost = fuel_cost($planet_index, $to);
+        if ($fuel < $cost) {
+            print("Not enough fuel. Need " . $cost . ", have " . $fuel . "
+");
+            continue;
+        }
+        $fuel = $fuel - $cost;
+        $planet_index = $to;
+        $day = $day + 1;
+        $market = make_market($base_prices);
+
+        if (rand(1, 100) <= 20) {
+            if (cargo_used($cargo) > 0) {
+                print("Pirates raid your hold! You lose 1 random item.
+");
+                foreach ($cargo as $k => $v) {
+                    if ($v > 0) {
+                        $cargo[$k] = $cargo[$k] - 1;
+                        break;
+                    }
+                }
+            } else {
+                print("You evade pirates.
+");
+            }
+        }
+        print("Arrived at " . $planets[$planet_index] . ". Fuel cost: " . $cost . "
+");
+        continue;
+    }
+
+    if ($cmd == "quit" || $cmd == "q") {
+        print("
+Safe travels, trader.
+");
+        break;
+    }
+
+    print("Unknown command. Type 'help' for a list.
+");
+}

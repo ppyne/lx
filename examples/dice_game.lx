@@ -1,0 +1,24 @@
+print("Welcome to our little dice game =)\n");
+print("Press [q] to quit the game\n\n");
+
+$wins = 0;
+$losses = 0;
+
+while (true) {
+    $dice = rand(1, 6);
+
+    $input = chr(read_key("Enter a number between 1 and 6: "));
+    print("$input\n");
+
+    if ($input == $dice) {
+        $wins++;
+        print("You win! Dice was $dice.\n\n");
+    } else if ($input == 'q') {
+        break;
+    } else if ($input >= 1 && $input <= 6) {
+        $losses++;
+        print("You loose! Dice was $dice\n\n");
+    } else print("You must enter a number between 1 and 6.\n\n");
+}
+
+print("You have won $wins times and lost $losses times.\n");

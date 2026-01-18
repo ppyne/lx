@@ -1,0 +1,81 @@
+# Lunar Lander - classic text landing game
+
+print("Lunar Lander - land softly on the moon.
+");
+print("Type a burn amount each turn (0-10). 'q' quits.
+
+");
+
+$altitude = 1000.0;
+$velocity = 0.0;
+$fuel = 120.0;
+$gravity = 1.6;  # moon-like
+$max_burn = 10.0;
+$turn = 1;
+
+function clamp($v, $min, $max) {
+    if ($v < $min) return $min;
+    if ($v > $max) return $max;
+    return $v;
+}
+
+function show_status($turn, $altitude, $velocity, $fuel) {
+    print("
+Turn " . $turn . "
+");
+    print("Altitude: " . int($altitude) . " m
+");
+    print("Velocity: " . int($velocity) . " m/s
+");
+    print("Fuel: " . int($fuel) . " units
+");
+}
+
+while (true) {
+    if ($altitude <= 0) break;
+    show_status($turn, $altitude, $velocity, $fuel);
+
+    $line = read_line("Burn (0-10): ");
+    if (is_undefined($line)) break;
+    $line = trim(strtolower($line));
+    if ($line == "q" || $line == "quit") {
+        print("
+Mission aborted.
+");
+        break;
+    }
+
+    $burn = 0.0;
+    if ($line != "") {
+        $burn = int($line);
+    }
+    if ($burn < 0) $burn = 0;
+    if ($burn > $max_burn) $burn = $max_burn;
+    if ($burn > $fuel) $burn = $fuel;
+
+    # physics: positive velocity = downward
+    $velocity = $velocity + $gravity - $burn;
+    $altitude = $altitude - $velocity;
+    $fuel = $fuel - $burn;
+    if ($fuel < 0) $fuel = 0;
+
+    $turn = $turn + 1;
+}
+
+if ($altitude <= 0) {
+    $impact = $velocity;
+    if ($impact < 0) $impact = 0;
+    if ($impact <= 2) {
+        print("
+Touchdown! Nice landing. Impact: " . int($impact) . " m/s
+");
+    } else if ($impact <= 5) {
+        print("
+Rough landing, but you survived. Impact: " . int($impact) . " m/s
+");
+    } else {
+        print("
+Crash! Impact: " . int($impact) . " m/s
+");
+    }
+}

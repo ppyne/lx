@@ -14,6 +14,9 @@ Prints an optional prompt, reads a single byte from standard input, and
 returns its numeric code. When reading from a terminal, input is read in
 raw mode without echo.
 
+Note: `read_key(prompt)` prints the prompt and flushes stdout, which avoids
+line-buffering issues you might see with `print()` prompts that don't end in `\n`.
+
 ### Parameters
 
 - **`prompt`**: Optional prompt to display before reading.
