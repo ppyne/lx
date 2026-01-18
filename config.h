@@ -13,6 +13,8 @@
 #define LX_ENABLE_ED25519 0
 #define LX_ENABLE_EXEC 0
 #define LX_ENABLE_CLI 0
+
+#define LX_ARENA_SIZE (32 * 1024)
 #else
 #define LX_ENABLE_FS 1
 #define LX_ENABLE_JSON 1
