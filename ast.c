@@ -2,6 +2,39 @@
 
 #include <stdlib.h>
 
+typedef struct AstArenaOwner {
+    AstNode *root;
+    void *arena;
+    struct AstArenaOwner *next;
+} AstArenaOwner;
+
+static AstArenaOwner *g_ast_arenas = NULL;
+
+void ast_register_arena(AstNode *root, void *arena) {
+    if (!root || !arena) return;
+
+    AstArenaOwner *owner = (AstArenaOwner *)malloc(sizeof(AstArenaOwner));
+    if (!owner) return;
+    owner->root = root;
+    owner->arena = arena;
+    owner->next = g_ast_arenas;
+    g_ast_arenas = owner;
+}
+
+static void ast_release_arena(AstNode *root) {
+    AstArenaOwner **cur = &g_ast_arenas;
+    while (*cur) {
+        if ((*cur)->root == root) {
+            AstArenaOwner *owner = *cur;
+            *cur = owner->next;
+            free(owner->arena);
+            free(owner);
+            return;
+        }
+        cur = &(*cur)->next;
+    }
+}
+
 static void ast_free_list(AstNode **items, int count) {
     if (!items) return;
     for (int i = 0; i < count; i++) {
@@ -20,6 +53,8 @@ static void ast_free_strings(char **items, int count) {
 
 void ast_free(AstNode *node) {
     if (!node) return;
+
+    int free_node = (node->flags & AST_FLAG_HEAP) != 0;
 
     switch (node->type) {
         case AST_PROGRAM:
@@ -185,5 +220,11 @@ void ast_free(AstNode *node) {
             break;
     }
 
-    free(node);
+    if (node->type == AST_PROGRAM) {
+        ast_release_arena(node);
+    }
+
+    if (free_node) {
+        free(node);
+    }
 }

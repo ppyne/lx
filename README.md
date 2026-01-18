@@ -17,6 +17,16 @@ counting with a periodic mark‑and‑sweep pass to break cycles. The environmen
 explicit `global` declarations. Built‑in functions and extensions are registered through a small C
 extension API and exposed at startup.
 
+### AST arena
+
+The parser can use an optional AST arena to reduce heap fragmentation and improve parse-time
+allocation locality. The arena is allocated per parse, nodes are carved out sequentially, and the
+arena is released automatically when the root AST is freed. If the arena fills up, node allocation
+falls back to `calloc`.
+
+To configure the arena size, define `LX_ARENA_SIZE` in `config.h` (bytes). A value of `0` disables
+the arena and uses heap allocation only.
+
 ## License
 
 BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.

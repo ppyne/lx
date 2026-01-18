@@ -62,3 +62,7 @@
 #else
 #define LX_ENABLE_INCLUDE 1
 #endif
+
+#ifndef LX_ARENA_SIZE
+#define LX_ARENA_SIZE (64 * 1024)
+#endif

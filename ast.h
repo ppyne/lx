@@ -5,6 +5,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdint.h>
 #include "lexer.h"
 
 /** AST node kinds. */
@@ -86,6 +87,7 @@ struct AstNode {
     AstType type;
     int line;
     int col;
+    uint32_t flags;
 
     union {
         /* program / block */
@@ -272,6 +274,9 @@ struct AstNode {
     };
 };
 
+#define AST_FLAG_HEAP 0x1
+
 void ast_free(AstNode *node);
+void ast_register_arena(AstNode *root, void *arena);
 
 #endif /* AST_H */

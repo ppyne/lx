@@ -6,8 +6,59 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stddef.h>
 #include "parser.h"
 #include "lx_error.h"
+#include "config.h"
+
+/* ---------- arena ---------- */
+
+#ifndef LX_ARENA_SIZE
+#define LX_ARENA_SIZE 0
+#endif
+
+#define AST_ARENA_ALIGN (sizeof(void *) > 8 ? sizeof(void *) : 8)
+
+static unsigned char *g_ast_arena = NULL;
+static size_t g_ast_arena_size = 0;
+static size_t g_ast_arena_used = 0;
+
+static void arena_begin(void) {
+    g_ast_arena = NULL;
+    g_ast_arena_size = 0;
+    g_ast_arena_used = 0;
+#if LX_ARENA_SIZE > 0
+    g_ast_arena = (unsigned char *)malloc(LX_ARENA_SIZE);
+    if (g_ast_arena) g_ast_arena_size = LX_ARENA_SIZE;
+#endif
+}
+
+static void arena_finish(AstNode *root) {
+    if (g_ast_arena) {
+        ast_register_arena(root, g_ast_arena);
+    }
+    g_ast_arena = NULL;
+    g_ast_arena_size = 0;
+    g_ast_arena_used = 0;
+}
+
+static void arena_discard(void) {
+    if (g_ast_arena) {
+        free(g_ast_arena);
+    }
+    g_ast_arena = NULL;
+    g_ast_arena_size = 0;
+    g_ast_arena_used = 0;
+}
+
+static void *arena_alloc(size_t size) {
+    if (!g_ast_arena) return NULL;
+    size_t aligned = (g_ast_arena_used + (AST_ARENA_ALIGN - 1)) & ~(AST_ARENA_ALIGN - 1);
+    if (aligned + size > g_ast_arena_size) return NULL;
+    void *ptr = g_ast_arena + aligned;
+    g_ast_arena_used = aligned + size;
+    return ptr;
+}
 
 /* ---------- helpers ---------- */
 
@@ -166,7 +217,19 @@ static void expect(Parser *p, TokenType t, const char *msg) {
 }
 
 static AstNode *node(Parser *p, AstType t) {
-    AstNode *n = (AstNode *)calloc(1, sizeof(AstNode));
+    AstNode *n = (AstNode *)arena_alloc(sizeof(AstNode));
+    if (n) {
+        memset(n, 0, sizeof(AstNode));
+        n->flags = 0;
+    } else {
+        n = (AstNode *)calloc(1, sizeof(AstNode));
+        if (!n) {
+            Token *src = (p->previous.type != TOK_ERROR) ? &p->previous : &p->current;
+            lx_set_error(LX_ERR_INTERNAL, src->line, src->col, "out of memory");
+            return NULL;
+        }
+        n->flags = AST_FLAG_HEAP;
+    }
     n->type = t;
     Token *src = (p->previous.type != TOK_ERROR) ? &p->previous : &p->current;
     n->line = src->line;
@@ -1559,10 +1622,18 @@ static AstNode *parse_statement(Parser *p) {
 AstNode *parse_program(Parser *p) {
     p->current.string_val = NULL;
     p->previous.string_val = NULL;
+    arena_begin();
     advance(p);
 
-    if (lx_has_error()) return NULL;
+    if (lx_has_error()) {
+        arena_discard();
+        return NULL;
+    }
     AstNode *prog = node(p, AST_PROGRAM);
+    if (!prog) {
+        arena_discard();
+        return NULL;
+    }
     prog->block.items = NULL;
     prog->block.count = 0;
 
@@ -1570,7 +1641,11 @@ AstNode *parse_program(Parser *p) {
         prog->block.items = realloc(prog->block.items,
             sizeof(AstNode *) * (prog->block.count + 1));
         prog->block.items[prog->block.count++] = parse_statement(p);
-        if (lx_has_error()) return NULL;
+        if (lx_has_error()) {
+            arena_discard();
+            return NULL;
+        }
     }
+    arena_finish(prog);
     return prog;
 }
