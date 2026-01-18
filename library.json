@@ -6,6 +6,7 @@
       "+<lexer.c>",
       "+<ast.c>",
       "+<parser.c>",
+      "+<lx_intern.c>",
       "+<value.c>",
       "+<array.c>",
       "+<env.c>",

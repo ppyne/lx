@@ -10,6 +10,7 @@
 #include "parser.h"
 #include "lx_error.h"
 #include "config.h"
+#include "lx_intern.h"
 
 /* ---------- arena ---------- */
 
@@ -63,6 +64,13 @@ static void *arena_alloc(size_t size) {
 /* ---------- helpers ---------- */
 
 #define RETURN_IF_ERROR(p) do { if (lx_has_error()) return NULL; } while (0)
+
+static char *intern_previous(Parser *p) {
+    char *value = p->previous.string_val;
+    if (!value) return NULL;
+    p->previous.string_val = NULL;
+    return lx_intern_take(value);
+}
 
 static const char *token_name(TokenType t) {
     switch (t) {
@@ -651,7 +659,7 @@ static AstNode *parse_for_clause(Parser *p) {
                 RETURN_IF_ERROR(p);
             }
             advance(p);
-            char *name = strdup(p->previous.string_val);
+            char *name = intern_previous(p);
             AstNode *val = make_int_literal(p, 1);
             AstNode *n = node(p, AST_ASSIGN);
             n->assign.name = name;
@@ -665,7 +673,7 @@ static AstNode *parse_for_clause(Parser *p) {
                 RETURN_IF_ERROR(p);
             }
             advance(p);
-            char *name = strdup(p->previous.string_val);
+            char *name = intern_previous(p);
             one = parse_for_assign(p, name);
         }
         RETURN_IF_ERROR(p);
@@ -746,7 +754,7 @@ static AstNode *parse_primary(Parser *p) {
     /* variable */
     if (match(p, TOK_VAR)) {
         AstNode *n = node(p, AST_VAR);
-        n->var.name = strdup(p->previous.string_val);
+        n->var.name = intern_previous(p);
         return n;
     }
 
@@ -782,7 +790,7 @@ static AstNode *parse_primary(Parser *p) {
 
     /* identifier → call */
     if (match(p, TOK_IDENT)) {
-        char *name = strdup(p->previous.string_val);
+        char *name = intern_previous(p);
         if (match(p, TOK_LPAREN)) {
             AstNode *n = node(p, AST_CALL);
             n->call.name = name;
@@ -1036,7 +1044,7 @@ static AstNode *parse_statement(Parser *p) {
             RETURN_IF_ERROR(p);
         }
         advance(p);
-        char *name = strdup(p->previous.string_val);
+        char *name = intern_previous(p);
 
         expect(p, TOK_LPAREN, "(");
         RETURN_IF_ERROR(p);
@@ -1052,7 +1060,7 @@ static AstNode *parse_statement(Parser *p) {
                 }
                 advance(p);
                 params = realloc(params, sizeof(char *) * (param_count + 1));
-                params[param_count++] = strdup(p->previous.string_val);
+                params[param_count++] = intern_previous(p);
                 param_defaults = realloc(param_defaults, sizeof(AstNode *) * param_count);
                 param_defaults[param_count - 1] = NULL;
 
@@ -1113,7 +1121,7 @@ static AstNode *parse_statement(Parser *p) {
             }
             advance(p);
             names = realloc(names, sizeof(char *) * (count + 1));
-            names[count++] = strdup(p->previous.string_val);
+            names[count++] = intern_previous(p);
         } while (match(p, TOK_COMMA));
 
         expect(p, TOK_SEMI, ";");
@@ -1215,7 +1223,7 @@ static AstNode *parse_statement(Parser *p) {
             RETURN_IF_ERROR(p);
         }
         advance(p);
-        char *first = strdup(p->previous.string_val);
+        char *first = intern_previous(p);
 
         char *key_name = NULL;
         char *value_name = NULL;
@@ -1227,7 +1235,7 @@ static AstNode *parse_statement(Parser *p) {
                 RETURN_IF_ERROR(p);
             }
             advance(p);
-            value_name = strdup(p->previous.string_val);
+            value_name = intern_previous(p);
         } else {
             value_name = first;
         }
@@ -1405,7 +1413,7 @@ static AstNode *parse_statement(Parser *p) {
     /* simple variable assignment: $var = expr; */
     if (check(p, TOK_VAR)) {
         advance(p);
-        char *name = strdup(p->previous.string_val);
+        char *name = intern_previous(p);
 
         Operator op = OP_ASSIGN;
         if (match(p, TOK_ASSIGN)) {

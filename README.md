@@ -27,6 +27,12 @@ falls back to `calloc`.
 To configure the arena size, define `LX_ARENA_SIZE` in `config.h` (bytes). A value of `0` disables
 the arena and uses heap allocation only.
 
+### String interning
+
+The parser interns identifier and variable names to reduce duplicate string allocations and memory
+churn across large parses. Interned names are shared across the AST and released only when the
+process exits, while literal string values keep their own allocation.
+
 ## License
 
 BSD 3-Clause License. See [`LICENSE`](LICENSE) for details.

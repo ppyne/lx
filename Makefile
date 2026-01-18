@@ -4,7 +4,7 @@ LDFLAGS ?= -lm
 NO_VERSION ?= 0
 CONFIG_H ?= config.h
 
-BASE_SRCS = lexer.c parser.c ast.c main.c value.c array.c env.c natives.c eval.c gc.c lx_ext.c lx_error.c
+BASE_SRCS = lexer.c parser.c ast.c lx_intern.c main.c value.c array.c env.c natives.c eval.c gc.c lx_ext.c lx_error.c
 EXT_SRCS =
 LX_ENABLE_FS := $(shell awk '/^\#define[ \t]+LX_ENABLE_FS/{print $$3}' $(CONFIG_H) 2>/dev/null)
 LX_ENABLE_JSON := $(shell awk '/^\#define[ \t]+LX_ENABLE_JSON/{print $$3}' $(CONFIG_H) 2>/dev/null)

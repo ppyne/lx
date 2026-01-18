@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "lx_intern.h"
 
 #include <stdlib.h>
 
@@ -43,10 +44,17 @@ static void ast_free_list(AstNode **items, int count) {
     free(items);
 }
 
+static void free_name(char *value) {
+    if (!value) return;
+    if (!lx_intern_is_interned(value)) {
+        free(value);
+    }
+}
+
 static void ast_free_strings(char **items, int count) {
     if (!items) return;
     for (int i = 0; i < count; i++) {
-        free(items[i]);
+        free_name(items[i]);
     }
     free(items);
 }
@@ -81,8 +89,8 @@ void ast_free(AstNode *node) {
             break;
         case AST_FOREACH:
             ast_free(node->foreach_stmt.iterable);
-            free(node->foreach_stmt.key_name);
-            free(node->foreach_stmt.value_name);
+            free_name(node->foreach_stmt.key_name);
+            free_name(node->foreach_stmt.value_name);
             ast_free(node->foreach_stmt.body);
             break;
         case AST_DO_WHILE:
@@ -109,10 +117,10 @@ void ast_free(AstNode *node) {
             ast_free_strings(node->global_stmt.names, node->global_stmt.count);
             break;
         case AST_FUNCTION:
-            free(node->func.name);
+            free_name(node->func.name);
             if (node->func.params) {
                 for (int i = 0; i < node->func.param_count; i++) {
-                    free(node->func.params[i]);
+                    free_name(node->func.params[i]);
                 }
                 free(node->func.params);
             }
@@ -138,7 +146,7 @@ void ast_free(AstNode *node) {
             ast_free(node->index_assign.value);
             break;
         case AST_ASSIGN:
-            free(node->assign.name);
+            free_name(node->assign.name);
             ast_free(node->assign.value);
             break;
         case AST_ASSIGN_DYNAMIC:
@@ -153,7 +161,7 @@ void ast_free(AstNode *node) {
             ast_free(node->destruct_assign.value);
             break;
         case AST_VAR:
-            free(node->var.name);
+            free_name(node->var.name);
             break;
         case AST_VAR_DYNAMIC:
             ast_free(node->var_dynamic.expr);
@@ -166,7 +174,7 @@ void ast_free(AstNode *node) {
             ast_free(node->unary.expr);
             break;
         case AST_CALL:
-            free(node->call.name);
+            free_name(node->call.name);
             ast_free_list(node->call.args, node->call.argc);
             break;
         case AST_INDEX:
@@ -210,7 +218,7 @@ void ast_free(AstNode *node) {
                 case TOK_DSTRING:
                 case TOK_IDENT:
                 case TOK_VAR:
-                    free(node->literal.token.string_val);
+                    free_name(node->literal.token.string_val);
                     break;
                 default:
                     break;
